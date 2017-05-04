@@ -36,7 +36,7 @@ app.on('ready', () => {
     slashes: true
   }))
 
-  tray = new Tray(path.join(__dirname, '..', 'trayicon.png'));
+  tray = new Tray(path.join(__dirname, 'trayicon.png'));
   const contextMenu = Menu.buildFromTemplate([
     {label: 'Show window', type: 'normal', click: () => { mainWindow.show(); }},
     {label: 'Quit', type: 'normal', click: () => { mainWindow.destroy(); app.quit(); }}
