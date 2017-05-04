@@ -15,7 +15,6 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 include_directories(
-  ${MULTIPASS_GENERATED_INCLUDE_DIRECTORIES}
   ${CMAKE_SOURCE_DIR}
   ${GMOCK_INCLUDE_DIR}
   ${GTEST_INCLUDE_DIR}
