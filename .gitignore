@@ -1,2 +1,3 @@
-/node_modules
-/dist
+/electron-app/app/node_modules
+/electron-app/dist
+/electron-app/node_modules
