@@ -13,11 +13,10 @@ git submodule update --init --recursive
 
 Dependencies
 ---------------------------------------
-gRPC has to be built from source, pull all the required submodules with:
+gRPC has to be built from source, pull all the required source submodules with:
 
     git submodule update --init --recursive
 
-#zlib1g-dev is a hack, gRPC/third_party/zlib fails to build otherwise...
 apt install cmake cmake-extras build-essential golang zlib1g-dev libprocess-cpp-dev google-mock autoconf libtool shtool autogen libprotobuf-dev libprotoc-dev protobuf-compiler
 
 
@@ -38,11 +37,11 @@ Then multipass
     cmake ../
     make
 
-Running daemon
+Running daemon and client
 ---------------------------------------
 
-   <multipass_root>/build-multipass/multipassd
+   <multipass_root>/build-multipass/bin/multipassd
 
-   <multipass_root>/build-multipass/ubuntu launch (should pop up a qemu instance)
+   <multipass_root>/build-multipass/bin/ubuntu launch (should pop up a qemu instance)
 
 
