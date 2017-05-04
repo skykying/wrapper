@@ -21,8 +21,6 @@ include_directories(
   ${GTEST_INCLUDE_DIR}
 )
 
-message("gen hdrs - ${MULTIPASS_GENERATED_INCLUDE_DIRECTORIES}")
-
 add_executable(multipass-tests
   test_daemon.cpp
   test_qemu_backend.cpp
