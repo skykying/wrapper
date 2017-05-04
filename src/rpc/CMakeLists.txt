@@ -26,5 +26,5 @@ add_library(rpc STATIC
 )
 
 target_link_libraries(rpc
-  gRPC::grpc++_reflection
+  gRPC::grpc++
   ${PROTOBUF_LIBRARIES})

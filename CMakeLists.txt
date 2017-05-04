@@ -36,6 +36,7 @@ pkg_check_modules(PROCESS_CPP process-cpp REQUIRED)
 # gRPC headers will be generated as rpc/*.grpc.pb.h
 set(GENERATED_RPC_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/src)
 include_directories(include ${GENERATED_RPC_INCLUDE_DIRECTORIES})
+include_directories(${GRPCPP_INCLUDE_DIR})
 
 add_subdirectory(src)
 
