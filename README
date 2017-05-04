@@ -18,7 +18,7 @@ gRPC has to be built from source, pull all the required submodules with:
     git submodule update --init --recursive
 
 #zlib1g-dev is a hack, gRPC/third_party/zlib fails to build otherwise...
-apt install cmake cmake-extras build-essential golang zlib1g-dev libprocess-cpp-dev google-mock
+apt install cmake cmake-extras build-essential golang zlib1g-dev libprocess-cpp-dev google-mock autoconf libtool shtool autogen libprotobuf-dev libprotoc-dev protobuf-compiler
 
 
 Building
@@ -26,12 +26,9 @@ Building
 
 Build and install gRPC first
 
-    cd <multipass_root>
-    mkdir build-grpc
-    cd build-grpc
-    cmake ../3rd-party/grpc
+    cd <multipass_root>/3rd-party/grpc
     make
-    sudo make install
+    make install
 
 Then multipass
 
