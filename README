@@ -1,0 +1,51 @@
+What is multipass?
+--------------------
+
+Multipassd is a daemon that orchestrates the creation, management and
+maintenance of virtual machine and associated ubuntu images to simplify
+development on various platforms such as OSX and Windows 10
+
+Submodules
+--------------------------------------
+Make sure you update all the submodules under 3rd-party
+
+git submodule update --init --recursive
+
+Dependencies
+---------------------------------------
+gRPC has to be built from source, pull all the required submodules with:
+
+    git submodule update --init --recursive
+
+#zlib1g-dev is a hack, gRPC/third_party/zlib fails to build otherwise...
+apt install cmake cmake-extras build-essential golang zlib1g-dev libprocess-cpp-dev google-mock
+
+
+Building
+---------------------------------------
+
+Build and install gRPC first
+
+    cd <multipass_root>
+    mkdir build-grpc
+    cd build-grpc
+    cmake ../3rd-party/grpc
+    make
+    sudo make install
+
+Then multipass
+
+    cd <multipass_root>
+    mkdir build-multipass
+    cd build-multipass
+    cmake ../
+    make
+
+Running daemon
+---------------------------------------
+
+   <multipass_root>/build-multipass/multipassd
+
+   <multipass_root>/build-multipass/ubuntu launch (should pop up a qemu instance)
+
+
