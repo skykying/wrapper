@@ -37,3 +37,19 @@ Running daemon and client
    <multipass_root>/build-multipass/bin/ubuntu launch (should pop up a qemu instance)
 
 
+Running the Electron app
+---------------------------------------
+
+    cd <multipass_root>/electron-app
+    npm install
+    npm start
+
+
+Building a snap of the Electron app
+---------------------------------------
+
+    cd <multipass_root>/electron-app
+    npm install
+    npm run dist
+
+The snap will end up in <multi-ass_root>/electron-app/dist/
