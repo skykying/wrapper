@@ -16,23 +16,23 @@
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
-  ${GMOCK_INCLUDE_DIR}
-  ${GTEST_INCLUDE_DIR}
+  ${GMOCK_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
-add_executable(multipass-tests
+add_executable(multipass_tests
+  main.cpp
   test_daemon.cpp
   test_qemu_backend.cpp
   )
 
-target_link_libraries(multipass-tests
+target_link_libraries(multipass_tests
   daemon
   client
-  qemu_backend
-  ${GTEST_BOTH_LIBRARIES}
+  ${GTEST_LIBRARIES}
   ${GMOCK_LIBRARIES}
 )
 
-add_test(multipass-tests ${EXECUTABLE_OUTPUT_PATH}/multipass-tests)
+add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)
 
-add_dependencies(multipass-tests GMock)
+add_dependencies(multipass_tests GMock)
