@@ -5,11 +5,13 @@
   "main": "app/main.js",
   "devDependencies": {
     "electron": "~1.6.6",
-    "electron-builder": "^17.1.1"
+    "electron-builder": "^17.1.1",
+    "electron-rebuild": "^1.5.7"
   },
   "scripts": {
     "start": "sh -c 'env XDG_CURRENT_DESKTOP=$( echo $XDG_CURRENT_DESKTOP | sed s/Unity:Unity7/Unity/ ) electron app'",
     "pack": "build --dir",
+    "postinstall": "install-app-deps; ./node_modules/.bin/electron-rebuild",
     "dist": "build"
   },
   "build": {
