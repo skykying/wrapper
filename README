@@ -12,8 +12,8 @@ Build Dependencies
 
 Building
 ---------------------------------------
-    git submodule update --init --recursive
     cd <multipass>
+    git submodule update --init --recursive
     mkdir build
     cd build
     cmake ../
