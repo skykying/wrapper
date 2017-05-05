@@ -22,7 +22,7 @@
 
 #include "cmd/command.h"
 #include <multipass/cli/cli.h>
-#include <rpc/multipass.grpc.pb.h>
+#include <multipass/rpc/multipass.grpc.pb.h>
 
 #include <memory>
 #include <unordered_map>

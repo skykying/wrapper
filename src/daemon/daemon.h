@@ -23,7 +23,7 @@
 #include <grpc++/grpc++.h>
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_status_monitor.h>
-#include <rpc/multipass.grpc.pb.h>
+#include <multipass/rpc/multipass.grpc.pb.h>
 
 #include <memory>
 
