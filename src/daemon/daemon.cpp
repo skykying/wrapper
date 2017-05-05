@@ -60,8 +60,14 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
                                 LaunchReply* reply)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
+
     VirtualMachineDescription desc;
+    desc.mem_size = request->mem_size();
+    desc.vm_name = request->vm_name();
+
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
+
+    reply->set_vm_instance_name(desc.vm_name);
     return grpc::Status::OK;
 }
 

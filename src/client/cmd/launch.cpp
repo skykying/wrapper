@@ -27,6 +27,10 @@ int cmd::Launch::run()
     mp::LaunchRequest request;
     mp::LaunchReply reply;
 
+    // Set some defaults
+    request.set_vm_name("test");
+    request.set_mem_size(1024);
+
     auto status = stub->launch(context, request, &reply);
 
     // Act upon its status.

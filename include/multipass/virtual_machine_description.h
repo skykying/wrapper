@@ -29,6 +29,7 @@ struct VirtualMachineDescription
     int num_cores;
     MBytes mem_size;
     MBytes disk_space;
+    std::string vm_name;
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
