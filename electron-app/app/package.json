@@ -3,7 +3,7 @@
   "author": "Multipass Team <multipass@lists.launchpad.net>",
   "version": "0.0.1",
   "main": "main.js",
-  "devDependencies": {
+  "dependencies": {
     "electron": "~1.6.6"
   }
 }
