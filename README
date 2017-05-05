@@ -29,6 +29,24 @@ Then multipass
     cmake ../
     make
 
+Manually setting up an image for launching
+------------------------------------------
+
+    mkdir ~/qemu
+    cd ~/qemu
+
+    wget http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
+    cp xenial-server-cloudimg-amd64-disk1.img disk.img
+
+    cat > cloudinit-config <<EOF
+    #cloud-config
+    ssh_authorized_keys:
+      - <your public key>
+    manage_etc_hosts: true
+    EOF
+
+    cloud-localds cloudinit-seed.img cloudinit-config
+
 Running daemon and client
 ---------------------------------------
 
@@ -36,6 +54,10 @@ Running daemon and client
 
    <multipass_root>/build-multipass/bin/ubuntu launch (should pop up a qemu instance)
 
+SSH into running VM
+--------------------------------------
+
+    ssh -p 2222 ubuntu@localhost
 
 Running the Electron app
 ---------------------------------------
