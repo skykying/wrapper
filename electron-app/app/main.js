@@ -16,6 +16,8 @@
  */
 
 const electron = require('electron')
+const grpc = require('grpc')
+
 // Module to control application life.
 const app = electron.app
 
@@ -102,4 +104,27 @@ app.on('ready', () => {
   tray.on('double-click', () => {
     mainWindow.show();
   });
+
+  var multipass = grpc.load(path.join(__dirname, '..', 'multipass.proto')).multipass
+
+  var rpc = new multipass.Rpc('localhost:50051',
+                              grpc.credentials.createInsecure())
+
+  rpc.version(new multipass.VersionRequest(), (err, reply) => {
+    if (err) {
+      console.error(err)
+    } else {
+      console.log(reply)
+    }
+  })
+
+  exports.Launch = () => {
+    rpc.launch(new multipass.LaunchRequest(), (err, reply) => {
+      if (err) {
+        console.error(err)
+      } else {
+        console.log(reply)
+      }
+    })
+  }
 });
