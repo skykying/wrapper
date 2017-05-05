@@ -28,7 +28,7 @@ namespace mp = multipass;
 
 std::string mp::Platform::default_server_address()
 {
-    return {"unix:/tmp/multipassd-ubuntu.socket"};
+    return {"localhost:50051"};
 }
 
 mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
