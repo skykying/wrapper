@@ -21,14 +21,17 @@ cmake_minimum_required(VERSION 3.0)
 add_subdirectory(3rd-party)
 
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
-add_compile_options(-std=c++14 -Werror -Wall -pedantic)
+set(CMAKE_CXX_STANDARD 14)
+
+# TODO: Warnings are set differently per-platform
+add_compile_options(-Werror -Wall -pedantic)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# TODO: pull this in tree instead of relying on pkg-config
-find_package(PkgConfig)
-pkg_check_modules(PROCESS_CPP process-cpp REQUIRED)
+# Qt config
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Core)
 
 set(MULTIPASS_GENERATED_SOURCE_DIR ${CMAKE_BINARY_DIR}/gen)
 file(MAKE_DIRECTORY ${MULTIPASS_GENERATED_SOURCE_DIR})

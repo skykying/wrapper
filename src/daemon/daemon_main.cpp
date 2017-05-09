@@ -25,13 +25,22 @@
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>
 
-#include <exception>
+#include <QCoreApplication>
+#include <thread>
 
 int main(int argc, char* argv[]) try
 {
-    multipass::DaemonConfig config;
-    multipass::Daemon daemon(config);
-    daemon.run();
+    std::thread rpc_thread([] {
+        multipass::DaemonConfig config;
+        multipass::Daemon daemon(config);
+        daemon.run();
+    });
+
+    QCoreApplication app(argc, argv);
+    app.exec();
+
+    if (rpc_thread.joinable())
+        rpc_thread.join();
 }
 catch (const std::exception& e)
 {

@@ -18,13 +18,12 @@
  */
 
 #include "qemu_virtual_machine.h"
+#include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
-#include <core/posix/exec.h>
-
-#include <chrono>
-#include <multipass/virtual_machine_description.h>
-#include <thread>
+#include <QProcess>
+#include <QProcessEnvironment>
+#include <QStringList>
 
 namespace mp = multipass;
 
@@ -32,10 +31,17 @@ namespace
 {
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
-    const std::string program{"/usr/bin/qemu-system-x86_64"};
-    const std::vector<std::string> argv = {"--enable-kvm"};
-    std::map<std::string, std::string> env{{"DISPLAY", ":0"}};
-    return core::posix::exec(program, argv, env, core::posix::StandardStream::stdout);
+    QStringList args{"--enable-kvm"};
+    QProcessEnvironment env;
+    env.insert("DISPLAY", ":0");
+
+    auto process = std::make_unique<QProcess>();
+    process->setProgram("/usr/bin/qemu-system-x86_64");
+    process->setArguments(args);
+    process->setProcessEnvironment(env);
+
+    process->start();
+    return process;
 }
 }
 mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc,
