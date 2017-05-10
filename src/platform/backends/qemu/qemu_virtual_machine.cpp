@@ -21,6 +21,7 @@
 #include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
+#include <QFile>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QString>
@@ -36,17 +37,22 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
     const QString vm_image(USER_HOME + QString("/qemu/disk.img"));
     const QString cloudinit_img(USER_HOME + QString("/qemu/cloudinit-seed.img"));
-    QStringList args{"--enable-kvm",
-                     // The VM image itself
-                     "-hda", vm_image,
-                     // For the cloud-init configuration
-                     "-hdb", cloudinit_img,
-                     // Memory to use for VM
-                     "-m", QString::number(desc.mem_size),
-                     // Create a virtual NIC in the VM
-                     "-net", "nic",
-                     // Forward host port 2222 to guest port 22 for ssh
-                     "-net", "user,hostfwd=tcp::2222-:22"};
+    QStringList args{"--enable-kvm"};
+
+    if (QFile::exists(vm_image) && QFile::exists(cloudinit_img))
+    {
+        args <<  // The VM image itself
+                 "-hda" << vm_image <<
+                 // For the cloud-init configuration
+                 "-hdb" << cloudinit_img <<
+                 // Memory to use for VM
+                 "-m" <<  QString::number(desc.mem_size) <<
+                 // Create a virtual NIC in the VM
+                 "-net" << "nic" <<
+                 // Forward host port 2222 to guest port 22 for ssh
+                 "-net" << "user,hostfwd=tcp::2222-:22";
+    }
+
     QProcessEnvironment env;
     env.insert("DISPLAY", ":0");
 
