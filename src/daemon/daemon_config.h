@@ -20,7 +20,7 @@
 #ifndef MULTIPASS_DAEMON_CONFIG_H
 #define MULTIPASS_DAEMON_CONFIG_H
 
-#include <rpc/multipass.grpc.pb.h>
+#include <multipass/rpc/multipass.grpc.pb.h>
 
 #include <memory>
 

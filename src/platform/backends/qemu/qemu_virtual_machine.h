@@ -22,8 +22,7 @@
 
 #include <multipass/virtual_machine.h>
 
-#include <core/posix/child_process.h>
-
+class QProcess;
 namespace multipass
 {
 class VMStatusMonitor;
@@ -43,7 +42,7 @@ public:
 private:
     VirtualMachine::State state;
     VMStatusMonitor* monitor;
-    core::posix::ChildProcess vm_process;
+    std::unique_ptr<QProcess> vm_process;
 };
 }
 

@@ -5,29 +5,19 @@ Multipassd is a daemon that orchestrates the creation, management and
 maintenance of virtual machine and associated ubuntu images to simplify
 development on various platforms such as OSX and Windows 10
 
-Dependencies
+Build Dependencies
 ---------------------------------------
-gRPC has to be built from source, pull all the required source submodules with:
-
-    git submodule update --init --recursive
+    apt install devscripts equivs
     mk-build-deps -s sudo -i
 
 Building
 ---------------------------------------
-
-Build and install gRPC first
-
-    cd <multipass_root>/3rd-party/grpc
-    make
-    make install
-
-Then multipass
-
-    cd <multipass_root>
-    mkdir build-multipass
-    cd build-multipass
+    cd <multipass>
+    git submodule update --init --recursive
+    mkdir build
+    cd build
     cmake ../
-    make
+    make multipassd ubuntu
 
 Manually setting up an image for launching
 ------------------------------------------
@@ -47,12 +37,12 @@ Manually setting up an image for launching
 
     cloud-localds cloudinit-seed.img cloudinit-config
 
-Running daemon and client
+Running multipass daemon and client
 ---------------------------------------
 
-   <multipass_root>/build-multipass/bin/multipassd
+   <multipass>/build/bin/multipassd &
 
-   <multipass_root>/build-multipass/bin/ubuntu launch (should pop up a qemu instance)
+   <multipass>/build/bin/ubuntu launch (a default qemu instance is launched)
 
 SSH into running VM
 --------------------------------------
@@ -62,7 +52,7 @@ SSH into running VM
 Running the Electron app
 ---------------------------------------
 
-    cd <multipass_root>/electron-app
+    cd <multipass>/electron-app
     npm install
     npm start
 
@@ -70,8 +60,8 @@ Running the Electron app
 Building a snap of the Electron app
 ---------------------------------------
 
-    cd <multipass_root>/electron-app
+    cd <multipass>/electron-app
     npm install
     npm run dist
 
-The snap will end up in <multi-ass_root>/electron-app/dist/
+The snap will end up in <multipass>/electron-app/dist/

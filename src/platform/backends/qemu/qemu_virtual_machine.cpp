@@ -18,38 +18,45 @@
  */
 
 #include "qemu_virtual_machine.h"
+#include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
-#include <core/posix/exec.h>
-
-#include <chrono>
-#include <multipass/virtual_machine_description.h>
-#include <thread>
+#include <QProcess>
+#include <QProcessEnvironment>
+#include <QString>
+#include <QStringList>
 
 namespace mp = multipass;
 
 namespace
 {
-const std::string USER_HOME = std::string(std::getenv("HOME"));
+const QString USER_HOME(std::getenv("HOME");
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
-    const std::string program{"/usr/bin/qemu-system-x86_64"};
-    const std::string vm_image = USER_HOME + std::string("/qemu/disk.img");
-    const std::string cloudinit_img = USER_HOME + std::string("/qemu/cloudinit-seed.img");
-    const std::vector<std::string> argv = {"--enable-kvm",
-                                           // The VM image itself
-                                           "-hda", vm_image,
-                                           // For the cloud-init configuration
-                                           "-hdb", cloudinit_img,
-                                           // Memory to use for VM
-                                           "-m", std::to_string(desc.mem_size),
-                                           // Create a virtual NIC in the VM
-                                           "-net", "nic",
-                                           // Forward host port 2222 to guest port 22 for ssh
-                                           "-net", "user,hostfwd=tcp::2222-:22"};
-    std::map<std::string, std::string> env{{"DISPLAY", ":0"}};
-    return core::posix::exec(program, argv, env, core::posix::StandardStream::stdout);
+    const QString vm_image(USER_HOME + QString("/qemu/disk.img"));
+    const QString cloudinit_img(USER_HOME + QString("/qemu/cloudinit-seed.img"));
+    QStringList args{"--enable-kvm",
+                     // The VM image itself
+                     "-hda", vm_image,
+                     // For the cloud-init configuration
+                     "-hdb", cloudinit_img,
+                     // Memory to use for VM
+                     "-m", std::to_string(desc.mem_size),
+                     // Create a virtual NIC in the VM
+                     "-net", "nic",
+                     // Forward host port 2222 to guest port 22 for ssh
+                     "-net", "user,hostfwd=tcp::2222-:22"};
+    QProcessEnvironment env;
+    env.insert("DISPLAY", ":0");
+
+    auto process = std::make_unique<QProcess>();
+    process->setProgram("/usr/bin/qemu-system-x86_64");
+    process->setArguments(args);
+    process->setProcessEnvironment(env);
+
+    process->start();
+    return process;
 }
 }
 

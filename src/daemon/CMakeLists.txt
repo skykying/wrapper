@@ -22,7 +22,8 @@ add_library(daemon STATIC
 
 target_link_libraries(daemon
   rpc
-  platform)
+  platform
+  Qt5::Core)
 
 add_executable(multipassd daemon_main.cpp)
 

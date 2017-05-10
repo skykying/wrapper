@@ -17,32 +17,12 @@
  *
  */
 
-#include "daemon.h"
-#include "daemon_config.h"
+#include <gtest/gtest.h>
 
-#include <multipass/platform.h>
-#include <multipass/virtual_machine_factory.h>
-#include <multipass/vm_image_host.h>
-#include <multipass/vm_image_vault.h>
-
-#include <QCoreApplication>
-#include <thread>
-
-int main(int argc, char* argv[]) try
+// Normally one would just use libgtest_main but our static library dependencies
+// also define main... DAMN THEM!
+int main(int argc, char* argv[])
 {
-    std::thread rpc_thread([] {
-        multipass::DaemonConfig config;
-        multipass::Daemon daemon(config);
-        daemon.run();
-    });
-
-    QCoreApplication app(argc, argv);
-    app.exec();
-
-    if (rpc_thread.joinable())
-        rpc_thread.join();
-}
-catch (const std::exception& e)
-{
-    std::cerr << "Error: " << e.what() << std::endl;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

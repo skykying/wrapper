@@ -21,7 +21,7 @@
 #define MULTIPASS_COMMAND_H
 
 #include <grpc++/grpc++.h>
-#include <rpc/multipass.grpc.pb.h>
+#include <multipass/rpc/multipass.grpc.pb.h>
 
 namespace multipass
 {

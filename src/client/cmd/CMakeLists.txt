@@ -16,3 +16,6 @@
 
 add_library(commands STATIC
   launch.cpp)
+
+target_link_libraries(commands
+  rpc)

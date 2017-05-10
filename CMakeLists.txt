@@ -17,26 +17,30 @@
 project(Multipass)
 cmake_minimum_required(VERSION 3.0)
 
+# Needs to be here before we set our own compilation options
+add_subdirectory(3rd-party)
+
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
-add_compile_options(-std=c++14 -Werror -Wall -pedantic)
+set(CMAKE_CXX_STANDARD 14)
+
+# TODO: Warnings are set differently per-platform
+add_compile_options(-Werror -Wall -pedantic)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+# Qt config
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Core)
 
-find_package(Protobuf REQUIRED)
-# TODO: pull gRPC into tree instead
-find_package(GRPC REQUIRED)
+set(MULTIPASS_GENERATED_SOURCE_DIR ${CMAKE_BINARY_DIR}/gen)
+file(MAKE_DIRECTORY ${MULTIPASS_GENERATED_SOURCE_DIR})
 
-# TODO: pull this in tree instead of relying on pkg-config
-find_package(PkgConfig)
-pkg_check_modules(PROCESS_CPP process-cpp REQUIRED)
-
-# gRPC headers will be generated as rpc/*.grpc.pb.h
-set(GENERATED_RPC_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/src)
-include_directories(include ${GENERATED_RPC_INCLUDE_DIRECTORIES})
-include_directories(${GRPCPP_INCLUDE_DIR})
+include_directories(
+  include
+  ${MULTIPASS_GENERATED_SOURCE_DIR}
+  ${gRPC_INCLUDE_DIRS}
+)
 
 add_subdirectory(src)
 
