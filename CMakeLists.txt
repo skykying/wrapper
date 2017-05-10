@@ -15,7 +15,7 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 project(Multipass)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
@@ -23,10 +23,13 @@ add_subdirectory(3rd-party)
 set(MULTIPASS_VERSION "2017.0.1")
 
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
-set(CMAKE_CXX_STANDARD 14)
 
-# TODO: Warnings are set differently per-platform
-add_compile_options(-Werror -Wall -pedantic)
+set(CMAKE_CXX_STANDARD 14)
+if(MSVC)
+  add_definitions(-D_WIN32_WINNT=0x600) # A gprc header requires this (specifies WinXP or greater)
+else()
+  add_compile_options(-Werror -Wall -pedantic)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

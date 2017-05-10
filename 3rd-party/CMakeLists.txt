@@ -1,5 +1,13 @@
 # Add the subdir here to avoid polluting their cmake scope
+if (MSVC)
+  # Prevent some warnings from causing a build error
+  add_definitions(/wd4005 /wd4018 /wd4774 /wd4996 /wd4987 /wd5026)
+  SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4221" )
+  SET( CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4006 /ignore:4221" )
+endif (MSVC)
+
 add_subdirectory(grpc)
+
 
 # Generates gRPC and protobuf C++ sources and headers from the given .proto files
 #
