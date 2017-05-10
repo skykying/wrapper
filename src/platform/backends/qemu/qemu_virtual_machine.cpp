@@ -30,7 +30,7 @@ namespace mp = multipass;
 
 namespace
 {
-const QString USER_HOME(std::getenv("HOME");
+const QString USER_HOME(std::getenv("HOME"));
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
@@ -42,7 +42,7 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc)
                      // For the cloud-init configuration
                      "-hdb", cloudinit_img,
                      // Memory to use for VM
-                     "-m", std::to_string(desc.mem_size),
+                     "-m", QString::number(desc.mem_size),
                      // Create a virtual NIC in the VM
                      "-net", "nic",
                      // Forward host port 2222 to guest port 22 for ssh
