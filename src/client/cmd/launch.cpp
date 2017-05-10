@@ -25,15 +25,15 @@ using RpcMethod = mp::Rpc::Stub;
 
 int cmd::Launch::run()
 {
-    auto on_success = [](mp::LaunchReply& reply) {
+    auto on_success = [this](mp::LaunchReply& reply) {
 
-        std::cout << "launched: " << reply.vm_instance_name();
-        std::cout << std::endl;
+        cout << "launched: " << reply.vm_instance_name();
+        cout << std::endl;
         return EXIT_SUCCESS;
     };
 
-    auto on_failure = [](grpc::Status& status) {
-        std::cerr << "failed to launch: " << status.error_message() << std::endl;
+    auto on_failure = [this](grpc::Status& status) {
+        cerr << "failed to launch: " << status.error_message() << std::endl;
         return EXIT_FAILURE;
     };
 

@@ -29,10 +29,17 @@
 
 namespace multipass
 {
+
+struct ClientConfig
+{
+    const std::string server_address;
+    std::ostream& cout;
+    std::ostream& cerr;
+};
 class Client
 {
 public:
-    Client(std::string server_address);
+    Client(const ClientConfig& context);
     int run(const cli::Args& args);
     int run(std::string command);
 
@@ -44,6 +51,9 @@ private:
     grpc::ClientContext context;
 
     std::unordered_map<std::string, cmd::Command::UPtr> commands;
+
+    std::ostream& cout;
+    std::ostream& cerr;
 };
 }
 #endif // MULTIPASS_CLIENT_H

@@ -26,6 +26,7 @@ namespace mp = multipass;
 
 int main(int argc, char* argv[])
 {
-    mp::Client client{mp::Platform::default_server_address()};
+    mp::ClientConfig config{mp::Platform::default_server_address(), std::cout, std::cerr};
+    mp::Client client{config};
     return client.run(mp::cli::arg_list_from(argc, argv));
 }

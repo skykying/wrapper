@@ -41,18 +41,18 @@ auto sorted_cmd_names_from(const T& list)
 }
 }
 
-mp::Client::Client(std::string server_address)
-    : rpc_channel{grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials())},
-      stub{mp::Rpc::NewStub(rpc_channel)}
+mp::Client::Client(const ClientConfig& config)
+    : rpc_channel{grpc::CreateChannel(config.server_address, grpc::InsecureChannelCredentials())},
+      stub{mp::Rpc::NewStub(rpc_channel)}, cout{config.cout}, cerr{config.cerr}
 {
     add_command<cmd::Launch>();
     add_command<cmd::Version>();
 }
 
-template<typename T>
+template <typename T>
 void mp::Client::add_command()
 {
-    auto cmd = std::make_unique<T>(*rpc_channel, *stub, context);
+    auto cmd = std::make_unique<T>(*rpc_channel, *stub, context, cout, cerr);
     commands[cmd->name()] = std::move(cmd);
 }
 

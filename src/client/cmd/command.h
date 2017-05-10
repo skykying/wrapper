@@ -32,8 +32,9 @@ class Command
 {
 public:
     using UPtr = std::unique_ptr<Command>;
-    Command(grpc::Channel& channel, Rpc::Stub& stub, grpc::ClientContext& context)
-        : rpc_channel{&channel}, stub{&stub}, context{&context}
+    Command(grpc::Channel& channel, Rpc::Stub& stub, grpc::ClientContext& context,
+            std::ostream& cout, std::ostream& cerr)
+        : rpc_channel{&channel}, stub{&stub}, context{&context}, cout{cout}, cerr{cerr}
     {
     }
     virtual ~Command() = default;
@@ -78,6 +79,8 @@ protected:
     grpc::Channel* rpc_channel;
     Rpc::Stub* stub;
     grpc::ClientContext* context;
+    std::ostream& cout;
+    std::ostream& cerr;
 };
 }
 }

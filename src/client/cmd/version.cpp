@@ -26,11 +26,11 @@ using RpcMethod = mp::Rpc::Stub;
 
 int cmd::Version::run()
 {
-    std::cout << "ubuntu     " << multipass::version_string << std::endl;
+    cout << "ubuntu     " << multipass::version_string << std::endl;
 
-    auto on_success = [](mp::VersionReply& reply) {
-        std::cout << "multipassd " << reply.version();
-        std::cout << std::endl;
+    auto on_success = [this](mp::VersionReply& reply) {
+        cout << "multipassd " << reply.version();
+        cout << std::endl;
         return EXIT_SUCCESS;
     };
 
