@@ -16,34 +16,7 @@
  * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
-
-#ifndef MULTIPASS_CLIENT_H
-#define MULTIPASS_CLIENT_H
-
-#include "cmd/command.h"
-#include <multipass/cli/cli.h>
-#include <multipass/rpc/multipass.grpc.pb.h>
-
-#include <memory>
-#include <unordered_map>
-
 namespace multipass
 {
-class Client
-{
-public:
-    Client(std::string server_address);
-    int run(const cli::Args& args);
-    int run(std::string command);
-
-private:
-    template<typename T>
-    void add_command();
-    std::shared_ptr<grpc::Channel> rpc_channel;
-    std::unique_ptr<multipass::Rpc::Stub> stub;
-    grpc::ClientContext context;
-
-    std::unordered_map<std::string, cmd::Command::UPtr> commands;
-};
+constexpr auto version_string = "@MULTIPASS_VERSION@";
 }
-#endif // MULTIPASS_CLIENT_H

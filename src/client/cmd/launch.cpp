@@ -21,28 +21,29 @@
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
+using RpcMethod = mp::Rpc::Stub;
 
 int cmd::Launch::run()
 {
+    auto on_success = [](mp::LaunchReply& reply) {
+
+        std::cout << "launched: " << reply.vm_instance_name();
+        std::cout << std::endl;
+        return EXIT_SUCCESS;
+    };
+
+    auto on_failure = [](grpc::Status& status) {
+        std::cerr << "failed to launch: " << status.error_message() << std::endl;
+        return EXIT_FAILURE;
+    };
+
     mp::LaunchRequest request;
-    mp::LaunchReply reply;
 
     // Set some defaults
     request.set_vm_name("test");
     request.set_mem_size(1024);
 
-    auto status = stub->launch(context, request, &reply);
-
-    // Act upon its status.
-    if (status.ok())
-    {
-        std::cout << "launched: " << reply.vm_instance_name();
-        std::cout << std::endl;
-        return EXIT_SUCCESS;
-    }
-
-    std::cerr << "failed to launch: " << status.error_message() << std::endl;
-    return EXIT_FAILURE;
+    return dispatch(&RpcMethod::launch, request, on_success, on_failure);
 }
 
 std::string cmd::Launch::name() const { return "launch"; }

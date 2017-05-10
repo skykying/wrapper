@@ -14,6 +14,12 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
+configure_file(
+  version.h.in
+  ${MULTIPASS_GENERATED_SOURCE_DIR}/multipass/version.h
+  @ONLY
+)
+
 add_subdirectory(cli)
 add_subdirectory(client)
 add_subdirectory(daemon)

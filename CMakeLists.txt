@@ -20,6 +20,8 @@ cmake_minimum_required(VERSION 3.0)
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
 
+set(MULTIPASS_VERSION "2017.0.1")
+
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 set(CMAKE_CXX_STANDARD 14)
 

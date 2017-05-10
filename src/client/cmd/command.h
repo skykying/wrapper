@@ -21,6 +21,7 @@
 #define MULTIPASS_COMMAND_H
 
 #include <grpc++/grpc++.h>
+#include <multipass/callable_traits.h>
 #include <multipass/rpc/multipass.grpc.pb.h>
 
 namespace multipass
@@ -40,6 +41,37 @@ public:
     virtual std::string name() const = 0;
 
 protected:
+    template <typename RpcFunc, typename Request, typename SuccessCallable,
+              typename FailureCallable>
+    int dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success,
+                 FailureCallable&& on_failure)
+    {
+        using SuccessCallableTraits = multipass::callable_traits<SuccessCallable>;
+        using ReplyType = typename std::remove_reference<
+            typename SuccessCallableTraits::template arg<0>::type>::type;
+        using FailureCallableTraits = multipass::callable_traits<FailureCallable>;
+        using FailureCallableArgType = typename FailureCallableTraits::template arg<0>::type;
+
+        static_assert(SuccessCallableTraits::num_args == 1, "");
+        static_assert(FailureCallableTraits::num_args == 1, "");
+        static_assert(std::is_same<typename SuccessCallableTraits::return_type, int>::value, "");
+        static_assert(std::is_same<typename FailureCallableTraits::return_type, int>::value, "");
+        static_assert(std::is_same<FailureCallableArgType, grpc::Status&>::value, "");
+
+        ReplyType reply;
+
+        auto rpc_method = std::bind(rpc_func, stub, std::placeholders::_1, std::placeholders::_2,
+                                    std::placeholders::_3);
+        auto status = rpc_method(context, request, &reply);
+
+        if (status.ok())
+        {
+            return on_success(reply);
+        }
+
+        return on_failure(status);
+    }
+
     Command(const Command&) = delete;
     Command& operator=(const Command&) = delete;
 

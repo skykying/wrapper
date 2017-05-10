@@ -22,6 +22,7 @@
 
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_factory.h>
+#include <multipass/version.h>
 
 #include <stdexcept>
 
@@ -104,6 +105,7 @@ grpc::Status mp::Daemon::ssh(grpc::ServerContext* context, const SSHRequest* req
 grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request,
                                  VersionReply* response)
 {
+    response->set_version(multipass::version_string);
     return grpc::Status::OK;
 }
 

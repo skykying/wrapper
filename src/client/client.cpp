@@ -18,6 +18,7 @@
  */
 #include "client.h"
 #include "cmd/launch.h"
+#include "cmd/version.h"
 
 #include <grpc++/grpc++.h>
 
@@ -44,10 +45,16 @@ mp::Client::Client(std::string server_address)
     : rpc_channel{grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials())},
       stub{mp::Rpc::NewStub(rpc_channel)}
 {
-    add_command(std::make_unique<cmd::Launch>(*rpc_channel, *stub, context));
+    add_command<cmd::Launch>();
+    add_command<cmd::Version>();
 }
 
-void mp::Client::add_command(cmd::Command::UPtr cmd) { commands[cmd->name()] = std::move(cmd); }
+template<typename T>
+void mp::Client::add_command()
+{
+    auto cmd = std::make_unique<T>(*rpc_channel, *stub, context);
+    commands[cmd->name()] = std::move(cmd);
+}
 
 int mp::Client::run(const mp::cli::Args& args)
 {

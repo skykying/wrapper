@@ -15,6 +15,7 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(commands STATIC
+  version.cpp
   launch.cpp)
 
 target_link_libraries(commands

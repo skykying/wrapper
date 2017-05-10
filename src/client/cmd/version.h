@@ -17,33 +17,22 @@
  *
  */
 
-#ifndef MULTIPASS_CLIENT_H
-#define MULTIPASS_CLIENT_H
+#ifndef MULTIPASS_VERSION_H
+#define MULTIPASS_VERSION_H
 
-#include "cmd/command.h"
-#include <multipass/cli/cli.h>
-#include <multipass/rpc/multipass.grpc.pb.h>
-
-#include <memory>
-#include <unordered_map>
+#include "command.h"
 
 namespace multipass
 {
-class Client
+namespace cmd
+{
+class Version final : public Command
 {
 public:
-    Client(std::string server_address);
-    int run(const cli::Args& args);
-    int run(std::string command);
-
-private:
-    template<typename T>
-    void add_command();
-    std::shared_ptr<grpc::Channel> rpc_channel;
-    std::unique_ptr<multipass::Rpc::Stub> stub;
-    grpc::ClientContext context;
-
-    std::unordered_map<std::string, cmd::Command::UPtr> commands;
+    using Command::Command;
+    int run() override;
+    std::string name() const override;
 };
 }
-#endif // MULTIPASS_CLIENT_H
+}
+#endif // MULTIPASS_VERSION_H

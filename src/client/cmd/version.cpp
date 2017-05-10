@@ -17,33 +17,27 @@
  *
  */
 
-#ifndef MULTIPASS_CLIENT_H
-#define MULTIPASS_CLIENT_H
+#include "version.h"
+#include <multipass/version.h>
 
-#include "cmd/command.h"
-#include <multipass/cli/cli.h>
-#include <multipass/rpc/multipass.grpc.pb.h>
+namespace mp = multipass;
+namespace cmd = multipass::cmd;
+using RpcMethod = mp::Rpc::Stub;
 
-#include <memory>
-#include <unordered_map>
-
-namespace multipass
+int cmd::Version::run()
 {
-class Client
-{
-public:
-    Client(std::string server_address);
-    int run(const cli::Args& args);
-    int run(std::string command);
+    std::cout << "ubuntu     " << multipass::version_string << std::endl;
 
-private:
-    template<typename T>
-    void add_command();
-    std::shared_ptr<grpc::Channel> rpc_channel;
-    std::unique_ptr<multipass::Rpc::Stub> stub;
-    grpc::ClientContext context;
+    auto on_success = [](mp::VersionReply& reply) {
+        std::cout << "multipassd " << reply.version();
+        std::cout << std::endl;
+        return EXIT_SUCCESS;
+    };
 
-    std::unordered_map<std::string, cmd::Command::UPtr> commands;
-};
+    auto on_failure = [](grpc::Status& status) { return EXIT_SUCCESS; };
+
+    mp::VersionRequest request;
+    return dispatch(&RpcMethod::version, request, on_success, on_failure);
 }
-#endif // MULTIPASS_CLIENT_H
+
+std::string cmd::Version::name() const { return "version"; }
