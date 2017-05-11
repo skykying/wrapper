@@ -48,7 +48,6 @@ private:
     void add_command();
     std::shared_ptr<grpc::Channel> rpc_channel;
     std::unique_ptr<multipass::Rpc::Stub> stub;
-    grpc::ClientContext context;
 
     std::unordered_map<std::string, cmd::Command::UPtr> commands;
 

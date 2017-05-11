@@ -52,7 +52,7 @@ mp::Client::Client(const ClientConfig& config)
 template <typename T>
 void mp::Client::add_command()
 {
-    auto cmd = std::make_unique<T>(*rpc_channel, *stub, context, cout, cerr);
+    auto cmd = std::make_unique<T>(*rpc_channel, *stub, cout, cerr);
     commands[cmd->name()] = std::move(cmd);
 }
 
