@@ -60,7 +60,7 @@ void mp::Daemon::shutdown() { server->Shutdown(); }
 grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchRequest* request,
                                 LaunchReply* reply)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __func__ << std::endl;
 
     VirtualMachineDescription desc;
     desc.mem_size = request->mem_size();
