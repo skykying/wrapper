@@ -17,27 +17,26 @@
  *
  */
 
-#include "version.h"
-#include <multipass/version.h>
+#include "destroy.h"
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::Version::run()
+int cmd::Destroy::run()
 {
-    cout << "ubuntu     " << multipass::version_string << std::endl;
-
-    auto on_success = [this](mp::VersionReply& reply) {
-        cout << "multipassd " << reply.version();
-        cout << std::endl;
+    auto on_success = [this](mp::DestroyReply& reply) {
+        cout << "received destroy reply\n";
         return EXIT_SUCCESS;
     };
 
-    auto on_failure = [](grpc::Status& status) { return EXIT_SUCCESS; };
+    auto on_failure = [this](grpc::Status& status) {
+        cerr << "destroy failed: " << status.error_message() << "\n";
+        return EXIT_FAILURE;
+    };
 
-    mp::VersionRequest request;
-    return dispatch(&RpcMethod::version, request, on_success, on_failure);
+    mp::DestroyRequest request;
+    return dispatch(&RpcMethod::destroy, request, on_success, on_failure);
 }
 
-std::string cmd::Version::name() const { return "version"; }
+std::string cmd::Destroy::name() const { return "destroy"; }

@@ -17,27 +17,22 @@
  *
  */
 
-#include "version.h"
-#include <multipass/version.h>
+#ifndef MULTIPASS_STOP_H
+#define MULTIPASS_STOP_H
 
-namespace mp = multipass;
-namespace cmd = multipass::cmd;
-using RpcMethod = mp::Rpc::Stub;
+#include "command.h"
 
-int cmd::Version::run()
+namespace multipass
 {
-    cout << "ubuntu     " << multipass::version_string << std::endl;
-
-    auto on_success = [this](mp::VersionReply& reply) {
-        cout << "multipassd " << reply.version();
-        cout << std::endl;
-        return EXIT_SUCCESS;
-    };
-
-    auto on_failure = [](grpc::Status& status) { return EXIT_SUCCESS; };
-
-    mp::VersionRequest request;
-    return dispatch(&RpcMethod::version, request, on_success, on_failure);
+namespace cmd
+{
+class Stop final : public Command
+{
+public:
+    using Command::Command;
+    int run() override;
+    std::string name() const override;
+};
 }
-
-std::string cmd::Version::name() const { return "version"; }
+}
+#endif // MULTIPASS_STOP_H

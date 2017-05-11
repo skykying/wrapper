@@ -31,8 +31,7 @@
 int main(int argc, char* argv[]) try
 {
     std::thread rpc_thread([] {
-        multipass::DaemonConfig config;
-        multipass::Daemon daemon(config);
+        multipass::Daemon daemon({});
         daemon.run();
     });
 

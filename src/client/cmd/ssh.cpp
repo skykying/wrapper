@@ -17,27 +17,26 @@
  *
  */
 
-#include "version.h"
-#include <multipass/version.h>
+#include "ssh.h"
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::Version::run()
+int cmd::SSH::run()
 {
-    cout << "ubuntu     " << multipass::version_string << std::endl;
-
-    auto on_success = [this](mp::VersionReply& reply) {
-        cout << "multipassd " << reply.version();
-        cout << std::endl;
+    auto on_success = [this](mp::SSHReply& reply) {
+        cout << "received ssh reply\n";
         return EXIT_SUCCESS;
     };
 
-    auto on_failure = [](grpc::Status& status) { return EXIT_SUCCESS; };
+    auto on_failure = [this](grpc::Status& status) {
+        cerr << "ssh failed: " << status.error_message() << "\n";
+        return EXIT_FAILURE;
+    };
 
-    mp::VersionRequest request;
-    return dispatch(&RpcMethod::version, request, on_success, on_failure);
+    mp::SSHRequest request;
+    return dispatch(&RpcMethod::ssh, request, on_success, on_failure);
 }
 
-std::string cmd::Version::name() const { return "version"; }
+std::string cmd::SSH::name() const { return "ssh"; }

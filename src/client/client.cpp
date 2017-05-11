@@ -19,6 +19,11 @@
 #include "client.h"
 #include "cmd/launch.h"
 #include "cmd/version.h"
+#include "cmd/start.h"
+#include "cmd/stop.h"
+#include "cmd/list.h"
+#include "cmd/ssh.h"
+#include "cmd/destroy.h"
 
 #include <grpc++/grpc++.h>
 
@@ -47,6 +52,11 @@ mp::Client::Client(const ClientConfig& config)
 {
     add_command<cmd::Launch>();
     add_command<cmd::Version>();
+    add_command<cmd::Start>();
+    add_command<cmd::Stop>();
+    add_command<cmd::List>();
+    add_command<cmd::SSH>();
+    add_command<cmd::Destroy>();
 }
 
 template <typename T>

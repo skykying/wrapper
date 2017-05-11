@@ -16,7 +16,12 @@
 
 add_library(commands STATIC
   version.cpp
-  launch.cpp)
+  launch.cpp
+  start.cpp
+  stop.cpp
+  list.cpp
+  ssh.cpp
+  destroy.cpp)
 
 target_link_libraries(commands
   rpc)
