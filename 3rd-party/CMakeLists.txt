@@ -6,7 +6,7 @@ if (MSVC)
   set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4006 /ignore:4221")
 endif (MSVC)
 
-add_subdirectory(grpc)
+add_subdirectory(grpc EXCLUDE_FROM_ALL)
 
 # Generates gRPC and protobuf C++ sources and headers from the given .proto files
 #
