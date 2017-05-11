@@ -28,18 +28,88 @@
 #include <QCoreApplication>
 #include <thread>
 
-int main(int argc, char* argv[]) try
+namespace
 {
-    std::thread rpc_thread([] {
-        multipass::Daemon daemon({});
-        daemon.run();
-    });
+class AutoJoinThread
+{
+public:
+    template <typename Callable, typename... Args>
+    AutoJoinThread(Callable&& f, Args&&... args) : thread{std::forward<Callable>(f), std::forward<Args>(args)...}
+    {
+    }
+    ~AutoJoinThread()
+    {
+        if (thread.joinable())
+            thread.join();
+    }
 
+private:
+    std::thread thread;
+};
+
+class DaemonRunner
+{
+public:
+    DaemonRunner() : daemon{multipass::DaemonConfig{}}, daemon_thread{[this] { daemon.run(); }} {}
+    ~DaemonRunner() { daemon.shutdown(); }
+
+private:
+    multipass::Daemon daemon;
+    AutoJoinThread daemon_thread;
+};
+
+#if !defined(_MSC_VER)
+#include <signal.h>
+#include <vector>
+
+sigset_t make_and_block_signals(std::vector<int> sigs)
+{
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    for (auto signal : sigs)
+    {
+        sigaddset(&sigset, signal);
+    }
+    sigprocmask(SIG_BLOCK, &sigset, nullptr);
+    return sigset;
+}
+
+class UnixSignalHandler
+{
+public:
+    UnixSignalHandler(QCoreApplication& app)
+        : signal_handling_thread{
+            [this, &app, sigs = make_and_block_signals({SIGTERM, SIGINT})] { monitor_signals(sigs, app); }}
+    {
+    }
+
+    void monitor_signals(sigset_t sigset, QCoreApplication& app)
+    {
+        siginfo_t siginfo;
+        sigwaitinfo(&sigset, &siginfo);
+        std::cout << "Received signal: " << siginfo.si_signo << "\n";
+        app.quit();
+    }
+
+private:
+    AutoJoinThread signal_handling_thread;
+};
+#endif // _MSC_VER
+}
+
+int main(int argc, char* argv[])
+try
+{
     QCoreApplication app(argc, argv);
+#if !defined(_MSC_VER)
+    UnixSignalHandler handler(app);
+#endif
+    DaemonRunner daemon_runner;
+
     app.exec();
 
-    if (rpc_thread.joinable())
-        rpc_thread.join();
+    std::cout << "Goodbye!\n";
+    return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
 {
