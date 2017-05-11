@@ -20,6 +20,7 @@
 #ifndef MULTIPASS_DAEMON_H
 #define MULTIPASS_DAEMON_H
 
+#include "daemon_config.h"
 #include <grpc++/grpc++.h>
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_status_monitor.h>
@@ -30,15 +31,15 @@
 namespace multipass
 {
 class DaemonConfig;
-class Daemon final : public multipass::Rpc::Service, public multipass::VMStatusMonitor
+class Daemon : public multipass::Rpc::Service, public multipass::VMStatusMonitor
 {
 public:
-    Daemon(const DaemonConfig& config);
+    Daemon(DaemonConfig config);
     void run();
     void shutdown();
 
 private:
-    const DaemonConfig* config;
+    DaemonConfig config;
     std::unique_ptr<grpc::Server> server;
     std::vector<VirtualMachine::UPtr> vms;
 

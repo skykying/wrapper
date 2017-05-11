@@ -22,6 +22,8 @@
 
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_factory.h>
+#include <multipass/vm_image_host.h>
+#include <multipass/vm_image_vault.h>
 #include <multipass/version.h>
 
 #include <stdexcept>
@@ -45,13 +47,13 @@ auto make_server(const multipass::DaemonConfig& config, multipass::Rpc::Service*
 }
 }
 
-mp::Daemon::Daemon(const DaemonConfig& config) : config{&config}, server{make_server(config, this)}
+mp::Daemon::Daemon(DaemonConfig config) : config{std::move(config)}, server{make_server(config, this)}
 {
 }
 
 void mp::Daemon::run()
 {
-    std::cout << "Server listening on " << config->server_address << std::endl;
+    std::cout << "Server listening on " << config.server_address << std::endl;
     server->Wait();
 }
 
@@ -66,7 +68,7 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
     desc.mem_size = request->mem_size();
     desc.vm_name = request->vm_name();
 
-    vms.push_back(config->factory->create_virtual_machine(desc, *this));
+    vms.push_back(config.factory->create_virtual_machine(desc, *this));
 
     reply->set_vm_instance_name(desc.vm_name);
     return grpc::Status::OK;

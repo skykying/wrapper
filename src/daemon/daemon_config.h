@@ -39,13 +39,15 @@ public:
                  std::unique_ptr<VMImageHost> image_host, std::unique_ptr<VMImageVault> vault,
                  std::string server_address);
 
-    const std::unique_ptr<VirtualMachineFactory> factory;
-    const std::unique_ptr<VMImageHost> image_host;
-    const std::unique_ptr<VMImageVault> vault;
+    std::unique_ptr<VirtualMachineFactory> factory;
+    std::unique_ptr<VMImageHost> image_host;
+    std::unique_ptr<VMImageVault> vault;
     const std::string server_address;
 
     DaemonConfig(const DaemonConfig&) = delete;
     DaemonConfig& operator=(const DaemonConfig&) = delete;
+    DaemonConfig(DaemonConfig&&) = default;
+    DaemonConfig& operator=(DaemonConfig&&) = default;
 };
 }
 
