@@ -17,26 +17,26 @@
  *
  */
 
-#include "ssh.h"
+#include "connect.h"
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::SSH::run()
+int cmd::Connect::run()
 {
-    auto on_success = [this](mp::SSHReply& reply) {
-        cout << "received ssh reply\n";
+    auto on_success = [this](mp::ConnectReply& reply) {
+        cout << "received connect reply\n";
         return EXIT_SUCCESS;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "ssh failed: " << status.error_message() << "\n";
+        cerr << "connect failed: " << status.error_message() << "\n";
         return EXIT_FAILURE;
     };
 
-    mp::SSHRequest request;
-    return dispatch(&RpcMethod::ssh, request, on_success, on_failure);
+    mp::ConnectRequest request;
+    return dispatch(&RpcMethod::connect, request, on_success, on_failure);
 }
 
-std::string cmd::SSH::name() const { return "ssh"; }
+std::string cmd::Connect::name() const { return "connect"; }

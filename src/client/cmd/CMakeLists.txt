@@ -15,13 +15,13 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(commands STATIC
-  version.cpp
+  connect.cpp
+  destroy.cpp
   launch.cpp
+  list.cpp
   start.cpp
   stop.cpp
-  list.cpp
-  ssh.cpp
-  destroy.cpp)
+  version.cpp)
 
 target_link_libraries(commands
   rpc)

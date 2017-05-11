@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef MULTIPASS_SSH_H
-#define MULTIPASS_SSH_H
+#ifndef MULTIPASS_CONNECT_H
+#define MULTIPASS_CONNECT_H
 
 #include "command.h"
 
@@ -26,7 +26,7 @@ namespace multipass
 {
 namespace cmd
 {
-class SSH final : public Command
+class Connect final : public Command
 {
 public:
     using Command::Command;
@@ -35,4 +35,4 @@ public:
 };
 }
 }
-#endif // MULTIPASS_SSH_H
+#endif // MULTIPASS_CONNECT_H

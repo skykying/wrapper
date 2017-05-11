@@ -20,11 +20,11 @@
 #include "daemon.h"
 #include "daemon_config.h"
 
+#include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>
-#include <multipass/version.h>
 
 #include <stdexcept>
 
@@ -47,9 +47,7 @@ auto make_server(const multipass::DaemonConfig& config, multipass::Rpc::Service*
 }
 }
 
-mp::Daemon::Daemon(DaemonConfig config) : config{std::move(config)}, server{make_server(config, this)}
-{
-}
+mp::Daemon::Daemon(DaemonConfig config) : config{std::move(config)}, server{make_server(config, this)} {}
 
 void mp::Daemon::run()
 {
@@ -59,8 +57,17 @@ void mp::Daemon::run()
 
 void mp::Daemon::shutdown() { server->Shutdown(); }
 
-grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchRequest* request,
-                                LaunchReply* reply)
+grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
+{
+    return grpc::Status::OK;
+}
+
+grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response)
+{
+    return grpc::Status::OK;
+}
+
+grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchRequest* request, LaunchReply* reply)
 {
     std::cout << __func__ << std::endl;
 
@@ -74,38 +81,22 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request,
-                               StartReply* response)
+grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
 {
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request,
-                              StopReply* response)
+grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
 {
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequest* request,
-                                 DestroyReply* response)
+grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
 {
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request,
-                              ListReply* response)
-{
-    return grpc::Status::OK;
-}
-
-grpc::Status mp::Daemon::ssh(grpc::ServerContext* context, const SSHRequest* request,
-                             SSHReply* response)
-{
-    return grpc::Status::OK;
-}
-
-grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request,
-                                 VersionReply* response)
+grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response)
 {
     response->set_version(multipass::version_string);
     return grpc::Status::OK;

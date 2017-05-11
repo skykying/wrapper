@@ -14,10 +14,6 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-include_directories(
-  ${PROCESS_CPP_INCLUDE_DIRS}
-)
-
 add_library(qemu_backend STATIC
   qemu_virtual_machine_factory.cpp
   qemu_virtual_machine.cpp)

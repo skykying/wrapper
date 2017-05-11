@@ -22,9 +22,9 @@
 
 #include "daemon_config.h"
 #include <grpc++/grpc++.h>
+#include <multipass/rpc/multipass.grpc.pb.h>
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_status_monitor.h>
-#include <multipass/rpc/multipass.grpc.pb.h>
 
 #include <memory>
 
@@ -43,26 +43,19 @@ private:
     std::unique_ptr<grpc::Server> server;
     std::vector<VirtualMachine::UPtr> vms;
 
-    grpc::Status launch(grpc::ServerContext* context, const LaunchRequest* request,
-                        LaunchReply* reply) override;
+    grpc::Status connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response) override;
 
-    grpc::Status ssh(grpc::ServerContext* context, const SSHRequest* request,
-                     SSHReply* response) override;
+    grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response) override;
 
-    grpc::Status start(grpc::ServerContext* context, const StartRequest* request,
-                       StartReply* response) override;
+    grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 
-    grpc::Status stop(grpc::ServerContext* context, const StopRequest* request,
-                      StopReply* response) override;
+    grpc::Status stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response) override;
 
-    grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request,
-                         DestroyReply* response) override;
+    grpc::Status launch(grpc::ServerContext* context, const LaunchRequest* request, LaunchReply* reply) override;
 
-    grpc::Status list(grpc::ServerContext* context, const ListRequest* request,
-                      ListReply* response) override;
+    grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
 
-    grpc::Status version(grpc::ServerContext* context, const VersionRequest* request,
-                         VersionReply* response) override;
+    grpc::Status version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response) override;
 
     void on_resume() override;
     void on_stop() override;

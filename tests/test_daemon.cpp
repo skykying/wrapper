@@ -44,12 +44,12 @@ namespace
 struct MockDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
+    MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
+    MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
     MOCK_METHOD3(launch, grpc::Status(grpc::ServerContext*, const mp::LaunchRequest*, mp::LaunchReply*));
-    MOCK_METHOD3(ssh, grpc::Status(grpc::ServerContext*, const mp::SSHRequest*, mp::SSHReply*));
+    MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
-    MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
-    MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
 };
 
@@ -95,15 +95,15 @@ TEST_F(Daemon, receives_commands)
 {
     ADaemonRunner<MockDaemon> daemon_runner{server_address};
 
+    EXPECT_CALL(daemon_runner.daemon, connect(_, _, _));
+    EXPECT_CALL(daemon_runner.daemon, destroy(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, launch(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, ssh(_, _, _));
+    EXPECT_CALL(daemon_runner.daemon, list(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, start(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, stop(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, list(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, destroy(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, version(_, _, _));
 
-    send_commands({"launch", "start", "stop", "ssh", "destroy", "list", "version"});
+    send_commands({"connect", "destroy", "launch", "list", "start", "stop", "version"});
 }
 
 TEST_F(Daemon, creates_virtual_machines)
