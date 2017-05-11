@@ -21,10 +21,10 @@
 #include <src/daemon/daemon.h>
 #include <src/daemon/daemon_config.h>
 
+#include <multipass/version.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>
-#include <multipass/version.h>
 
 #include "mock_virtual_machine_factory.h"
 #include "stub_image_host.h"
@@ -33,14 +33,49 @@
 
 #include <gtest/gtest.h>
 
-#include <thread>
 #include <sstream>
+#include <thread>
 
 namespace mp = multipass;
 using namespace testing;
 
+namespace
+{
+template <typename DaemonType>
+struct ADaemonRunner
+{
+    ADaemonRunner(mp::DaemonConfig config) : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }} {}
+
+    ADaemonRunner(std::string server_address) : ADaemonRunner(mp::DaemonConfig{server_address}) {}
+
+    ~ADaemonRunner()
+    {
+        daemon.shutdown();
+        if (daemon_thread.joinable())
+            daemon_thread.join();
+    }
+
+    DaemonType daemon;
+    std::thread daemon_thread;
+};
+
+using DaemonRunner = ADaemonRunner<mp::Daemon>;
+}
+
 struct Daemon : public testing::Test
 {
+    void send_command(std::string command, std::ostream& cout = std::cout) { send_commands({command}, cout); }
+
+    void send_commands(std::vector<std::string> commands, std::ostream& cout = std::cout)
+    {
+        mp::ClientConfig client_config{server_address, cout, std::cerr};
+        mp::Client client{client_config};
+        for (const auto& command : commands)
+        {
+            client.run(command);
+        }
+    }
+
     std::string server_address{"unix:/tmp/test-multipassd.socket"};
 };
 
@@ -52,34 +87,20 @@ TEST_F(Daemon, creates_virtual_machines)
     mp::DaemonConfig config{std::move(mock_factory), std::make_unique<StubVMImageHost>(),
                             std::make_unique<StubVMImageVault>(), server_address};
 
-    mp::Daemon daemon(config);
-
-    std::thread t{[&daemon] { daemon.run(); }};
+    DaemonRunner daemon_runner{std::move(config)};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
 
-    mp::ClientConfig client_config{server_address, std::cout, std::cerr};
-    mp::Client client{client_config};
-    client.run("launch");
-
-    daemon.shutdown();
-    t.join();
+    send_command("launch");
 }
 
 TEST_F(Daemon, provides_version)
 {
-    mp::DaemonConfig config;
-    mp::Daemon daemon(config);
-
-    std::thread t{[&daemon] { daemon.run(); }};
+    DaemonRunner daemon_runner{server_address};
 
     std::stringstream stream;
-    mp::ClientConfig client_config{server_address, stream, std::cerr};
-    mp::Client client{client_config};
-    client.run("version");
+    send_command("version", stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(mp::version_string));
-    daemon.shutdown();
-    t.join();
 }
