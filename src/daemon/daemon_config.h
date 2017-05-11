@@ -30,8 +30,9 @@ class VirtualMachineFactory;
 class VMImageHost;
 class VMImageVault;
 class VirtualMachineFactory;
-struct DaemonConfig
+class DaemonConfig
 {
+public:
     DaemonConfig();
     DaemonConfig(std::string server_address);
     DaemonConfig(std::unique_ptr<VirtualMachineFactory> factory,

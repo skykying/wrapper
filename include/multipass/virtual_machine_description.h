@@ -20,10 +20,13 @@
 #ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
 #define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
 
+#include <string>
+
 namespace multipass
 {
-struct VirtualMachineDescription
+class VirtualMachineDescription
 {
+public:
     using MBytes = size_t;
 
     int num_cores;

@@ -21,8 +21,9 @@
 #define MULTIPASS_VIRTUAL_MACHINE_IMAGE_H
 namespace multipass
 {
-struct VMImage
+class VMImage
 {
+public:
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_IMAGE_H

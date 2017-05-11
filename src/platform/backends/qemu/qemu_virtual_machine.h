@@ -26,7 +26,7 @@ class QProcess;
 namespace multipass
 {
 class VMStatusMonitor;
-struct VirtualMachineDescription;
+class VirtualMachineDescription;
 
 class QemuVirtualMachine final : public VirtualMachine
 {
