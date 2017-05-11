@@ -31,7 +31,14 @@ namespace mp = multipass;
 
 namespace
 {
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4996) // ignore getenv security warning
+#endif
 const QString USER_HOME(std::getenv("HOME"));
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
