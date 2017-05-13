@@ -24,11 +24,13 @@ add_executable(multipass_tests
   main.cpp
   test_daemon.cpp
   test_qemu_backend.cpp
+  test_petname.cpp
   )
 
 target_link_libraries(multipass_tests
   daemon
   client
+  petname
   ${GTEST_LIBRARIES}
   ${GMOCK_LIBRARIES}
 )

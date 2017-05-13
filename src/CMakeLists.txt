@@ -23,5 +23,6 @@ configure_file(
 add_subdirectory(cli)
 add_subdirectory(client)
 add_subdirectory(daemon)
+add_subdirectory(petname)
 add_subdirectory(platform)
 add_subdirectory(rpc)
