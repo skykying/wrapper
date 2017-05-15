@@ -29,6 +29,11 @@ constexpr auto num_names = std::extent<decltype(mp::petname::names)>::value;
 constexpr auto num_adverbs = std::extent<decltype(mp::petname::adverbs)>::value;
 constexpr auto num_adjectives = std::extent<decltype(mp::petname::adjectives)>::value;
 
+// Arbitrary but arrays should have at least 100 entries each
+static_assert(num_names >= 100, "");
+static_assert(num_adverbs >= 100, "");
+static_assert(num_adjectives >= 100, "");
+
 std::mt19937 make_engine()
 {
     std::random_device device;
