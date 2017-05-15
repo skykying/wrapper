@@ -51,7 +51,7 @@ mp::Petname::Petname(NumWords num_words, std::string separator)
       num_words{num_words},
       engine{make_engine()},
       name_dist{1, num_names - 1},
-      adjective_dist{0, num_adverbs - 1},
+      adjective_dist{0, num_adjectives - 1},
       adverb_dist{0, num_adverbs - 1}
 {
 }
