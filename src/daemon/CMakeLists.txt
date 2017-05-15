@@ -22,6 +22,7 @@ add_library(daemon STATIC
 
 target_link_libraries(daemon
   rpc
+  petname
   platform
   Qt5::Core)
 

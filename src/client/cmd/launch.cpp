@@ -40,7 +40,6 @@ int cmd::Launch::run()
     mp::LaunchRequest request;
 
     // Set some defaults
-    request.set_vm_name("test");
     request.set_mem_size(1024);
 
     return dispatch(&RpcMethod::launch, request, on_success, on_failure);

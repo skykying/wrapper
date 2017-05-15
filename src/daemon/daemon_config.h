@@ -26,6 +26,7 @@
 
 namespace multipass
 {
+class NameGenerator;
 class VirtualMachineFactory;
 class VMImageHost;
 class VMImageVault;
@@ -42,6 +43,7 @@ public:
     std::unique_ptr<VirtualMachineFactory> factory;
     std::unique_ptr<VMImageHost> image_host;
     std::unique_ptr<VMImageVault> vault;
+    std::unique_ptr<NameGenerator> name_generator;
     const std::string server_address;
 
     DaemonConfig(const DaemonConfig&) = delete;

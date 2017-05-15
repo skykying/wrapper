@@ -21,6 +21,7 @@
 #include <src/daemon/daemon.h>
 #include <src/daemon/daemon_config.h>
 
+#include <multipass/name_generator.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
@@ -33,6 +34,7 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <sstream>
 #include <thread>
 
@@ -51,6 +53,26 @@ struct MockDaemon : public mp::Daemon
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
+};
+
+struct LaunchTrackingDaemon : public mp::Daemon
+{
+    using mp::Daemon::Daemon;
+    grpc::Status launch(grpc::ServerContext* context, const mp::LaunchRequest* request, mp::LaunchReply* reply) override
+    {
+        auto status = mp::Daemon::launch(context, request, reply);
+        vm_instance_name = reply->vm_instance_name();
+        return status;
+    }
+
+    std::string vm_instance_name;
+};
+
+struct StubNameGenerator : public mp::NameGenerator
+{
+    StubNameGenerator(std::string name) : name{name} {}
+    std::string make_name() override { return name; }
+    std::string name;
 };
 
 template <typename DaemonType>
@@ -130,4 +152,17 @@ TEST_F(Daemon, provides_version)
     send_command("version", stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(mp::version_string));
+}
+
+TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
+{
+    mp::DaemonConfig config{server_address};
+    const std::string expected_name{"pied-piper-valley"};
+    config.name_generator = std::make_unique<StubNameGenerator>(expected_name);
+    config.factory = std::make_unique<StubVirtualMachineFactory>();
+    ADaemonRunner<LaunchTrackingDaemon> daemon_runner{std::move(config)};
+
+    send_command("launch");
+
+    EXPECT_THAT(daemon_runner.daemon.vm_instance_name, Eq(expected_name));
 }

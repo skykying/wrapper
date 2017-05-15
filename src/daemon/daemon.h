@@ -43,6 +43,7 @@ private:
     std::unique_ptr<grpc::Server> server;
     std::vector<VirtualMachine::UPtr> vms;
 
+protected:
     grpc::Status connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response) override;
 
     grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response) override;

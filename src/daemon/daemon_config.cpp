@@ -23,21 +23,21 @@
 #include "vm_image_repository.h"
 
 #include <multipass/platform.h>
+#include <multipass/name_generator.h>
 
 namespace mp = multipass;
 
 mp::DaemonConfig::DaemonConfig() : DaemonConfig(Platform::default_server_address()) {}
 
 mp::DaemonConfig::DaemonConfig(std::string address)
-    : factory{Platform::vm_backend()}, image_host{std::make_unique<mp::UbuntuVMImageHost>()},
-      vault{std::make_unique<VMImageRepository>()}, server_address{address}
+    : DaemonConfig(Platform::vm_backend(), std::make_unique<mp::UbuntuVMImageHost>(),
+                   std::make_unique<VMImageRepository>(), address)
 {
 }
 
-mp::DaemonConfig::DaemonConfig(std::unique_ptr<VirtualMachineFactory> factory,
-                               std::unique_ptr<VMImageHost> image_host,
+mp::DaemonConfig::DaemonConfig(std::unique_ptr<VirtualMachineFactory> factory, std::unique_ptr<VMImageHost> image_host,
                                std::unique_ptr<VMImageVault> vault, std::string address)
     : factory{std::move(factory)}, image_host{std::move(image_host)}, vault{std::move(vault)},
-      server_address{address}
+      name_generator{mp::make_default_name_generator()}, server_address{address}
 {
 }

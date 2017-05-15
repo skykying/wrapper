@@ -20,6 +20,7 @@
 #include "daemon.h"
 #include "daemon_config.h"
 
+#include <multipass/name_generator.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_factory.h>
@@ -69,11 +70,13 @@ grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequ
 
 grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchRequest* request, LaunchReply* reply)
 {
-    std::cout << __func__ << std::endl;
-
     VirtualMachineDescription desc;
     desc.mem_size = request->mem_size();
-    desc.vm_name = request->vm_name();
+
+    if (request->vm_name().empty())
+    {
+        desc.vm_name = config.name_generator->make_name();
+    }
 
     vms.push_back(config.factory->create_virtual_machine(desc, *this));
 
