@@ -51,7 +51,7 @@ private:
 class DaemonRunner
 {
 public:
-    DaemonRunner() : daemon{multipass::DaemonConfig{}}, daemon_thread{[this] { daemon.run(); }} {}
+    DaemonRunner() : daemon{multipass::DaemonConfigBuilder{}.build()}, daemon_thread{[this] { daemon.run(); }} {}
     ~DaemonRunner() { daemon.shutdown(); }
 
 private:

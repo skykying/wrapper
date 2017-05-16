@@ -30,17 +30,17 @@
 
 namespace multipass
 {
-class DaemonConfig;
+struct DaemonConfig;
 class Daemon : public multipass::Rpc::Service, public multipass::VMStatusMonitor
 {
 public:
-    Daemon(DaemonConfig config);
+    Daemon(std::unique_ptr<const DaemonConfig> config);
     void run();
     void shutdown();
 
 private:
-    DaemonConfig config;
-    std::unique_ptr<grpc::Server> server;
+    const std::unique_ptr<const DaemonConfig> config;
+    const std::unique_ptr<grpc::Server> server;
     std::vector<VirtualMachine::UPtr> vms;
 
 protected:

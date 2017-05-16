@@ -48,11 +48,11 @@ auto make_server(const multipass::DaemonConfig& config, multipass::Rpc::Service*
 }
 }
 
-mp::Daemon::Daemon(DaemonConfig config) : config{std::move(config)}, server{make_server(config, this)} {}
+mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config) : config{std::move(the_config)}, server{make_server(*config, this)} {}
 
 void mp::Daemon::run()
 {
-    std::cout << "Server listening on " << config.server_address << std::endl;
+    std::cout << "Server listening on " << config->server_address << "\n";
     server->Wait();
 }
 
@@ -75,10 +75,10 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
 
     if (request->vm_name().empty())
     {
-        desc.vm_name = config.name_generator->make_name();
+        desc.vm_name = config->name_generator->make_name();
     }
 
-    vms.push_back(config.factory->create_virtual_machine(desc, *this));
+    vms.push_back(config->factory->create_virtual_machine(desc, *this));
 
     reply->set_vm_instance_name(desc.vm_name);
     return grpc::Status::OK;

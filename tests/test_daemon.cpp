@@ -43,6 +43,14 @@ using namespace testing;
 
 namespace
 {
+
+auto make_config(std::string server_address)
+{
+    mp::DaemonConfigBuilder builder;
+    builder.server_address = server_address;
+    return builder.build();
+}
+
 struct MockDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
@@ -78,9 +86,9 @@ struct StubNameGenerator : public mp::NameGenerator
 template <typename DaemonType>
 struct ADaemonRunner
 {
-    ADaemonRunner(mp::DaemonConfig config) : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }} {}
+    ADaemonRunner(std::unique_ptr<const mp::DaemonConfig> config) : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }} {}
 
-    ADaemonRunner(std::string server_address) : ADaemonRunner(mp::DaemonConfig{server_address}) {}
+    ADaemonRunner(std::string server_address) : ADaemonRunner(make_config(server_address)) {}
 
     ~ADaemonRunner()
     {
@@ -133,10 +141,12 @@ TEST_F(Daemon, creates_virtual_machines)
     auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
     auto mock_factory_ptr = mock_factory.get();
 
-    mp::DaemonConfig config{std::move(mock_factory), std::make_unique<StubVMImageHost>(),
-                            std::make_unique<StubVMImageVault>(), server_address};
-
-    DaemonRunner daemon_runner{std::move(config)};
+    mp::DaemonConfigBuilder config_builder;
+    config_builder.factory = std::move(mock_factory);
+    config_builder.image_host = std::make_unique<StubVMImageHost>();
+    config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.server_address = server_address;
+    DaemonRunner daemon_runner{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
@@ -156,11 +166,14 @@ TEST_F(Daemon, provides_version)
 
 TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
 {
-    mp::DaemonConfig config{server_address};
     const std::string expected_name{"pied-piper-valley"};
-    config.name_generator = std::make_unique<StubNameGenerator>(expected_name);
-    config.factory = std::make_unique<StubVirtualMachineFactory>();
-    ADaemonRunner<LaunchTrackingDaemon> daemon_runner{std::move(config)};
+
+    mp::DaemonConfigBuilder config_builder;
+    config_builder.server_address = server_address;
+    config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
+    config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
+
+    ADaemonRunner<LaunchTrackingDaemon> daemon_runner{config_builder.build()};
 
     send_command("launch");
 

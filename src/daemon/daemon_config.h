@@ -31,25 +31,24 @@ class VirtualMachineFactory;
 class VMImageHost;
 class VMImageVault;
 class VirtualMachineFactory;
-class DaemonConfig
+struct DaemonConfig
 {
-public:
-    DaemonConfig();
-    DaemonConfig(std::string server_address);
-    DaemonConfig(std::unique_ptr<VirtualMachineFactory> factory,
-                 std::unique_ptr<VMImageHost> image_host, std::unique_ptr<VMImageVault> vault,
-                 std::string server_address);
+    const std::unique_ptr<VirtualMachineFactory> factory;
+    const std::unique_ptr<VMImageHost> image_host;
+    const std::unique_ptr<VMImageVault> vault;
+    const std::unique_ptr<NameGenerator> name_generator;
+    const std::string server_address;
+};
 
+struct DaemonConfigBuilder
+{
     std::unique_ptr<VirtualMachineFactory> factory;
     std::unique_ptr<VMImageHost> image_host;
     std::unique_ptr<VMImageVault> vault;
     std::unique_ptr<NameGenerator> name_generator;
-    const std::string server_address;
+    std::string server_address;
 
-    DaemonConfig(const DaemonConfig&) = delete;
-    DaemonConfig& operator=(const DaemonConfig&) = delete;
-    DaemonConfig(DaemonConfig&&) = default;
-    DaemonConfig& operator=(DaemonConfig&&) = default;
+    std::unique_ptr<const DaemonConfig> build();
 };
 }
 

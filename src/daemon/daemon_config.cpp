@@ -22,22 +22,23 @@
 #include "ubuntu_image_host.h"
 #include "vm_image_repository.h"
 
-#include <multipass/platform.h>
 #include <multipass/name_generator.h>
+#include <multipass/platform.h>
 
 namespace mp = multipass;
-
-mp::DaemonConfig::DaemonConfig() : DaemonConfig(Platform::default_server_address()) {}
-
-mp::DaemonConfig::DaemonConfig(std::string address)
-    : DaemonConfig(Platform::vm_backend(), std::make_unique<mp::UbuntuVMImageHost>(),
-                   std::make_unique<VMImageRepository>(), address)
+std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
 {
-}
+    if (factory == nullptr)
+        factory = Platform::vm_backend();
+    if (image_host == nullptr)
+        image_host = std::make_unique<mp::UbuntuVMImageHost>();
+    if (vault == nullptr)
+        vault = std::make_unique<VMImageRepository>();
+    if (name_generator == nullptr)
+        name_generator = mp::make_default_name_generator();
+    if (server_address.empty())
+        server_address = Platform::default_server_address();
 
-mp::DaemonConfig::DaemonConfig(std::unique_ptr<VirtualMachineFactory> factory, std::unique_ptr<VMImageHost> image_host,
-                               std::unique_ptr<VMImageVault> vault, std::string address)
-    : factory{std::move(factory)}, image_host{std::move(image_host)}, vault{std::move(vault)},
-      name_generator{mp::make_default_name_generator()}, server_address{address}
-{
+    return std::unique_ptr<const DaemonConfig>(new DaemonConfig{
+        std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator), server_address});
 }
