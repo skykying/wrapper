@@ -19,11 +19,15 @@
 
 #ifndef MULTIPASS_VIRTUAL_MACHINE_IMAGE_H
 #define MULTIPASS_VIRTUAL_MACHINE_IMAGE_H
+
+#include <multipass/path.h>
+
 namespace multipass
 {
 class VMImage
 {
 public:
+    Path image_path;
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_IMAGE_H

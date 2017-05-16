@@ -13,28 +13,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
- *
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  */
 
-#ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-#define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+#include <multipass/simplestreams.h>
 
-#include <string>
-#include <multipass/path.h>
+#include <gmock/gmock.h>
 
-namespace multipass
+#include <QCoreApplication>
+
+namespace mp = multipass;
+
+using namespace testing;
+
+TEST(Simplestreams, get_image_path_by_alias)
 {
-class VirtualMachineDescription
-{
-public:
-    using MBytes = size_t;
+    QDir testDir(QCoreApplication::applicationDirPath());
+    testDir.cd("../tests/test_data");
 
-    int num_cores;
-    MBytes mem_size;
-    MBytes disk_space;
-    std::string vm_name;
-    Path image_path;
-};
+    mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
+
+    QString path = ss_mgr.download_image_by_alias("xenial");
+
+    QString image_path(testDir.filePath("test_image.img"));
+
+    EXPECT_THAT(path.toStdString(), Eq(image_path.toStdString()));
 }
-#endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H

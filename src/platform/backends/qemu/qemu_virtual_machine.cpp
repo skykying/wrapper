@@ -45,22 +45,16 @@ const QString USER_HOME(std::getenv("HOME"));
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
-    const QString vm_image(USER_HOME + QString("/qemu/disk.img"));
     const QString cloudinit_img(USER_HOME + QString("/qemu/cloudinit-seed.img"));
     QStringList args{"--enable-kvm"};
 
-    if (QFile::exists(vm_image) && QFile::exists(cloudinit_img))
+    if (QFile::exists(desc.image_path) && QFile::exists(cloudinit_img))
     {
-        args <<  // The VM image itself
-                 "-hda" << vm_image <<
-                 // For the cloud-init configuration
-                 "-hdb" << cloudinit_img <<
-                 // Memory to use for VM
-                 "-m" <<  QString::number(desc.mem_size) <<
-                 // Create a virtual NIC in the VM
-                 "-net" << "nic" <<
-                 // Forward host port 2222 to guest port 22 for ssh
-                 "-net" << "user,hostfwd=tcp::2222-:22";
+        args <<  "-hda" << desc.image_path <<               // The VM image itself
+                 "-hdb" << cloudinit_img <<                 // For the cloud-init configuration
+                 "-m" <<  QString::number(desc.mem_size) << // Memory to use for VM
+                 "-net" << "nic" <<                         // Create a virtual NIC in the VM
+                 "-net" << "user,hostfwd=tcp::2222-:22";    // Forward host port 2222 to guest port 22 for ssh
     }
 
     auto process = std::make_unique<QProcess>();

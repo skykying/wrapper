@@ -172,6 +172,7 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     config_builder.server_address = server_address;
     config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
     config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
+    config_builder.image_host = std::make_unique<StubVMImageHost>();
 
     ADaemonRunner<LaunchTrackingDaemon> daemon_runner{config_builder.build()};
 

@@ -12,27 +12,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+# Authored by: Chris Townsend <christopher.townsend@canonical.com>
 
-add_library(daemon STATIC
-  daemon.cpp
-  daemon_config.cpp
-  ubuntu_image_host.cpp
-  vm_image_repository.cpp)
+add_library(simplestreams STATIC
+            simplestreams.cpp
+            ${CMAKE_SOURCE_DIR}/include/multipass/simplestreams.h)
 
-target_link_libraries(daemon
-  rpc
-  petname
-  platform
-  simplestreams
+target_link_libraries(simplestreams
   Qt5::Core
   Qt5::Network)
-
-add_executable(multipassd daemon_main.cpp)
-
-target_link_libraries(multipassd
-  daemon
-  qemu_backend)
-
-install(TARGETS multipassd
-  DESTINATION bin)

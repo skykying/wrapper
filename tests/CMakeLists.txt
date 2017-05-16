@@ -25,12 +25,14 @@ add_executable(multipass_tests
   test_daemon.cpp
   test_qemu_backend.cpp
   test_petname.cpp
+  test_simplestreams.cpp
   )
 
 target_link_libraries(multipass_tests
   daemon
   client
   petname
+  simplestreams
   ${GTEST_LIBRARIES}
   ${GMOCK_LIBRARIES}
 )
@@ -38,3 +40,5 @@ target_link_libraries(multipass_tests
 add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)
 
 add_dependencies(multipass_tests GMock)
+
+file(COPY test_data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

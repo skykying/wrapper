@@ -13,28 +13,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com> 
  *
  */
 
-#ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-#define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+#ifndef MULTIPASS_VIRTUAL_MACHINE_QUERY_H
+#define MULTIPASS_VIRTUAL_MACHINE_QUERY_H
 
 #include <string>
-#include <multipass/path.h>
 
 namespace multipass
 {
-class VirtualMachineDescription
+class VMImageQuery
 {
 public:
-    using MBytes = size_t;
-
-    int num_cores;
-    MBytes mem_size;
-    MBytes disk_space;
-    std::string vm_name;
-    Path image_path;
+    std::string release;
 };
 }
-#endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+#endif // MULTIPASS_VIRTUAL_MACHINE_QUERY_H

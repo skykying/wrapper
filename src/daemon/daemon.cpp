@@ -24,7 +24,9 @@
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_factory.h>
+#include <multipass/vm_image.h>
 #include <multipass/vm_image_host.h>
+#include <multipass/vm_image_query.h>
 #include <multipass/vm_image_vault.h>
 
 #include <stdexcept>
@@ -78,6 +80,16 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
         desc.vm_name = config->name_generator->make_name();
     }
 
+    VMImageQuery vm_image_query;
+
+    if (request->release().empty())
+    {
+        vm_image_query.release = "xenial";
+    }
+
+    VMImage vm_image = config->image_host->fetch(vm_image_query);
+
+    desc.image_path = vm_image.image_path;
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
 
     reply->set_vm_instance_name(desc.vm_name);

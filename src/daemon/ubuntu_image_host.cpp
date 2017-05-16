@@ -19,6 +19,16 @@
 
 #include "ubuntu_image_host.h"
 
+#include <multipass/simplestreams.h>
+
+
 namespace mp = multipass;
 
-multipass::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query) { return {}; }
+mp::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query)
+{
+    mp::SimpleStreams ss_mgr;
+    VMImage image_info;
+
+    image_info.image_path = ss_mgr.download_image_by_alias(query.release);
+    return image_info;
+}

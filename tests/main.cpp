@@ -19,10 +19,14 @@
 
 #include <gtest/gtest.h>
 
+#include <QCoreApplication>
+
 // Normally one would just use libgtest_main but our static library dependencies
 // also define main... DAMN THEM!
 int main(int argc, char* argv[])
 {
+    QCoreApplication app(argc, argv);
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
