@@ -21,6 +21,7 @@
 #include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QProcess>
 #include <QProcessEnvironment>
@@ -60,13 +61,14 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc)
                  "-net" << "user,hostfwd=tcp::2222-:22";
     }
 
-    QProcessEnvironment env;
-    env.insert("DISPLAY", ":0");
-
     auto process = std::make_unique<QProcess>();
-    process->setProgram("/usr/bin/qemu-system-x86_64");
+    auto snap = qgetenv("SNAP");
+    if (!snap.isEmpty())
+    {
+        process->setWorkingDirectory(snap.append("/qemu"));
+    }
+    process->setProgram("qemu-system-x86_64");
     process->setArguments(args);
-    process->setProcessEnvironment(env);
 
     process->start();
     return process;

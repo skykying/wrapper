@@ -29,4 +29,7 @@ add_executable(ubuntu
 target_link_libraries(ubuntu
   client)
 
+install(TARGETS ubuntu
+  DESTINATION bin)
+
 add_subdirectory(cmd)

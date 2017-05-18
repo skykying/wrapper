@@ -1,0 +1,45 @@
+name: multipass
+version: '0.1'
+summary: Ubuntu at your fingertips
+description: |
+  Multipass gives you Ubuntu VMs in seconds. Just run `ubuntu launch` and
+  it'll do all the setup for you.
+
+grade: devel
+confinement: devmode
+
+apps:
+  multipassd:
+    command: bin/multipassd
+    plugs: [network, network-bind, x11]
+  ubuntu:
+    command: bin/ubuntu
+    plugs: [network]
+
+parts:
+  multipass:
+    plugin: cmake
+    build-packages:
+    - build-essential
+    - cmake-extras
+    - golang
+    - qtbase5-dev
+    source: .
+    prepare: |
+      git -C ../src submodule update --init --recursive
+    configflags:
+    - -DCMAKE_INSTALL_PREFIX=/
+    - -DMULTIPASS_ENABLE_TESTS=off
+    prime:
+    - bin
+
+  qemu:
+    plugin: nil
+    stage-packages:
+    - qemu-system-x86
+    organize:
+      usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so: usr/lib/x86_64-linux-gnu/libpulsecommon-8.0.so
+      usr/share/seabios/bios-256k.bin: qemu/bios-256k.bin
+      usr/share/seabios/vgabios-stdvga.bin: qemu/vgabios-stdvga.bin
+      usr/share/seabios/kvmvapic.bin: qemu/kvmvapic.bin
+      usr/lib/ipxe/qemu/efi-e1000.rom: qemu/efi-e1000.rom
