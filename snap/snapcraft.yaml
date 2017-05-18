@@ -1,5 +1,7 @@
 name: multipass
-version: '0.1'
+version: '2017.0.0'
+version-script: |
+  cat VERSION
 summary: Ubuntu at your fingertips
 description: |
   Multipass gives you Ubuntu VMs in seconds. Just run `ubuntu launch` and
