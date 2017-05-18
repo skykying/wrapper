@@ -22,7 +22,9 @@
 #include <multipass/vm_status_monitor.h>
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QFile>
+#include <QObject>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QString>
@@ -67,8 +69,11 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc)
     {
         process->setWorkingDirectory(snap.append("/qemu"));
     }
+    qDebug() << "QProcess::workingDirectory" << process->workingDirectory();
     process->setProgram("qemu-system-x86_64");
+    qDebug() << "QProcess::program" << process->program();
     process->setArguments(args);
+    qDebug() << "QProcess::arguments" << process->arguments();
 
     process->start();
     return process;
@@ -79,6 +84,16 @@ mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc
                                            VMStatusMonitor& monitor)
     : state{State::running}, monitor{&monitor}, vm_process{make_qemu_process(desc)}
 {
+    QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
+                     [=]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
+
+    QObject::connect(vm_process.get(), &QProcess::readyReadStandardError,
+                     [=]() { qDebug("qemu.err: %s", vm_process->readAllStandardError().data()); });
+
+    QObject::connect(vm_process.get(), static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                         qDebug() << "QProcess::finished" << "exitCode" << exitCode << "exitStatus" << exitStatus;
+                     });
 }
 
 mp::QemuVirtualMachine::~QemuVirtualMachine() {}
