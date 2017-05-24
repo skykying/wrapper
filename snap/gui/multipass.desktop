@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Multipass
+Exec=multipass
+Terminal=false
+Type=Application
+Icon=${SNAP}/meta/gui/icon.png

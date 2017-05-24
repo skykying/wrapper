@@ -6,6 +6,7 @@ summary: Ubuntu at your fingertips
 description: |
   Multipass gives you Ubuntu VMs in seconds. Just run `ubuntu launch` and
   it'll do all the setup for you.
+icon: data/icon.png
 
 grade: devel
 confinement: devmode
