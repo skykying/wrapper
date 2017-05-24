@@ -17,6 +17,17 @@ apps:
   ubuntu:
     command: bin/ubuntu
     plugs: [network]
+  multipass:
+    command: electron-app/multipass.sh
+    plugs:
+    - browser-support
+    - gsettings
+    - home
+    - mount-observe
+    - network
+    - pulseaudio
+    - unity7
+    - x11
 
 parts:
   qtbase5-dev:
@@ -91,3 +102,39 @@ parts:
       usr/share/seabios/vgabios-stdvga.bin: qemu/vgabios-stdvga.bin
       usr/share/seabios/kvmvapic.bin: qemu/kvmvapic.bin
       usr/lib/ipxe/qemu/efi-e1000.rom: qemu/efi-e1000.rom
+
+  electron-app:
+    after: [desktop-gtk2]
+    plugin: nodejs
+    source: .
+    stage-packages:
+    - gconf2
+    - libappindicator1
+    - libasound2
+    - libnotify4
+    - libnspr4
+    - libnss3
+    - libpulse0
+    - libxss1
+    - libxtst6
+    build: |
+      export PATH=$SNAPCRAFT_PART_INSTALL/bin:$PATH
+      cd electron-app
+      npm install
+      npm run pack
+    install: |
+      cd electron-app
+      cp -r dist/linux-unpacked $SNAPCRAFT_PART_INSTALL/electron-app
+      cp multipass.sh $SNAPCRAFT_PART_INSTALL/electron-app
+    prime:
+    # We don't need nodejs after building
+    - -include/node
+    - -lib/node_modules
+    - -bin/node
+    - -bin/npm
+    - -share/doc/node
+    - -share/man/man1/node.1
+    - -share/systemtap/tapset/node.stp
+    - -CHANGELOG.md
+    - -LICENSE
+    - -README.md
