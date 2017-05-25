@@ -20,7 +20,7 @@
 #ifndef MULTIPASS_CLIENT_H
 #define MULTIPASS_CLIENT_H
 
-#include "cmd/command.h"
+#include <multipass/cli/command.h>
 #include <multipass/cli/cli.h>
 #include <multipass/rpc/multipass.grpc.pb.h>
 
@@ -40,8 +40,7 @@ class Client
 {
 public:
     Client(const ClientConfig& context);
-    int run(const cli::Args& args);
-    int run(std::string command);
+    int run(const QStringList &arguments);
 
 private:
     template<typename T>
@@ -49,7 +48,7 @@ private:
     std::shared_ptr<grpc::Channel> rpc_channel;
     std::unique_ptr<multipass::Rpc::Stub> stub;
 
-    std::unordered_map<std::string, cmd::Command::UPtr> commands;
+    std::vector<cmd::Command::UPtr> commands;
 
     std::ostream& cout;
     std::ostream& cerr;

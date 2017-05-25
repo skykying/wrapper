@@ -42,7 +42,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <thread>
 
 namespace mp = multipass;
 using namespace testing;
@@ -63,10 +62,10 @@ struct MockDaemon : public mp::Daemon
     MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
     MOCK_METHOD3(create,
                  grpc::Status(grpc::ServerContext*, const mp::CreateRequest*, grpc::ServerWriter<mp::CreateReply>*));
-    MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
+    MOCK_METHOD3(trash, grpc::Status(grpc::ServerContext*, const multipass::TrashRequest*, multipass::TrashReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
 };
 
@@ -83,19 +82,21 @@ struct StubNameGenerator : public mp::NameGenerator
 };
 } // namespace
 
-struct Daemon : public testing::Test
+struct Daemon : public Test
 {
     void SetUp() override
     {
         loop.reset(new QEventLoop());
     }
 
-    void send_command(std::string command, std::ostream& cout = std::cout)
+    void send_command(std::vector<std::string> command, std::ostream& cout = std::cout)
     {
         send_commands({command}, cout);
     }
 
-    void send_commands(std::vector<std::string> commands, std::ostream& cout = std::cout)
+    // "commands" is a vector of commands that includes necessary positional arguments, ie,
+    // "start foo"
+    void send_commands(std::vector<std::vector<std::string>> commands, std::ostream& cout = std::cout)
     {
         // Commands need to be sent from a thread different from that the QEventLoop is on.
         // Event loop is started/stopped to ensure all signals are delivered
@@ -104,7 +105,13 @@ struct Daemon : public testing::Test
             mp::Client client{client_config};
             for (const auto& command : commands)
             {
-                client.run(command);
+                QStringList args = QStringList() << "multipass_test";
+
+                for (const auto& arg : command)
+                {
+                    args << QString::fromStdString(arg);
+                }
+                client.run(args);
             }
             loop->quit();
         });
@@ -126,13 +133,19 @@ TEST_F(Daemon, receives_commands)
 
     EXPECT_CALL(daemon, connect(_, _, _));
     EXPECT_CALL(daemon, create(_, _, _));
-    EXPECT_CALL(daemon, destroy(_, _, _));
     EXPECT_CALL(daemon, list(_, _, _));
     EXPECT_CALL(daemon, start(_, _, _));
     EXPECT_CALL(daemon, stop(_, _, _));
+    EXPECT_CALL(daemon, trash(_, _, _));
     EXPECT_CALL(daemon, version(_, _, _));
 
-    send_commands({"connect", "create", "destroy", "list", "start", "stop", "version"});
+    send_commands({{"connect", "foo"}, // name argument is required
+                   {"create"},
+                   {"list"},
+                   {"start", "foo"},   // name argument is required
+                   {"stop", "foo"},    // name argument is required
+                   {"trash", "foo"},   // name argument is required
+                   {"version"}});
 }
 
 TEST_F(Daemon, creates_virtual_machines)
@@ -153,7 +166,7 @@ TEST_F(Daemon, creates_virtual_machines)
     EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
         .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
-    send_command("create");
+    send_command({"create"});
 }
 
 TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
@@ -177,7 +190,7 @@ TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
         return std::move(fetcher);
     }));
 
-    send_command("create");
+    send_command({"create"});
 }
 
 TEST_F(Daemon, provides_version)
@@ -186,7 +199,7 @@ TEST_F(Daemon, provides_version)
 
     std::stringstream stream;
 
-    send_command("version", stream);
+    send_command({"version"}, stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(mp::version_string));
 }
@@ -204,7 +217,7 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
 
     std::stringstream stream;
 
-    send_command("create", stream);
+    send_command({"create"}, stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(expected_name));
 }
@@ -298,5 +311,5 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
     EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
         .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
-    send_command("create");
+    send_command({"create"});
 }

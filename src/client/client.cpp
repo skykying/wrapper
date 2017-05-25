@@ -19,79 +19,53 @@
 #include "client.h"
 #include "cmd/connect.h"
 #include "cmd/create.h"
-#include "cmd/destroy.h"
 #include "cmd/list.h"
 #include "cmd/start.h"
 #include "cmd/stop.h"
+#include "cmd/trash.h"
 #include "cmd/version.h"
 
 #include <grpc++/grpc++.h>
 
 #include <algorithm>
 
-namespace mp = multipass;
+#include <multipass/cli/argparser.h>
 
-namespace
-{
-template <typename T>
-auto sorted_cmd_names_from(const T& list)
-{
-    std::vector<std::string> cmd_names;
-    for (const auto& kv : list)
-    {
-        cmd_names.push_back(kv.first);
-    }
-    std::sort(cmd_names.begin(), cmd_names.end());
-    return cmd_names;
-}
-}
+namespace mp = multipass;
 
 mp::Client::Client(const ClientConfig& config)
     : rpc_channel{grpc::CreateChannel(config.server_address, grpc::InsecureChannelCredentials())},
       stub{mp::Rpc::NewStub(rpc_channel)}, cout{config.cout}, cerr{config.cerr}
 {
+    add_command<cmd::Connect>();
     add_command<cmd::Create>();
-    add_command<cmd::Version>();
+    add_command<cmd::List>();
     add_command<cmd::Start>();
     add_command<cmd::Stop>();
-    add_command<cmd::List>();
-    add_command<cmd::Connect>();
-    add_command<cmd::Destroy>();
+    add_command<cmd::Trash>();
+    add_command<cmd::Version>();
 }
 
 template <typename T>
 void mp::Client::add_command()
 {
     auto cmd = std::make_unique<T>(*rpc_channel, *stub, cout, cerr);
-    commands[cmd->name()] = std::move(cmd);
+    commands.push_back(std::move(cmd));
 }
 
-int mp::Client::run(const mp::cli::Args& args)
+int mp::Client::run(const QStringList &arguments)
 {
-    // TODO: actually parse args
-    if (args.empty())
+    QString description("Create, control and connect to Ubuntu instances.\n\n"
+                        "This is a command line utility for multipass, a\n"
+                        "service that manages Ubuntu instances.");
+
+    ArgParser parser(arguments, commands, cout, cerr);
+    parser.setApplicationDescription(description);
+
+    ParseCode parse_status = parser.parse();
+    if (parse_status != ParseCode::Ok)
     {
-        std::cout << "Usage:\n    ubuntu <command>\n\n";
-        std::cout << "Available commands:\n";
-        auto names = sorted_cmd_names_from(commands);
-        for (auto const& name : names)
-        {
-            std::cout << "  ";
-            std::cout << name << "\n";
-        }
-
-        return EXIT_FAILURE;
+        return parser.returnCodeFrom(parse_status);
     }
-
-    auto const cmd_name = args[0];
-    return run(cmd_name);
-}
-
-int mp::Client::run(std::string cmd_name)
-{
-    auto& cmd = commands[cmd_name];
-    if (cmd != nullptr)
-        return cmd->run();
-
-    return EXIT_FAILURE;
+    return parser.chosenCommand()->run(&parser);
 }

@@ -36,6 +36,7 @@ include_directories(
 
 add_executable(multipass_tests
   main.cpp
+  test_cli_client.cpp
   test_daemon.cpp
   test_qemu_backend.cpp
   test_petname.cpp

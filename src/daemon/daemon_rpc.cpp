@@ -65,9 +65,9 @@ grpc::Status mp::DaemonRpc::connect(grpc::ServerContext* context, const ConnectR
     return emit on_connect(context, request, response); // must block until slot returns
 }
 
-grpc::Status mp::DaemonRpc::destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response)
+grpc::Status mp::DaemonRpc::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
 {
-    return emit on_destroy(context, request, response); // must block until slot returns
+    return emit on_trash(context, request, response); // must block until slot returns
 }
 
 grpc::Status mp::DaemonRpc::create(grpc::ServerContext* context, const CreateRequest* request,

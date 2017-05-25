@@ -20,7 +20,7 @@
 #ifndef MULTIPASS_LIST_H
 #define MULTIPASS_LIST_H
 
-#include "command.h"
+#include <multipass/cli/command.h>
 
 namespace multipass
 {
@@ -30,8 +30,14 @@ class List final : public Command
 {
 public:
     using Command::Command;
-    int run() override;
+    ReturnCode run(ArgParser *parser) override;
+
     std::string name() const override;
+    QString short_help() const override;
+    QString description() const override;
+
+private:
+    ParseCode parse_args(ArgParser *parser) override;
 };
 }
 }

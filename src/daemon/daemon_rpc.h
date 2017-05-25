@@ -42,7 +42,7 @@ public:
 signals:
     // All these signals must be connected to with a BlockingQueuedConnection!!!
     grpc::Status on_connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response);
-    grpc::Status on_destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response);
+    grpc::Status on_trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response);
     grpc::Status on_start(grpc::ServerContext* context, const StartRequest* request, StartReply* response);
     grpc::Status on_stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response);
     grpc::Status on_create(grpc::ServerContext* context, const CreateRequest* request,
@@ -57,7 +57,7 @@ private:
 protected:
     grpc::Status connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response) override;
 
-    grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response) override;
+    grpc::Status trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response) override;
 
     grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 

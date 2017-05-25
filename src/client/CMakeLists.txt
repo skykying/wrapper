@@ -15,13 +15,15 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(client STATIC
+  argparser.cpp
   client.cpp)
 
 target_link_libraries(client
-  cli
   commands
   platform
-  rpc)
+  rpc
+  wraptext
+  Qt5::Core)
 
 add_executable(ubuntu
   main.cpp)

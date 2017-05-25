@@ -43,7 +43,7 @@ mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon
     : daemon_rpc{server_address}, daemon_thread{[this, daemon] {
           QObject::connect(&daemon_rpc, &DaemonRpc::on_create, daemon, &Daemon::create, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_connect, daemon, &Daemon::connect, Qt::BlockingQueuedConnection);
-          QObject::connect(&daemon_rpc, &DaemonRpc::on_destroy, daemon, &Daemon::destroy, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_trash, daemon, &Daemon::trash, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_start, daemon, &Daemon::start, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_stop, daemon, &Daemon::stop, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
@@ -131,24 +131,24 @@ grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateReques
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response)
+grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
 {
-    return grpc::Status::OK;
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
 
 grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
 {
-    return grpc::Status::OK;
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
 
 grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
 {
-    return grpc::Status::OK;
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
 
 grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
 {
-    return grpc::Status::OK;
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
 
 grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response)

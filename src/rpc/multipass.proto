@@ -20,10 +20,10 @@ package multipass;
 service Rpc {
     rpc connect (ConnectRequest) returns (ConnectReply);
     rpc create (CreateRequest) returns (stream CreateReply);
-    rpc destroy (DestroyRequest) returns (DestroyReply);
     rpc list (ListRequest) returns (ListReply);
     rpc start (StartRequest) returns (StartReply);
     rpc stop (StopRequest) returns (StopReply);
+    rpc trash (TrashRequest) returns (TrashReply);
     rpc version (VersionRequest) returns (VersionReply);
 }
 
@@ -35,12 +35,12 @@ message ConnectReply {
     string exec_line = 1;
 }
 
-message DestroyRequest {
+message TrashRequest {
     string vm_name = 1;
     bool force = 2;
 }
 
-message DestroyReply {
+message TrashReply {
 }
 
 message StartRequest {

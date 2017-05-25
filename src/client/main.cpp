@@ -22,11 +22,17 @@
 #include <multipass/cli/cli.h>
 #include <multipass/platform.h>
 
+#include <QCoreApplication>
+
 namespace mp = multipass;
 
 int main(int argc, char* argv[])
 {
+    QCoreApplication app(argc, argv);
+    app.setApplicationName("ubuntu");
+
     mp::ClientConfig config{mp::Platform::default_server_address(), std::cout, std::cerr};
     mp::Client client{config};
-    return client.run(mp::cli::arg_list_from(argc, argv));
+
+    return client.run(app.arguments());
 }

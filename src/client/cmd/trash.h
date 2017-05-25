@@ -17,12 +17,28 @@
  *
  */
 
-#include <multipass/cli/cli.h>
+#ifndef MULTIPASS_TRASH_H
+#define MULTIPASS_TRASH_H
 
-namespace cli = multipass::cli;
+#include <multipass/cli/command.h>
 
-std::vector<std::string> cli::arg_list_from(int argc, char* argv[])
+namespace multipass
 {
-    std::vector<std::string> list(argv + 1, argv + argc);
-    return list;
+namespace cmd
+{
+class Trash final : public Command
+{
+public:
+    using Command::Command;
+    ReturnCode run(ArgParser *parser) override;
+
+    std::string name() const override;
+    QString short_help() const override;
+    QString description() const override;
+
+private:
+    ParseCode parse_args(ArgParser *parser) override;
+};
 }
+}
+#endif // MULTIPASS_TRASH_H

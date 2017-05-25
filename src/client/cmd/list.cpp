@@ -19,24 +19,57 @@
 
 #include "list.h"
 
+#include <multipass/cli/argparser.h>
+
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::List::run()
+mp::ReturnCode cmd::List::run(ArgParser *parser)
 {
-    auto on_success = [this](mp::ListReply& reply) {
+    auto ret = parse_args(parser);
+    if (ret != ParseCode::Ok)
+    {
+        return parser->returnCodeFrom(ret);
+    }
+
+    auto on_success = [this](ListReply& reply) {
         cout << "received list reply\n";
-        return EXIT_SUCCESS;
+        return ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
         cerr << "list failed: " << status.error_message() << "\n";
-        return EXIT_FAILURE;
+        return ReturnCode::CommandFail;
     };
 
-    mp::ListRequest request;
+    ListRequest request;
     return dispatch(&RpcMethod::list, request, on_success, on_failure);
 }
 
 std::string cmd::List::name() const { return "list"; }
+
+QString cmd::List::short_help() const
+{
+    return QStringLiteral("List the available instances");
+}
+
+QString cmd::List::description() const
+{
+    return QStringLiteral("List all instances which have been created.");
+}
+
+mp::ParseCode cmd::List::parse_args(ArgParser *parser)
+{
+    auto ret = parser->commandParse(this);
+
+    if (ret != ParseCode::Ok)
+        return ret;
+
+    if (parser->positionalArguments().count() > 0)
+    {
+        cerr << "This command takes no arguments" << std::endl;
+        return ParseCode::CommandLineError;
+    }
+    return ret;
+}

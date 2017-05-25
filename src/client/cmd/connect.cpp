@@ -19,6 +19,8 @@
 
 #include "connect.h"
 
+#include <multipass/cli/argparser.h>
+
 #ifdef MULTIPASS_PLATFORM_POSIX
 #include <unistd.h>
 #endif
@@ -57,28 +59,34 @@ auto execute_process(std::string exec_line)
 #ifdef MULTIPASS_PLATFORM_POSIX
     return execvp(cmd[0], cmd.data());
 #else
-    return EXIT_SUCCESS;
+    return ReturnCode::Ok;
 #endif
 }
 }
 
-int cmd::Connect::run()
+mp::ReturnCode cmd::Connect::run(ArgParser *parser)
 {
+    auto ret = parse_args(parser);
+    if (ret != ParseCode::Ok)
+    {
+        return parser->returnCodeFrom(ret);
+    }
+
     auto on_success = [this](mp::ConnectReply& reply) {
         if (reply.exec_line().empty())
         {
             cout << "received connect reply\n";
-            return EXIT_SUCCESS;
+            return ReturnCode::Ok;
         }
         else
         {
-            return execute_process(reply.exec_line());
+            return static_cast<mp::ReturnCode>(execute_process(reply.exec_line()));
         }
     };
 
     auto on_failure = [this](grpc::Status& status) {
         cerr << "connect failed: " << status.error_message() << "\n";
-        return EXIT_FAILURE;
+        return ReturnCode::CommandFail;
     };
 
     mp::ConnectRequest request;
@@ -86,3 +94,19 @@ int cmd::Connect::run()
 }
 
 std::string cmd::Connect::name() const { return "connect"; }
+
+QString cmd::Connect::short_help() const
+{
+    return QStringLiteral("Connect to a running instance");
+}
+
+QString cmd::Connect::description() const
+{
+    return QStringLiteral("Open a prompt on the instance.");
+}
+
+mp::ParseCode cmd::Connect::parse_args(ArgParser *parser)
+{
+    parser->addPositionalArgument("name", "Name of instance to connect to", "<name>");
+    return parser->commandParse(this);
+}

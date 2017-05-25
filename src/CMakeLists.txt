@@ -20,7 +20,6 @@ configure_file(
   @ONLY
 )
 
-add_subdirectory(cli)
 add_subdirectory(client)
 add_subdirectory(daemon)
 add_subdirectory(petname)

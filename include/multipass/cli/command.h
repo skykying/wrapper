@@ -20,12 +20,18 @@
 #ifndef MULTIPASS_COMMAND_H
 #define MULTIPASS_COMMAND_H
 
-#include <grpc++/grpc++.h>
 #include <multipass/callable_traits.h>
+#include <multipass/cli/return_codes.h>
 #include <multipass/rpc/multipass.grpc.pb.h>
+
+#include <grpc++/grpc++.h>
+#include <QString>
+
 
 namespace multipass
 {
+class ArgParser;
+
 namespace cmd
 {
 class Command
@@ -37,12 +43,16 @@ public:
     {
     }
     virtual ~Command() = default;
-    virtual int run() = 0;
+
+    virtual ReturnCode run(ArgParser *parser) = 0;
+
     virtual std::string name() const = 0;
+    virtual QString short_help() const = 0;
+    virtual QString description() const = 0;
 
 protected:
     template <typename RpcFunc, typename Request, typename SuccessCallable, typename FailureCallable>
-    int dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure)
+    ReturnCode dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure)
     {
         check_return_callables(on_success, on_failure);
 
@@ -64,7 +74,7 @@ protected:
     }
 
     template <typename RpcFunc, typename Request, typename SuccessCallable, typename FailureCallable, typename StreamingCallback>
-    int dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure, StreamingCallback&& streaming_callback)
+    ReturnCode dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure, StreamingCallback&& streaming_callback)
     {   
         check_return_callables(on_success, on_failure);
 
@@ -101,6 +111,8 @@ protected:
     std::ostream& cerr;
 
 private:
+    virtual ParseCode parse_args(ArgParser *parser) = 0;
+
     template <typename SuccessCallable, typename FailureCallable>
     void check_return_callables(SuccessCallable&& on_success, FailureCallable&& on_failure)
     {
@@ -110,8 +122,8 @@ private:
 
         static_assert(SuccessCallableTraits::num_args == 1, "");
         static_assert(FailureCallableTraits::num_args == 1, "");
-        static_assert(std::is_same<typename SuccessCallableTraits::return_type, int>::value, "");
-        static_assert(std::is_same<typename FailureCallableTraits::return_type, int>::value, "");
+        static_assert(std::is_same<typename SuccessCallableTraits::return_type, ReturnCode>::value, "");
+        static_assert(std::is_same<typename FailureCallableTraits::return_type, ReturnCode>::value, "");
         static_assert(std::is_same<FailureCallableArgType, grpc::Status&>::value, "");
      }
 };

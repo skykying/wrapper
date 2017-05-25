@@ -17,7 +17,7 @@
  *
  */
 
-#include "start.h"
+#include "trash.h"
 
 #include <multipass/cli/argparser.h>
 
@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Start::run(ArgParser *parser)
+mp::ReturnCode cmd::Trash::run(ArgParser *parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -33,37 +33,35 @@ mp::ReturnCode cmd::Start::run(ArgParser *parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::StartReply& reply) {
-        cout << "received start reply\n";
-        return ReturnCode::Ok;
+    auto on_success = [this](mp::TrashReply& reply) {
+        cout << "received trash reply\n";
+        return mp::ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "start failed: " << status.error_message() << "\n";
-        return ReturnCode::CommandFail;
+        cerr << "trash failed: " << status.error_message() << "\n";
+        return mp::ReturnCode::CommandFail;
     };
 
-    mp::StartRequest request;
-    return dispatch(&RpcMethod::start, request, on_success, on_failure);
+    mp::TrashRequest request;
+    return dispatch(&RpcMethod::trash, request, on_success, on_failure);
 }
 
-std::string cmd::Start::name() const { return "start"; }
+std::string cmd::Trash::name() const { return "trash"; }
 
-QString cmd::Start::short_help() const
+QString cmd::Trash::short_help() const
 {
-    return QStringLiteral("Start an instance");
+    return QStringLiteral("Move an instance to trash");
 }
 
-QString cmd::Start::description() const
+QString cmd::Trash::description() const
 {
-    return QStringLiteral("Start the named instance. Exits with return code 0\n"
-                          "when the instance starts, or with an error code if\n"
-                          "it fails to start.");
+    return QStringLiteral("The trash command moves the instance to the trash.\n");
 }
 
-mp::ParseCode cmd::Start::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
 {
-    parser->addPositionalArgument("name", "Name of the instance to start", "<name>");
+    parser->addPositionalArgument("name", "Name of instance to trash", "<name>");
 
     auto ret = parser->commandParse(this);
     if (ret != ParseCode::Ok)

@@ -12,8 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+# Authored by: Chris Townsend <christopher.townsend@canonical.com>
 
-add_library(cli STATIC
-  cli.cpp)
+add_library(wraptext STATIC
+            wrap_text.cpp)
 
+target_link_libraries(wraptext
+  Qt5::Core)

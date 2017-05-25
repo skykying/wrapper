@@ -17,11 +17,12 @@
 add_library(commands STATIC
   connect.cpp
   create.cpp
-  destroy.cpp
   list.cpp
   start.cpp
   stop.cpp
+  trash.cpp
   version.cpp)
 
 target_link_libraries(commands
-  rpc)
+  rpc
+  Qt5::Core)

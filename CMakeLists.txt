@@ -23,6 +23,11 @@ option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# Qt config
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Core)
+find_package(Qt5Network)
+
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
 
@@ -36,14 +41,9 @@ if(MSVC)
   add_definitions(-D_WIN32_WINNT=0x600) # A gprc header requires this (specifies WinXP or greater)
   add_definitions(-DMULTIPASS_PLATFORM_WINDOWS)
 else()
-  add_compile_options(-Werror -Wall -pedantic)
+  add_compile_options(-Werror -Wall -pedantic -fPIC)
   add_definitions(-DMULTIPASS_PLATFORM_POSIX)
 endif()
-
-# Qt config
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5Core)
-find_package(Qt5Network)
 
 set(MULTIPASS_GENERATED_SOURCE_DIR ${CMAKE_BINARY_DIR}/gen)
 file(MAKE_DIRECTORY ${MULTIPASS_GENERATED_SOURCE_DIR})
@@ -52,6 +52,7 @@ include_directories(
   include
   ${MULTIPASS_GENERATED_SOURCE_DIR}
   ${gRPC_INCLUDE_DIRS}
+  ${wrap_text_INCLUDE_DIRS}
   ${yaml_cpp_INCLUDE_DIRS}
 )
 

@@ -59,7 +59,7 @@ public slots:
     grpc::Status create(grpc::ServerContext* context, const CreateRequest* request,
                         grpc::ServerWriter<CreateReply>* reply) override;
 
-    grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response) override;
+    grpc::Status trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response) override;
 
     grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 

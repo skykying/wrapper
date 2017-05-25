@@ -19,25 +19,48 @@
 
 #include "version.h"
 #include <multipass/version.h>
+#include <multipass/cli/argparser.h>
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::Version::run()
+mp::ReturnCode cmd::Version::run(ArgParser *parser)
 {
+    auto ret = parse_args(parser);
+    if (ret != ParseCode::Ok)
+    {
+        return parser->returnCodeFrom(ret);
+    }
+
     cout << "ubuntu     " << multipass::version_string << std::endl;
 
     auto on_success = [this](mp::VersionReply& reply) {
         cout << "multipassd " << reply.version();
         cout << std::endl;
-        return EXIT_SUCCESS;
+        return ReturnCode::Ok;
     };
 
-    auto on_failure = [](grpc::Status& status) { return EXIT_SUCCESS; };
+    auto on_failure = [](grpc::Status& status) { return ReturnCode::Ok; };
 
     mp::VersionRequest request;
     return dispatch(&RpcMethod::version, request, on_success, on_failure);
 }
 
 std::string cmd::Version::name() const { return "version"; }
+
+QString cmd::Version::short_help() const
+{
+    return QStringLiteral("Show version details");
+}
+
+QString cmd::Version::description() const
+{
+    return QStringLiteral("Display version information about the ubuntu command\n"
+                          "and the multipass daemon.");
+}
+
+mp::ParseCode cmd::Version::parse_args(ArgParser *parser)
+{
+    return parser->commandParse(this);
+}

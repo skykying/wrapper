@@ -113,3 +113,9 @@ if (APPLE)
     TEST_COMMAND "" # make test is available, but quite heavy-weight (download a VM & needs root)
     )
 endif (APPLE)
+
+# Qt Base - Text Wrapper lib taken from QCommandLineParser
+add_subdirectory(qtbase EXCLUDE_FROM_ALL)
+
+list(APPEND wrap_text_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qtbase")
+set(wrap_text_INCLUDE_DIRS "${wrap_text_INCLUDE_DIRS}" PARENT_SCOPE)

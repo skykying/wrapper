@@ -19,22 +19,28 @@
 
 #include "create.h"
 
+#include <multipass/cli/argparser.h>
+
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::Create::run()
+mp::ReturnCode cmd::Create::run(ArgParser *parser)
 {
-    auto on_success = [this](mp::CreateReply& reply) {
+    auto ret = parse_args(parser);
+    if (ret != ParseCode::Ok)
+    {
+        return parser->returnCodeFrom(ret);
+    }
 
-        cout << "created: " << reply.vm_instance_name();
-        cout << std::endl;
-        return EXIT_SUCCESS;
+    auto on_success = [this](mp::CreateReply& reply) {
+        cout << "created: " << reply.vm_instance_name() << std::endl;
+        return ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
         cerr << "failed to create: " << status.error_message() << std::endl;
-        return EXIT_FAILURE;
+        return ReturnCode::CommandFail;
     };
 
     auto streaming_callback = [this](mp::CreateReply& reply) {
@@ -51,9 +57,38 @@ int cmd::Create::run()
     mp::CreateRequest request;
 
     // Set some defaults
-    request.set_mem_size(1024);
+    request.set_mem_size(mem_size);
 
     return dispatch(&RpcMethod::create, request, on_success, on_failure, streaming_callback);
 }
 
 std::string cmd::Create::name() const { return "create"; }
+
+QString cmd::Create::short_help() const
+{
+    return QStringLiteral("Create and start an Ubuntu instance");
+}
+
+QString cmd::Create::description() const
+{
+    return QStringLiteral("Create and start a new instance.");
+}
+
+mp::ParseCode cmd::Create::parse_args(ArgParser *parser)
+{
+    parser->addPositionalArgument("image", "Ubuntu image to start", "<image>");
+    QCommandLineOption cpusOption(   {"c", "cpus"},     "Number of CPUs to allocate", "cpus", "default");
+    QCommandLineOption diskOption(   {"d", "disk"},     "Disk space to allocate in bytes, or with K, M, G suffix", "disk", "default");
+    QCommandLineOption memOption(    {"m", "mem"},      "Amount of memory to allocate in bytes, or with K, M, G suffix", "mem", "default");
+    QCommandLineOption nameOption(   {"n", "name"},     "Name for the instance", "name");
+    parser->addOptions({cpusOption, diskOption, memOption, nameOption});
+
+    auto ret = parser->commandParse(this);
+
+    // TODO: sanity check the command line options passed
+//    if (parser->positionalArguments().count() > 1) {
+//        cerr << "Too many parameters supplied" << std::endl;
+//        return ReturnCode::CommandLineError;
+//    }
+    return ret;
+}
