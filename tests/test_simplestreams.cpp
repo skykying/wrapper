@@ -29,6 +29,9 @@ using namespace testing;
 TEST(Simplestreams, get_image_path_by_alias)
 {
     QDir testDir(QCoreApplication::applicationDirPath());
+#ifdef WIN32
+    testDir.cdUp(); // compensate for VisualStudio putting binary in additional Debug/Release subdirectory
+#endif
     testDir.cd("../tests/test_data");
 
     mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
