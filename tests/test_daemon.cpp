@@ -118,7 +118,11 @@ struct Daemon : public testing::Test
         }
     }
 
+#ifdef WIN32
+    std::string server_address{"localhost:50051"};
+#else
     std::string server_address{"unix:/tmp/test-multipassd.socket"};
+#endif
 };
 
 TEST_F(Daemon, receives_commands)
