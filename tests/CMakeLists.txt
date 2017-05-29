@@ -14,17 +14,6 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-#if(MSVC AND VCPKG_TOOLCHAIN)
-#  # https://github.com/google/googletest/issues/799
-#  add_definitions(-DGTEST_LANG_CXX11=1)
-#  add_definitions(-DGTEST_LINKED_AS_SHARED_LIBRARY=1 /wd4251 /wd4275) # mask some warnings
-#  find_package(GTest REQUIRED)
-  # GMock library fails to be found by vcpkg, workaround
-#  string(REPLACE "gtest" "gmock" GMOCK_LIBRARIES ${GTEST_LIBRARIES})
-#else()
-#  find_package(GMock REQUIRED)
-#endif()
-
 # Prevent overriding the parent project's compiler/linker
 # settings on Windows
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
