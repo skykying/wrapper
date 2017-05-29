@@ -14,22 +14,36 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-if(MSVC AND VCPKG_TOOLCHAIN)
-  # https://github.com/google/googletest/issues/799
-  add_definitions(-DGTEST_LANG_CXX11=1)
-  add_definitions(-DGTEST_LINKED_AS_SHARED_LIBRARY=1 /wd4251 /wd4275) # mask some warnings
-  find_package(GTest REQUIRED)
+#if(MSVC AND VCPKG_TOOLCHAIN)
+#  # https://github.com/google/googletest/issues/799
+#  add_definitions(-DGTEST_LANG_CXX11=1)
+#  add_definitions(-DGTEST_LINKED_AS_SHARED_LIBRARY=1 /wd4251 /wd4275) # mask some warnings
+#  find_package(GTest REQUIRED)
   # GMock library fails to be found by vcpkg, workaround
-  string(REPLACE "gtest" "gmock" GMOCK_LIBRARIES ${GTEST_LIBRARIES})
-else()
-  find_package(GMock REQUIRED)
+#  string(REPLACE "gtest" "gmock" GMOCK_LIBRARIES ${GTEST_LIBRARIES})
+#else()
+#  find_package(GMock REQUIRED)
+#endif()
+
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Add googletest directly to our build. This defines
+# the gmock/gtest and {gtest,gmock}_main targets.
+add_subdirectory(
+  ${CMAKE_SOURCE_DIR}/3rd-party/googletest
+  ${CMAKE_BINARY_DIR}/3rd-party/googletest
+  )
+
+if(MSVC)
+  add_definitions(-DGTEST_LANG_CXX11=1)
 endif()
 
 include_directories(
+  ${gtest_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}
-  ${GMOCK_INCLUDE_DIRS}
-  ${GTEST_INCLUDE_DIRS}
-)
+  )
 
 add_executable(multipass_tests
   main.cpp
@@ -44,14 +58,11 @@ target_link_libraries(multipass_tests
   client
   petname
   simplestreams
-  ${GTEST_LIBRARIES}
-  ${GMOCK_LIBRARIES}
-)
+
+  # 3rd-party
+  gmock
+  )
 
 add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)
-
-if(NOT MSVC)
-  add_dependencies(multipass_tests GMock)
-endif()
 
 file(COPY test_data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

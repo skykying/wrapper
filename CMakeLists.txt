@@ -18,13 +18,13 @@ cmake_minimum_required(VERSION 3.1)
 
 project(Multipass)
 
+option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
+
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
 
 file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION MULTIPASS_VERSION
   LIMIT_COUNT 1)
-
-option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 
 set(CMAKE_CXX_STANDARD 14)
 if(MSVC)

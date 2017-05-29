@@ -1,6 +1,6 @@
 # Add the subdir here to avoid polluting their cmake scope
 if (MSVC)
-  # Prevent some warnings from causing a build error
+  # Prevent some warnings from causing a build error for gGPC with MSVC
   add_definitions(/wd4005 /wd4018 /wd4774 /wd4996 /wd4987 /wd5026)
   set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4221")
   set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4006 /ignore:4221")
