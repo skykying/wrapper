@@ -55,3 +55,16 @@ set(gRPC_STATIC_LIBRARIES "${gRPC_STATIC_LIBS}" PARENT_SCOPE)
 list(APPEND gRPC_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/grpc/include")
 list(APPEND gRPC_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/grpc/third_party/protobuf/src")
 set(gRPC_INCLUDE_DIRS ${gRPC_INCLUDE_DIRS} PARENT_SCOPE)
+
+# YAML C++
+# Disable tests here to avoid double-including gtest
+option(YAML_CPP_BUILD_TOOLS OFF)
+option(YAML_CPP_BUILD_CONTRIB OFF)
+
+add_subdirectory(yaml-cpp EXCLUDE_FROM_ALL)
+
+list(APPEND yaml_cpp_STATIC_LIBS yaml-cpp)
+set(yaml_cpp_STATIC_LIBS "${yaml_cpp_STATIC_LIBS}" PARENT_SCOPE)
+
+list(APPEND yaml_cpp_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include")
+set(yaml_cpp_INCLUDE_DIRS "${yaml_cpp_INCLUDE_DIRS}" PARENT_SCOPE)
