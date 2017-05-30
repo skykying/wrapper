@@ -19,7 +19,11 @@ apps:
     command: bin/ubuntu
     plugs: [network]
   multipass:
-    command: electron-app/multipass.sh
+    command: >
+      env TMPDIR=$XDG_RUNTIME_DIR
+          XDG_CURRENT_DESKTOP=$( echo $XDG_CURRENT_DESKTOP | sed s/Unity:Unity7/Unity/ )
+          desktop-launch
+            $SNAP/electron-app/multipass --no-sandbox
     plugs:
     - browser-support
     - gsettings
@@ -37,18 +41,21 @@ parts:
     source: http://archive.ubuntu.com/ubuntu/pool/main/q/qtbase-opensource-src/qtbase5-dev_5.6.1+dfsg-3ubuntu6~4_amd64.deb
     source-type: deb
     source-checksum: sha256/4f67aa5757b710ca616f044c6438f31f0ad963710056d292b06078c6cf43f61b
+    prime: [-*]
 
   qtbase5-dev-tools:
     plugin: dump
     source: http://archive.ubuntu.com/ubuntu/pool/main/q/qtbase-opensource-src/qtbase5-dev-tools_5.6.1+dfsg-3ubuntu6~4_amd64.deb
     source-type: deb
     source-checksum: sha256/9de518fa3e91c0f0a97006dac2be5de0a78334333ad25a7417904018f3646e02
+    prime: [-*]
 
   qt5-qmake:
     plugin: dump
     source: http://archive.ubuntu.com/ubuntu/pool/main/q/qtbase-opensource-src/qt5-qmake_5.6.1+dfsg-3ubuntu6~4_amd64.deb
     source-type: deb
     source-checksum: sha256/e1b14b3ac4d68addab438999a84460ed0db88cbf9ce7df9511c09f4ff39d9076
+    prime: [-*]
 
   libqt5core5a:
     after: [libicu57]
@@ -85,13 +92,10 @@ parts:
     - cmake-extras
     - golang
     source: .
-    prepare: |
-      git -C ../src submodule update --init --recursive
+    source-type: git
     configflags:
     - -DCMAKE_INSTALL_PREFIX=/
     - -DMULTIPASS_ENABLE_TESTS=off
-    prime:
-    - bin
 
   qemu:
     plugin: nil
@@ -108,6 +112,7 @@ parts:
     after: [desktop-gtk2]
     plugin: nodejs
     source: .
+    source-type: git
     stage-packages:
     - gconf2
     - libappindicator1
@@ -126,7 +131,6 @@ parts:
     install: |
       cd electron-app
       cp -r dist/linux-unpacked $SNAPCRAFT_PART_INSTALL/electron-app
-      cp multipass.sh $SNAPCRAFT_PART_INSTALL/electron-app
     prime:
     # We don't need nodejs after building
     - -include/node
