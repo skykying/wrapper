@@ -23,6 +23,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QObject>
 #include <QProcess>
@@ -37,7 +38,14 @@ namespace
 {
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
-    const QString cloudinit_img(QStandardPaths::locate(QStandardPaths::CacheLocation, "cloudinit-seed.img"));
+    const QString cloudinit_img_name("cloudinit-seed.img");
+    QString cloudinit_img(QStandardPaths::locate(QStandardPaths::CacheLocation, cloudinit_img_name));
+
+    if (!QFile::exists(cloudinit_img))
+    {
+        cloudinit_img = QDir(QCoreApplication::applicationDirPath()).filePath(cloudinit_img_name);
+    }
+
     QStringList args{"--enable-kvm"};
 
     if (QFile::exists(desc.image_path) && QFile::exists(cloudinit_img))
