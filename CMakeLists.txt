@@ -50,6 +50,7 @@ include_directories(
   include
   ${MULTIPASS_GENERATED_SOURCE_DIR}
   ${gRPC_INCLUDE_DIRS}
+  ${yaml_cpp_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

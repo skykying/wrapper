@@ -18,7 +18,8 @@ add_library(daemon STATIC
   daemon.cpp
   daemon_config.cpp
   ubuntu_image_host.cpp
-  vm_image_repository.cpp)
+  vm_image_repository.cpp
+  base_cloud_init_config.h)
 
 target_link_libraries(daemon
   rpc
@@ -26,7 +27,8 @@ target_link_libraries(daemon
   platform
   simplestreams
   Qt5::Core
-  Qt5::Network)
+  Qt5::Network
+  yaml-cpp)
 
 add_executable(multipassd daemon_main.cpp)
 
@@ -36,3 +38,4 @@ target_link_libraries(multipassd
 
 install(TARGETS multipassd
   DESTINATION bin)
+

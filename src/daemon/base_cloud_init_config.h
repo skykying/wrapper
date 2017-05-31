@@ -13,30 +13,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Christopher James Halse Rogers <christopher.halse.rogers@cannoical.com>
  *
  */
-
-#ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-#define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-
-#include <string>
-#include <multipass/path.h>
-#include <yaml-cpp/yaml.h>
+#ifndef MULTIPASS_BASE_CLOUD_INIT_CONFIG_H
+#define MULTIPASS_BASE_CLOUD_INIT_CONFIG_H
 
 namespace multipass
 {
-class VirtualMachineDescription
-{
-public:
-    using MBytes = size_t;
-
-    int num_cores;
-    MBytes mem_size;
-    MBytes disk_space;
-    std::string vm_name;
-    Path image_path;
-    YAML::Node cloud_init_config;
-};
+static char const* const base_cloud_init_config =
+    "growpart:\n"
+    "    mode: auto\n"
+    "    devices: [\"/\"]\n"
+    "    ignore_growroot_disabled: false";
 }
-#endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+
+#endif //MULTIPASS_BASE_CLOUD_INIT_CONFIG_H

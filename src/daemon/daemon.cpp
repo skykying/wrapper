@@ -19,6 +19,7 @@
 
 #include "daemon.h"
 #include "daemon_config.h"
+#include "base_cloud_init_config.h"
 
 #include <multipass/name_generator.h>
 #include <multipass/version.h>
@@ -28,6 +29,8 @@
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_query.h>
 #include <multipass/vm_image_vault.h>
+
+#include <yaml-cpp/yaml.h>
 
 #include <stdexcept>
 
@@ -90,6 +93,7 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
     VMImage vm_image = config->image_host->fetch(vm_image_query);
 
     desc.image_path = vm_image.image_path;
+    desc.cloud_init_config = YAML::Load(mp::base_cloud_init_config);
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
 
     reply->set_vm_instance_name(desc.vm_name);

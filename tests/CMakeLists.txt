@@ -32,7 +32,7 @@ endif()
 include_directories(
   ${gtest_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}
-  )
+)
 
 add_executable(multipass_tests
   main.cpp
@@ -50,7 +50,8 @@ target_link_libraries(multipass_tests
 
   # 3rd-party
   gmock
-  )
+  yaml-cpp
+)
 
 add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)
 

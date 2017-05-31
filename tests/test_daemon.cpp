@@ -37,6 +37,7 @@
 #include <memory>
 #include <sstream>
 #include <thread>
+#include <string>
 
 namespace mp = multipass;
 using namespace testing;
@@ -183,4 +184,92 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     send_command("launch");
 
     EXPECT_THAT(daemon_runner.daemon.vm_instance_name, Eq(expected_name));
+}
+
+MATCHER_P2(YAMLNodeContainsString, key, val, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    if (!arg[key].IsScalar())
+    {
+        return false;
+    }
+    return arg[key].Scalar() == val;
+}
+
+MATCHER_P2(YAMLNodeContainsStringArray, key, values, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    if (!arg[key].IsSequence())
+    {
+        return false;
+    }
+    if (arg[key].size() != values.size())
+    {
+        return false;
+    }
+    for (auto i = 0u; i < values.size(); ++i)
+    {
+        if (arg[key][i].template as<std::string>() != values[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+MATCHER_P(YAMLNodeContainsMap, key, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    return arg[key].IsMap();
+}
+
+TEST_F(Daemon, default_cloud_init_grows_root_fs)
+{
+    auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
+    auto mock_factory_ptr = mock_factory.get();
+
+    mp::DaemonConfigBuilder config_builder;
+    config_builder.factory = std::move(mock_factory);
+    config_builder.image_host = std::make_unique<StubVMImageHost>();
+    config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.server_address = server_address;
+    DaemonRunner daemon_runner{config_builder.build()};
+
+    EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
+        .WillOnce(Invoke([](auto const& description, auto const&) {
+            YAML::Node const& cloud_init_config = description.cloud_init_config;
+            EXPECT_THAT(cloud_init_config, YAMLNodeContainsMap("growpart"));
+
+            if (cloud_init_config["growpart"])
+            {
+                auto const &growpart_stanza = cloud_init_config["growpart"];
+
+                EXPECT_THAT(growpart_stanza, YAMLNodeContainsString("mode", "auto"));
+                EXPECT_THAT(growpart_stanza, YAMLNodeContainsStringArray("devices", std::vector<std::string>({"/"})));
+                EXPECT_THAT(growpart_stanza, YAMLNodeContainsString("ignore_growroot_disabled", "false"));
+            }
+            return std::make_unique<StubVirtualMachine>();
+        }));
+    send_command("launch");
 }
