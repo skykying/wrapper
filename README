@@ -22,8 +22,8 @@ Building
 Manually setting up an image for launching
 ------------------------------------------
 
-    mkdir ~/qemu
-    cd ~/qemu
+    mkdir ~/.cache/multipassd
+    cd ~/.cache/multipassd
 
     cat > cloudinit-config <<EOF
     #cloud-config
