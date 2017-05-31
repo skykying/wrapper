@@ -27,6 +27,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QStandardPaths>
 #include <QString>
 #include <QStringList>
 
@@ -34,18 +35,9 @@ namespace mp = multipass;
 
 namespace
 {
-#ifdef _MSC_VER
-#  pragma warning(push)
-#  pragma warning(disable: 4996) // ignore getenv security warning
-#endif
-const QString USER_HOME(std::getenv("HOME"));
-#ifdef _MSC_VER
-#  pragma warning(pop)
-#endif
-
 auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 {
-    const QString cloudinit_img(USER_HOME + QString("/qemu/cloudinit-seed.img"));
+    const QString cloudinit_img(QStandardPaths::locate(QStandardPaths::CacheLocation, "cloudinit-seed.img"));
     QStringList args{"--enable-kvm"};
 
     if (QFile::exists(desc.image_path) && QFile::exists(cloudinit_img))
