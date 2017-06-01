@@ -20,6 +20,7 @@
 #include <multipass/platform.h>
 #include <multipass/virtual_machine_factory.h>
 
+#include "backends/qemu/qemu_virtual_machine_execute.h"
 #include "backends/qemu/qemu_virtual_machine_factory.h"
 
 namespace mp = multipass;
@@ -34,4 +35,9 @@ std::string mp::Platform::default_server_address()
 mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
 {
     return std::make_unique<QemuVirtualMachineFactory>();
+}
+
+mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute()
+{
+    return std::make_unique<QemuVirtualMachineExecute>();
 }

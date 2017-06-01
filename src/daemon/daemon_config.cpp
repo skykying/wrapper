@@ -24,6 +24,7 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/platform.h>
+#include <multipass/virtual_machine_execute.h>
 
 namespace mp = multipass;
 std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
@@ -36,9 +37,11 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
         vault = std::make_unique<VMImageRepository>();
     if (name_generator == nullptr)
         name_generator = mp::make_default_name_generator();
+    if (vm_execute == nullptr)
+        vm_execute = Platform::vm_execute();
     if (server_address.empty())
         server_address = Platform::default_server_address();
 
     return std::unique_ptr<const DaemonConfig>(new DaemonConfig{
-        std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator), server_address});
+        std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator), std::move(vm_execute), server_address});
 }

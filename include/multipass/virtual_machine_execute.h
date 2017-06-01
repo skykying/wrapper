@@ -13,26 +13,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
+#ifndef MULTIPASS_VIRTUAL_MACHINE_EXECUTE_H
+#define MULTIPASS_VIRTUAL_MACHINE_EXECUTE_H
 
+#include <memory>
 #include <string>
-
-#include <multipass/virtual_machine_execute.h>
-#include <multipass/virtual_machine_factory.h>
 
 namespace multipass
 {
-class Platform
+class VirtualMachineExecute
 {
 public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
-    static VirtualMachineExecute::UPtr vm_execute();
+    using UPtr = std::unique_ptr<VirtualMachineExecute>;
+    virtual ~VirtualMachineExecute() = default;
+
+    virtual std::string execute() = 0;
+    virtual std::string execute(std::string command) = 0;
+
+protected:
+    VirtualMachineExecute() = default;
+    VirtualMachineExecute(const VirtualMachineExecute&) = delete;
+    VirtualMachineExecute& operator=(const VirtualMachineExecute&) = delete;
 };
 }
-#endif // MULTIPASS_PLATFORM_H
+
+#endif // MULTIPASS_VIRTUAL_MACHINE_EXECUTE_H

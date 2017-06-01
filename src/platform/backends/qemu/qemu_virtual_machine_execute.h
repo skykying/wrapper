@@ -13,26 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
-
-#include <string>
+#ifndef MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H
+#define MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H
 
 #include <multipass/virtual_machine_execute.h>
-#include <multipass/virtual_machine_factory.h>
 
 namespace multipass
 {
-class Platform
+class QemuVirtualMachineExecute final : public VirtualMachineExecute
 {
 public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
-    static VirtualMachineExecute::UPtr vm_execute();
+    std::string execute();
+    std::string execute(std::string command);
 };
 }
-#endif // MULTIPASS_PLATFORM_H
+
+#endif // MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H

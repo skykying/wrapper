@@ -13,26 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
+#include "qemu_virtual_machine_execute.h"
 
-#include <string>
+namespace mp = multipass;
 
-#include <multipass/virtual_machine_execute.h>
-#include <multipass/virtual_machine_factory.h>
-
-namespace multipass
+std::string mp::QemuVirtualMachineExecute::execute()
 {
-class Platform
-{
-public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
-    static VirtualMachineExecute::UPtr vm_execute();
-};
+    std::string full_command = "ssh -p 2222 ubuntu@localhost";
+
+    return full_command;
 }
-#endif // MULTIPASS_PLATFORM_H
+
+std::string mp::QemuVirtualMachineExecute::execute(std::string command)
+{
+    std::string full_command = "ssh -p 2222 ubuntu@localhost";
+
+    full_command.append(" " + command);
+
+    return full_command;
+}

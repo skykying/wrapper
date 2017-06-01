@@ -30,6 +30,7 @@ class NameGenerator;
 class VirtualMachineFactory;
 class VMImageHost;
 class VMImageVault;
+class VirtualMachineExecute;
 class VirtualMachineFactory;
 struct DaemonConfig
 {
@@ -37,6 +38,7 @@ struct DaemonConfig
     const std::unique_ptr<VMImageHost> image_host;
     const std::unique_ptr<VMImageVault> vault;
     const std::unique_ptr<NameGenerator> name_generator;
+    const std::unique_ptr<VirtualMachineExecute> vm_execute;
     const std::string server_address;
 };
 
@@ -46,6 +48,7 @@ struct DaemonConfigBuilder
     std::unique_ptr<VMImageHost> image_host;
     std::unique_ptr<VMImageVault> vault;
     std::unique_ptr<NameGenerator> name_generator;
+    std::unique_ptr<VirtualMachineExecute> vm_execute;
     std::string server_address;
 
     std::unique_ptr<const DaemonConfig> build();

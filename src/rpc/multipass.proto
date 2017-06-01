@@ -32,6 +32,7 @@ message ConnectRequest {
 }
 
 message ConnectReply {
+    string exec_line = 1;
 }
 
 message DestroyRequest {

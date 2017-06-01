@@ -19,6 +19,7 @@
 
 #include <multipass/virtual_machine.h>
 #include <multipass/virtual_machine_description.h>
+#include <src/platform/backends/qemu/qemu_virtual_machine_execute.h>
 #include <src/platform/backends/qemu/qemu_virtual_machine_factory.h>
 
 #include "mock_status_monitor.h"
@@ -58,4 +59,22 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
 
     EXPECT_CALL(mock_monitor, on_shutdown());
     machine->shutdown();
+}
+
+TEST_F(QemuBackend, execute_mangles_command)
+{
+    mp::QemuVirtualMachineExecute vm_execute;
+
+    auto cmd_line = vm_execute.execute("foo");
+
+    EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost foo"));
+}
+
+TEST_F(QemuBackend, execute_ssh_only_no_command)
+{
+    mp::QemuVirtualMachineExecute vm_execute;
+
+    auto cmd_line = vm_execute.execute();
+
+    EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost"));
 }

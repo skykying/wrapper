@@ -23,6 +23,7 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/version.h>
+#include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>

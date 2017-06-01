@@ -24,6 +24,7 @@
 #include <multipass/name_generator.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
+#include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image.h>
 #include <multipass/vm_image_host.h>
@@ -65,6 +66,8 @@ void mp::Daemon::shutdown() { server->Shutdown(); }
 
 grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
 {
+    response->set_exec_line(config->vm_execute->execute());
+
     return grpc::Status::OK;
 }
 
