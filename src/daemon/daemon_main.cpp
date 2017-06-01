@@ -86,9 +86,9 @@ public:
 
     void monitor_signals(sigset_t sigset, QCoreApplication& app)
     {
-        siginfo_t siginfo;
-        sigwaitinfo(&sigset, &siginfo);
-        std::cout << "Received signal: " << siginfo.si_signo << "\n";
+        int sig = -1;
+        sigwait(&sigset, &sig);
+        std::cout << "Received signal: " << sig << "\n";
         app.quit();
     }
 
