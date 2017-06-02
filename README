@@ -41,10 +41,10 @@ Running multipass daemon and client
 
    <multipass>/build/bin/ubuntu launch (a default qemu instance is launched)
 
-SSH into running VM
+Connect to running VM
 --------------------------------------
 
-    ssh -p 2222 ubuntu@localhost
+    <multipass>/build/bin/ubuntu connect
 
 Running the Electron app
 ---------------------------------------
