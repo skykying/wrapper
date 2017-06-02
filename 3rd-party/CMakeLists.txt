@@ -6,6 +6,12 @@ if (MSVC)
   set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4006 /ignore:4221")
 endif (MSVC)
 
+if (NOT MSVC)
+  # Workaround for zlib placing its generated zconf.h file in the build dir,
+  # and protobuf not knowing so finding the system version instead
+  include_directories(${CMAKE_BINARY_DIR}/3rd-party/grpc/third_party/zlib)
+endif ()
+
 add_subdirectory(grpc EXCLUDE_FROM_ALL)
 
 # Generates gRPC and protobuf C++ sources and headers from the given .proto files
