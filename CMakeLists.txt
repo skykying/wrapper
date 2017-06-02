@@ -20,6 +20,9 @@ project(Multipass)
 
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
 
@@ -34,9 +37,6 @@ if(MSVC)
 else()
   add_compile_options(-Werror -Wall -pedantic)
 endif()
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Qt config
 set(CMAKE_AUTOMOC ON)

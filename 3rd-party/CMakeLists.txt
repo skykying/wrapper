@@ -82,3 +82,32 @@ set(yaml_cpp_STATIC_LIBS "${yaml_cpp_STATIC_LIBS}" PARENT_SCOPE)
 
 list(APPEND yaml_cpp_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include")
 set(yaml_cpp_INCLUDE_DIRS "${yaml_cpp_INCLUDE_DIRS}" PARENT_SCOPE)
+
+
+# Hyperkit - MacOS virtualization (via xhyve)
+if (APPLE)
+  # hyperkit happily builds with QCow2 support disabled if it is not available
+  execute_process(
+    COMMAND opam list qcow
+    RESULT_VARIABLE QCOW_SUPPORT_FOUND
+    OUTPUT_QUIET
+    )
+
+  if (NOT QCOW_SUPPORT_FOUND EQUAL 0)
+    message(FATAL_ERROR "The 'qcow' package of the OPAM OCaml system is required. Check the README\nThe command 'opam list qcow' returned: ${QCOW_SUPPORT_FOUND}")
+  endif ()
+
+  if(NOT DEFINED ENV{OCAML_TOPLEVEL_PATH})
+    message(FATAL_ERROR "The OCaml OPAM environment has not been set. Run 'eval `opam config env`' or check the README")
+  endif()
+
+  include(ExternalProject)
+  ExternalProject_Add(hyperkit
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hyperkit"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND make
+    BUILD_IN_SOURCE 1
+    INSTALL_COMMAND cp "${CMAKE_CURRENT_SOURCE_DIR}/hyperkit/build/hyperkit" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    TEST_COMMAND "" # make test is available, but quite heavy-weight (download a VM & needs root)
+    )
+endif (APPLE)
