@@ -19,20 +19,43 @@
 
 #include "qemu_virtual_machine_execute.h"
 
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QStandardPaths>
+#include <QString>
+
 namespace mp = multipass;
+
+namespace {
+auto construct_ssh_command()
+{
+    const QString id_rsa_name("id_rsa");
+    QString id_rsa_path(QStandardPaths::locate(QStandardPaths::CacheLocation, id_rsa_name));
+
+    if (!QFile::exists(id_rsa_path))
+    {
+        id_rsa_path = QDir(QCoreApplication::applicationDirPath()).filePath(id_rsa_name);
+    }
+
+    // The following ssh command will undoubtedly change in The Future
+    QString ssh_cmd("ssh -p 2222 ubuntu@localhost");
+
+    if (QFile::exists(id_rsa_path))
+    {
+        ssh_cmd = "ssh -p 2222 -i " + id_rsa_path + " ubuntu@localhost";
+    }
+
+    return ssh_cmd.toStdString();
+}
+}
 
 std::string mp::QemuVirtualMachineExecute::execute()
 {
-    std::string full_command = "ssh -p 2222 ubuntu@localhost";
-
-    return full_command;
+    return construct_ssh_command();
 }
 
 std::string mp::QemuVirtualMachineExecute::execute(std::string command)
 {
-    std::string full_command = "ssh -p 2222 ubuntu@localhost";
-
-    full_command.append(" " + command);
-
-    return full_command;
+    return construct_ssh_command() + " " + command;
 }
