@@ -50,8 +50,9 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc)
 
     if (QFile::exists(desc.image_path) && QFile::exists(cloudinit_img))
     {
+        using namespace std::string_literals;
         args <<  "-hda" << desc.image_path <<               // The VM image itself
-                 "-hdb" << cloudinit_img <<                 // For the cloud-init configuration
+                 "-drive" << ("file="s + cloudinit_img + ",if=virtio,format=raw"s).c_str() <<                 // For the cloud-init configuration
                  "-m" <<  QString::number(desc.mem_size) << // Memory to use for VM
                  "-net" << "nic" <<                         // Create a virtual NIC in the VM
                  "-net" << "user,hostfwd=tcp::2222-:22";    // Forward host port 2222 to guest port 22 for ssh
