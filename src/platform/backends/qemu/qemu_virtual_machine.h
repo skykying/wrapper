@@ -23,6 +23,7 @@
 #include <multipass/virtual_machine.h>
 
 class QProcess;
+class QFile;
 namespace multipass
 {
 class VMStatusMonitor;
@@ -42,6 +43,7 @@ public:
 private:
     VirtualMachine::State state;
     VMStatusMonitor* monitor;
+    std::unique_ptr<QFile> cloud_init_image;
     std::unique_ptr<QProcess> vm_process;
 };
 }

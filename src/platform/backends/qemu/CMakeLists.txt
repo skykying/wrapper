@@ -20,4 +20,5 @@ add_library(qemu_backend STATIC
   qemu_virtual_machine_execute.cpp)
 
 target_link_libraries(qemu_backend
-  Qt5::Core)
+  Qt5::Core
+  yaml-cpp)
