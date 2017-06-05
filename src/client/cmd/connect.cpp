@@ -65,7 +65,11 @@ int cmd::Connect::run()
         }
         else
         {
+#ifdef MULTIPASS_PLATFORM_POSIX
             return execute_process(reply.exec_line());
+#else
+            return EXIT_SUCCESS;
+#endif
         }
     };
 

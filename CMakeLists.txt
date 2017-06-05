@@ -34,8 +34,10 @@ if(MSVC)
   # Build with multiple processes
   add_definitions(/MP)
   add_definitions(-D_WIN32_WINNT=0x600) # A gprc header requires this (specifies WinXP or greater)
+  add_definitions(-DMULTIPASS_PLATFORM_WINDOWS)
 else()
   add_compile_options(-Werror -Wall -pedantic)
+  add_definitions(-DMULTIPASS_PLATFORM_POSIX)
 endif()
 
 # Qt config
