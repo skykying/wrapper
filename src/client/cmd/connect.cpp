@@ -19,7 +19,10 @@
 
 #include "connect.h"
 
+#ifdef MULTIPASS_PLATFORM_POSIX
 #include <unistd.h>
+#endif
+
 #include <sstream>
 #include <vector>
 
@@ -51,7 +54,11 @@ auto execute_process(std::string exec_line)
 {
     auto parsed_cmd = parse_exec_line(exec_line);
     auto cmd = to_argv(parsed_cmd);
+#ifdef MULTIPASS_PLATFORM_POSIX
     return execvp(cmd[0], cmd.data());
+#else
+    return EXIT_SUCCESS;
+#endif
 }
 }
 
@@ -65,11 +72,7 @@ int cmd::Connect::run()
         }
         else
         {
-#ifdef MULTIPASS_PLATFORM_POSIX
             return execute_process(reply.exec_line());
-#else
-            return EXIT_SUCCESS;
-#endif
         }
     };
 
