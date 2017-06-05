@@ -38,20 +38,20 @@ auto parse_exec_line(std::string exec_line)
     return tokens;
 }
 
+auto to_argv(const std::vector<std::string>& v)
+{
+    std::vector<char*> result;
+    for (const auto& s : v)
+        result.push_back(const_cast<char*>(s.c_str()));
+    result.push_back(nullptr);
+    return result;
+}
+
 auto execute_process(std::string exec_line)
 {
     auto parsed_cmd = parse_exec_line(exec_line);
-
-    const char *cmd[100];
-
-    for (int i = 0; i < (int)parsed_cmd.size(); ++i)
-    {
-        cmd[i] = parsed_cmd[i].c_str();
-    }
-
-    cmd[parsed_cmd.size()] = NULL;
-
-    return execvp(cmd[0], (char * const *)cmd);
+    auto cmd = to_argv(parsed_cmd);
+    return execvp(cmd[0], cmd.data());
 }
 }
 
