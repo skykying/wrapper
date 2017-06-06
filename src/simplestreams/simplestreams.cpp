@@ -91,7 +91,7 @@ QJsonObject get_ss_manifest(QByteArray index, QString const& base_path)
     QByteArray data;
     QJsonObject entries(QJsonDocument::fromJson(index, &parse_error).object()["index"].toObject());
 
-    foreach (const QJsonValue& entry, entries)
+    for (const QJsonValue& entry : entries)
     {
         const QJsonObject ss_entry(entry.toObject());
 
@@ -107,6 +107,16 @@ QJsonObject get_ss_manifest(QByteArray index, QString const& base_path)
     }
 
     return QJsonDocument::fromJson(data).object();
+}
+
+bool alias_matches(QStringList aliases, QString alias)
+{
+    for (auto const& a : aliases)
+    {
+        if (a == alias)
+            return true;
+    }
+    return false;
 }
 } // anonymous namespace
 
@@ -226,7 +236,10 @@ void mp::SimpleStreams::save_ss_json_file()
 
 QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
 {
-    set_ss_image_product_info_by_alias(QString::fromStdString(alias));
+    if (!set_ss_image_product_info_by_alias(QString::fromStdString(alias)))
+    {
+        return QString();
+    }
     set_ss_image_path();
 
     QFileInfo file_info(ss_image_path);
@@ -235,7 +248,6 @@ QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
 
     if (!QFile::exists(image_path))
     {
-        qDebug() << image_path;
         QEventLoop event_loop;
         ImageDownloader image_downloader;
 
@@ -248,17 +260,20 @@ QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
     return image_path;
 }
 
-void mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
+bool mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
 {
-    foreach (const QJsonValue& product, ss_manifest["products"].toObject())
+    for (const QJsonValue& product : ss_manifest["products"].toObject())
     {
-        if (product.toObject()["aliases"].toString().contains(alias) &&
+        auto aliases = product.toObject()["aliases"].toString().split(",");
+
+        if (alias_matches(aliases, alias) &&
             product.toObject()["arch"].toString() == "amd64")
         {
             ss_product = product.toObject();
-            break;
+            return true;
         }
     }
+    return false;
 }
 
 void mp::SimpleStreams::set_ss_image_path()
