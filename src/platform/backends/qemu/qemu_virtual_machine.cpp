@@ -151,10 +151,10 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
              << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"}
              // For the cloud-init configuration
              << "-m" << QString::number(desc.mem_size) << // Memory to use for VM
-            "-net"
-             << "nic" << // Create a virtual NIC in the VM
-            "-net"
-             << "user,hostfwd=tcp::2222-:22"; // Forward host port 2222 to guest port 22 for ssh
+            "-device"
+             << "virtio-net-pci,netdev=hostnet0,id=net0" << // Create a virtual NIC in the VM
+            "-netdev"
+             << "user,id=hostnet0,hostfwd=tcp::2222-:22"; // Forward host port 2222 to guest port 22 for ssh
     }
 
     auto process = std::make_unique<QProcess>();
