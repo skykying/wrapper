@@ -13,28 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
  *
  */
-
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
+#ifndef MULTIPASS_SSH_KEY_H
+#define MULTIPASS_SSH_KEY_H
 
 #include <string>
 
-#include <multipass/ssh_key.h>
-#include <multipass/virtual_machine_execute.h>
-#include <multipass/virtual_machine_factory.h>
-
 namespace multipass
 {
-class Platform
+class SshPubKey
 {
 public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
-    static VirtualMachineExecute::UPtr vm_execute();
-    static std::unique_ptr<SshPubKey> public_key();
+    enum class Type
+    {
+        RSA
+    };
+
+    virtual Type type() const = 0;
+    virtual std::string as_base64() const = 0;
 };
 }
-#endif // MULTIPASS_PLATFORM_H
+
+#endif // MULTIPASS_SSH_KEY_H

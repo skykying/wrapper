@@ -15,7 +15,8 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(platform STATIC
-  platform.cpp)
+  platform.cpp
+  ${PROJECT_SOURCE_DIR}/include/multipass/ssh_key.h)
 
 #TODO: only link to appropriate backend per platform
 target_link_libraries(platform

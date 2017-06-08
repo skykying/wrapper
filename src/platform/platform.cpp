@@ -20,6 +20,7 @@
 #include <multipass/platform.h>
 #include <multipass/virtual_machine_factory.h>
 
+#include "backends/qemu/openssh_key_provider.h"
 #include "backends/qemu/qemu_virtual_machine_execute.h"
 #include "backends/qemu/qemu_virtual_machine_factory.h"
 
@@ -40,4 +41,9 @@ mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
 mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute()
 {
     return std::make_unique<QemuVirtualMachineExecute>();
+}
+
+std::unique_ptr<mp::SshPubKey> mp::Platform::public_key()
+{
+    return OpenSSHKeyProvider::public_key();
 }

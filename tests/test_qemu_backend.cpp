@@ -17,6 +17,7 @@
  *
  */
 
+#include <multipass/platform.h>
 #include <multipass/virtual_machine.h>
 #include <multipass/virtual_machine_description.h>
 #include <src/platform/backends/qemu/qemu_virtual_machine_execute.h>
@@ -77,4 +78,12 @@ TEST_F(QemuBackend, execute_ssh_only_no_command)
     auto cmd_line = vm_execute.execute();
 
     EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost"));
+}
+
+TEST_F(QemuBackend, public_key_is_stable)
+{
+    const auto key_one = mp::Platform::public_key()->as_base64();
+    const auto key_two = mp::Platform::public_key()->as_base64();
+
+    EXPECT_THAT(key_one, StrEq(key_two));
 }
