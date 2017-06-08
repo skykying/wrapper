@@ -45,16 +45,12 @@ TEST_F(Simplestreams, get_image_path_by_alias)
 {
     QString path;
 
-    try
+    EXPECT_NO_THROW(
     {
         mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
 
         path = ss_mgr.download_image_by_alias("xenial");
-    }
-    catch (const std::runtime_error& error)
-    {
-        FAIL() << "Unexpected std::runtime_error";
-    }
+    });
 
     QString image_path(testDir.filePath("test_image.img"));
 
@@ -63,41 +59,26 @@ TEST_F(Simplestreams, get_image_path_by_alias)
 
 TEST_F(Simplestreams, fail_when_bad_alias)
 {
-    try
+    EXPECT_THROW(
     {
         mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
 
         QString path = ss_mgr.download_image_by_alias("foo");
-        FAIL() << "Expected std::runtime_error";
-    }
-    catch (const std::runtime_error& error)
-    {
-        EXPECT_EQ(error.what(), std::string("Could not find foo"));
-    }
+    }, std::runtime_error);
 }
 
 TEST_F(Simplestreams, fail_when_index_is_not_found)
 {
-    try
+    EXPECT_THROW(
     {
         mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("bad_index.json"));
-        FAIL() << "Expected std::runtime_error";
-    }
-    catch (const std::runtime_error& error)
-    {
-        EXPECT_EQ(error.what(), std::string("Could not retrieve Simplestreams index"));
-    }
+    }, std::invalid_argument);
 }
 
 TEST_F(Simplestreams, fail_when_manifest_is_not_found)
 {
-    try
+    EXPECT_THROW(
     {
         mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("evil_index.json"));
-        FAIL() << "Expected std::runtime_error";
-    }
-    catch (const std::runtime_error& error)
-    {
-        EXPECT_EQ(error.what(), std::string("Could not retrieve Simplestreams manifest"));
-    }
+    }, std::invalid_argument);
 }

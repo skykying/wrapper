@@ -65,6 +65,8 @@ QByteArray get_info_from_file(QString path)
         data = file.readAll();
         file.close();
     }
+    else
+        throw std::invalid_argument(path.toStdString() + " does not exist");
 
     return data;
 }
