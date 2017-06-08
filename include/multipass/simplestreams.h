@@ -88,7 +88,7 @@ signals:
 private:
     void download_image(QUrl const& url);
     void set_ss_image_path();
-    bool set_ss_image_product_info_by_alias(QString const& alias);
+    void set_ss_image_product_info_by_alias(QString const& alias);
 
 private:
     QString base_path;

@@ -26,9 +26,16 @@ namespace mp = multipass;
 
 mp::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query)
 {
-    mp::SimpleStreams ss_mgr;
     VMImage image_info;
+    try
+    {
+        mp::SimpleStreams ss_mgr;
 
-    image_info.image_path = ss_mgr.download_image_by_alias(query.release);
+        image_info.image_path = ss_mgr.download_image_by_alias(query.release);
+    }
+    catch(const std::runtime_error& error)
+    {
+        throw std::runtime_error(error);
+    }
     return image_info;
 }

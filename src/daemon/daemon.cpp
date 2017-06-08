@@ -90,16 +90,18 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
 
     if (request->release().empty())
     {
-        vm_image_query.release = "xenia";
+        vm_image_query.release = "xenial";
     }
 
-    VMImage vm_image = config->image_host->fetch(vm_image_query);
-
-    if (vm_image.image_path.isEmpty())
+    try
     {
-        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Bad alias", "");
+        VMImage vm_image = config->image_host->fetch(vm_image_query);
+        desc.image_path = vm_image.image_path;
     }
-    desc.image_path = vm_image.image_path;
+    catch (const std::runtime_error& error)
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, error.what(), "");
+    }
     desc.cloud_init_config = YAML::Load(mp::base_cloud_init_config);
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
 

@@ -82,6 +82,9 @@ QByteArray download_ss_index(QString const& index_path)
         index = get_info_from_file(index_path);
     }
 
+    if (index.isEmpty())
+        throw std::runtime_error("Could not retrieve Simplestreams index");
+
     return index;
 }
 
@@ -103,8 +106,12 @@ QJsonObject get_ss_manifest(QByteArray index, QString const& base_path)
         else if (ss_entry["datatype"] == "mock")
         {
             data = get_info_from_file(QDir(base_path).filePath(ss_entry["path"].toString()));
+            break;
         }
     }
+
+    if (data.isEmpty())
+        throw std::runtime_error("Could not retrieve Simplestreams manifest");
 
     return QJsonDocument::fromJson(data).object();
 }
@@ -236,10 +243,7 @@ void mp::SimpleStreams::save_ss_json_file()
 
 QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
 {
-    if (!set_ss_image_product_info_by_alias(QString::fromStdString(alias)))
-    {
-        return QString();
-    }
+    set_ss_image_product_info_by_alias(QString::fromStdString(alias));
     set_ss_image_path();
 
     QFileInfo file_info(ss_image_path);
@@ -260,7 +264,7 @@ QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
     return image_path;
 }
 
-bool mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
+void mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
 {
     for (const QJsonValue& product : ss_manifest["products"].toObject())
     {
@@ -270,10 +274,11 @@ bool mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
             product.toObject()["arch"].toString() == "amd64")
         {
             ss_product = product.toObject();
-            return true;
         }
     }
-    return false;
+
+    if (ss_product.isEmpty())
+        throw std::runtime_error("Could not find " + alias.toStdString());
 }
 
 void mp::SimpleStreams::set_ss_image_path()
@@ -297,7 +302,7 @@ void mp::SimpleStreams::set_ss_image_path()
         {
             const QJsonObject meta(item.toObject());
 
-            if (meta["ftype"].toString().contains("disk1.img"))
+            if (meta["ftype"].toString() == "disk1.img")
             {
                 ss_image_path = meta["path"].toString();
             }
