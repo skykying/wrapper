@@ -59,10 +59,10 @@ TEST_F(Simplestreams, get_image_path_by_alias)
 
 TEST_F(Simplestreams, fail_when_bad_alias)
 {
+    mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
+
     EXPECT_THROW(
     {
-        mp::SimpleStreams ss_mgr(testDir.absolutePath(), QString("test_index.json"));
-
         QString path = ss_mgr.download_image_by_alias("foo");
     }, std::runtime_error);
 }
