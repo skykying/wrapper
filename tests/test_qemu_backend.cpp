@@ -26,6 +26,10 @@
 #include "mock_status_monitor.h"
 #include "stub_status_monitor.h"
 
+#include <experimental/optional>
+#include <system_error>
+
+#include <QtCore/QTemporaryDir>
 #include <gmock/gmock.h>
 
 namespace mp = multipass;
@@ -86,4 +90,83 @@ TEST_F(QemuBackend, public_key_is_stable)
     const auto key_two = mp::Platform::public_key()->as_base64();
 
     EXPECT_THAT(key_one, StrEq(key_two));
+}
+
+namespace
+{
+class TemporaryEnvironmentVariable
+{
+public:
+    TemporaryEnvironmentVariable(std::string const& key, std::string const& value)
+        : key{key}, original_value{[](std::string const& key) -> std::experimental::optional<std::string> {
+              const auto val = getenv(key.c_str());
+              if (val)
+              {
+                  return std::string{val};
+              }
+              return {};
+          }(key)}
+    {
+        if (setenv(key.c_str(), value.c_str(), true))
+        {
+            throw std::system_error{errno, std::system_category(), "Failed to set environment variable"};
+        }
+    }
+
+    ~TemporaryEnvironmentVariable() noexcept(false)
+    {
+        if (original_value)
+        {
+            if (setenv(key.c_str(), original_value->c_str(), true))
+            {
+                throw std::system_error{errno, std::system_category(), "Failed to reset environment variable"};
+            }
+        }
+        else
+        {
+            if (unsetenv(key.c_str()))
+            {
+                throw std::system_error{errno, std::system_category(),
+                                        "Failed to unset temporary environment variable"};
+            }
+        }
+    }
+
+private:
+    std::string const key;
+    std::experimental::optional<std::string> const original_value;
+};
+}
+
+TEST_F(QemuBackend, uses_public_key_from_xdg_config_dir)
+{
+    QTemporaryDir fake_config_dir;
+    TemporaryEnvironmentVariable{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+
+    QDir fake_config_path{fake_config_dir.path()};
+    fake_config_path.mkdir("multipassd");
+
+    QFile fake_id_rsa{fake_config_path.filePath("multipassd/id_rsa.pub")};
+    if (!fake_id_rsa.open(QIODevice::WriteOnly))
+    {
+        throw std::runtime_error{"Failed to create mock id_rsa.pub"};
+    }
+    const auto key_type = "ssh-rsa";
+    const auto key = "AAAAB3NzaC1yc2EAAAADAQABAAABAQCj2HRELDuoAtglyqhOIHtT47gYbD773flgdigeqS+Qcf+"
+                     "EAPRr2qdyfIYnGLbk22GmBQhKyhXy8YqQLxoPlXzzdV6dZ8AriPnqfH38gIYljXSdy+PbN7OyWNcsENpE1LKhkADtmMQc+"
+                     "N0GffSwXFt7a8cgzNRsDDa7mOhAxS6Q5xFtANdZGWa75gk9UM04hYb9w4ZbSCtMhcS7okYM60UeydbgkA6ZjD7+"
+                     "AyaQJ06cwlMQIV5o6Kp4EpLzXrvsnBS5Ej50811sz5KHrCeiwxG3YhyCZzSX5L67HepVLxdyb9E+kLOWNzPePnO2hAASDG+"
+                     "2vsxt6L7OUOnish87mbGT";
+
+    fake_id_rsa.write(key_type);
+    fake_id_rsa.write(" ");
+    fake_id_rsa.write(key);
+    fake_id_rsa.write(" comment@localhost");
+
+    fake_id_rsa.close();
+
+    const auto parsed_key = mp::Platform::public_key();
+
+    EXPECT_THAT(parsed_key->type(), Eq(mp::SshPubKey::Type::RSA));
+    EXPECT_THAT(parsed_key->as_base64(), StrEq(key));
 }
