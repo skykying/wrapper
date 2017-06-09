@@ -19,7 +19,9 @@
 
 #include "openssh_key_provider.h"
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QProcess>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTextStream>
 
@@ -62,32 +64,54 @@ private:
     Type const type_;
     std::string const base64_key;
 };
+
+void create_keypair(const QString& basename)
+{
+    QProcess ssh_keygen;
+    QStringList keygen_args;
+
+    keygen_args << "-t"
+                << "rsa";
+    keygen_args << "-f" << basename;
+    keygen_args << "-N"
+                << "";
+
+    ssh_keygen.start("ssh-keygen", keygen_args);
+    ssh_keygen.waitForFinished();
+}
 }
 
 std::unique_ptr<mp::SshPubKey> mp::OpenSSHKeyProvider::public_key()
 {
     QCoreApplication::setApplicationName("multipassd");
-    const auto key_path = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "id_rsa.pub");
-
-    if (QFile::exists(key_path))
-    {
-        QFile key{key_path};
-        if (!key.open(QIODevice::ReadOnly))
+    const auto key_path = []() {
+        auto const path = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "id_rsa.pub");
+        if (path.isEmpty())
         {
-            throw std::runtime_error{std::string{"Failed to open SSH public key file: "} +
-                                     key.errorString().toStdString()};
+            // QStandardPaths returns empty string on file-not-found
+            return QDir{QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)}.filePath("id_rsa.pub");
         }
-        QTextStream keydata{key.readAll()};
-        return std::make_unique<OpenSSHPubKey>(keydata);
+        return path;
+    }();
+
+    if (!QFile::exists(key_path))
+    {
+        const QDir cfg_dir{QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
+        if (!cfg_dir.exists())
+        {
+            if (!cfg_dir.mkpath(cfg_dir.absolutePath()))
+            {
+                throw std::runtime_error{std::string{"Failed to create multipassd config dir"}};
+            }
+        }
+        create_keypair(QDir{cfg_dir}.filePath("id_rsa"));
     }
 
-    QByteArray fake_data{"ssh-rsa "
-                         "AAAAB3NzaC1yc2EAAAADAQABAAABAQCj2HRELDuoAtglyqhOIHtT47gYbD773flgdigeqS+Qcf+"
-                         "EAPRr2qdyfIYnGLbk22GmBQhKyhXy8YqQLxoPlXzzdV6dZ8AriPnqfH38gIYljXSdy+"
-                         "PbN7OyWNcsENpE1LKhkADtmMQc+"
-                         "N0GffSwXFt7a8cgzNRsDDa7mOhAxS6Q5xFtANdZGWa75gk9UM04hYb9w4ZbSCtMhcS7okYM60UeydbgkA6ZjD7+"
-                         "AyaQJ06cwlMQIV5o6Kp4EpLzXrvsnBS5Ej50811sz5KHrCeiwxG3YhyCZzSX5L67HepVLxdyb9E+"
-                         "kLOWNzPePnO2hAASDG+2vsxt6L7OUOnish87mbGT"};
-    QTextStream fake_reader{fake_data};
-    return std::make_unique<OpenSSHPubKey>(fake_reader);
+    QFile key{key_path};
+    if (!key.open(QIODevice::ReadOnly))
+    {
+        throw std::runtime_error{std::string{"Failed to open SSH public key file: "} + key.errorString().toStdString()};
+    }
+    QTextStream keydata{key.readAll()};
+    return std::make_unique<OpenSSHPubKey>(keydata);
 }

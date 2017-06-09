@@ -84,14 +84,6 @@ TEST_F(QemuBackend, execute_ssh_only_no_command)
     EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost"));
 }
 
-TEST_F(QemuBackend, public_key_is_stable)
-{
-    const auto key_one = mp::Platform::public_key()->as_base64();
-    const auto key_two = mp::Platform::public_key()->as_base64();
-
-    EXPECT_THAT(key_one, StrEq(key_two));
-}
-
 namespace
 {
 class TemporaryEnvironmentVariable
@@ -138,10 +130,21 @@ private:
 };
 }
 
+TEST_F(QemuBackend, public_key_is_stable)
+{
+    QTemporaryDir fake_config_dir;
+    TemporaryEnvironmentVariable cfg_override{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+
+    const auto key_one = mp::Platform::public_key()->as_base64();
+    const auto key_two = mp::Platform::public_key()->as_base64();
+
+    EXPECT_THAT(key_one, StrEq(key_two));
+}
+
 TEST_F(QemuBackend, uses_public_key_from_xdg_config_dir)
 {
     QTemporaryDir fake_config_dir;
-    TemporaryEnvironmentVariable{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+    TemporaryEnvironmentVariable cfg_override{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
 
     QDir fake_config_path{fake_config_dir.path()};
     fake_config_path.mkdir("multipassd");
@@ -169,4 +172,22 @@ TEST_F(QemuBackend, uses_public_key_from_xdg_config_dir)
 
     EXPECT_THAT(parsed_key->type(), Eq(mp::SshPubKey::Type::RSA));
     EXPECT_THAT(parsed_key->as_base64(), StrEq(key));
+}
+
+TEST_F(QemuBackend, creates_new_pubkey_when_none_exists)
+{
+    QTemporaryDir fake_config_dir;
+    TemporaryEnvironmentVariable cfg_override{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+
+    QDir fake_config_path{fake_config_dir.path()};
+    fake_config_path.mkdir("multipassd");
+
+    const auto id_rsa_path = fake_config_path.filePath("multipassd/id_rsa.pub");
+    ASSERT_FALSE(QFile::exists(id_rsa_path));
+
+    const auto parsed_key = mp::Platform::public_key();
+
+    EXPECT_TRUE(QFile::exists(id_rsa_path));
+    EXPECT_THAT(parsed_key->type(), Eq(mp::SshPubKey::Type::RSA));
+    EXPECT_THAT(parsed_key->as_base64(), Not(StrEq("")));
 }
