@@ -29,6 +29,6 @@ mp::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query)
     mp::SimpleStreams ss_mgr;
     VMImage image_info;
 
-    image_info.image_path = ss_mgr.download_image_by_alias(query.release);
+    image_info.image_path = ss_mgr.download_image_by_alias_or_hash(query.release);
     return image_info;
 }

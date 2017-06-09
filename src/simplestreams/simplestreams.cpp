@@ -118,7 +118,7 @@ QJsonObject get_ss_manifest(QByteArray index, QString const& base_path)
     return QJsonDocument::fromJson(data).object();
 }
 
-bool alias_matches(QStringList aliases, QString alias)
+bool alias_matches(QStringList const& aliases, QString const& alias)
 {
     for (auto const& a : aliases)
     {
@@ -126,6 +126,53 @@ bool alias_matches(QStringList aliases, QString alias)
             return true;
     }
     return false;
+}
+
+QString get_ss_path_by_hash(QJsonObject const& ss_product, QString const& hash)
+{
+    for (auto const& version : ss_product["versions"].toObject())
+    {
+        auto items = version.toObject()["items"].toObject();
+        for (auto const& item : items)
+        {
+            const QJsonObject meta(item.toObject());
+
+            if (meta["ftype"].toString() == "disk1.img" &&
+                meta["sha256"].toString() == hash)
+            {
+                return meta["path"].toString();
+            }
+        }
+    }
+
+    return QString();
+}
+
+QString get_ss_path_by_alias_product(QJsonObject const& ss_product)
+{
+    QString last_pub_name,
+            image_path;
+
+    for (auto const& version : ss_product["versions"].toObject())
+    {
+        auto version_string = version.toObject()["pubname"].toString();
+        if (version_string <= last_pub_name)
+            continue;
+
+        last_pub_name = version_string;
+        auto items = version.toObject()["items"].toObject();
+        for (auto const& item : items)
+        {
+            const QJsonObject meta(item.toObject());
+
+            if (meta["ftype"].toString() == "disk1.img")
+            {
+                image_path = meta["path"].toString();
+            }
+        }
+    }
+
+    return image_path;
 }
 } // anonymous namespace
 
@@ -243,10 +290,9 @@ void mp::SimpleStreams::save_ss_json_file()
     index_file.close();
 }
 
-QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
+QString mp::SimpleStreams::download_image_by_alias_or_hash(std::string const& alias)
 {
-    set_ss_image_product_info_by_alias(QString::fromStdString(alias));
-    set_ss_image_path();
+    set_ss_image_path(QString::fromStdString(alias));
 
     QFileInfo file_info(ss_image_path);
     QString file_name = file_info.fileName();
@@ -266,53 +312,27 @@ QString mp::SimpleStreams::download_image_by_alias(std::string const& alias)
     return image_path;
 }
 
-void mp::SimpleStreams::set_ss_image_product_info_by_alias(QString const& alias)
+void mp::SimpleStreams::set_ss_image_path(QString const& alias)
 {
     for (const QJsonValue& product : ss_manifest["products"].toObject())
     {
-        auto aliases = product.toObject()["aliases"].toString().split(",");
-
-        if (alias_matches(aliases, alias) &&
-            product.toObject()["arch"].toString() == "amd64")
-        {
-            ss_product = product.toObject();
-        }
-    }
-
-    if (ss_product.isEmpty())
-        throw std::runtime_error("Could not find " + alias.toStdString());
-}
-
-void mp::SimpleStreams::set_ss_image_path()
-{
-    QString last_pub_name;
-
-    if (ss_product.isEmpty())
-    {
-        throw std::runtime_error("Cannot get SimpleStreams product info");
-    }
-
-    for (auto const& version : ss_product["versions"].toObject())
-    {
-        auto version_string = version.toObject()["pubname"].toString();
-        if (version_string <= last_pub_name)
+        if (product.toObject()["arch"].toString() != "amd64")
             continue;
 
-        last_pub_name = version_string;
-        auto items = version.toObject()["items"].toObject();
-        for (auto const& item : items)
-        {
-            const QJsonObject meta(item.toObject());
+        auto aliases = product.toObject()["aliases"].toString().split(",");
 
-            if (meta["ftype"].toString() == "disk1.img")
-            {
-                ss_image_path = meta["path"].toString();
-            }
+        if (alias_matches(aliases, alias))
+        {
+            ss_image_path = get_ss_path_by_alias_product(product.toObject());
+            break;
         }
+
+        ss_image_path = get_ss_path_by_hash(product.toObject(), alias);
+
+        if (!ss_image_path.isEmpty())
+            break;
     }
 
     if (ss_image_path.isEmpty())
-    {
-        throw std::runtime_error("Cannot find image path");
-    }
+        throw std::runtime_error("Could not find " + alias.toStdString());
 }
