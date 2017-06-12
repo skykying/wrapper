@@ -32,6 +32,7 @@
 #include "mock_virtual_machine_factory.h"
 #include "mock_vm_image_fetcher.h"
 #include "stub_image_host.h"
+#include "stub_ssh_key.h"
 #include "stub_virtual_machine_factory.h"
 #include "stub_vm_image_vault.h"
 
@@ -168,6 +169,7 @@ TEST_F(Daemon, creates_virtual_machines)
     config_builder.factory = std::move(mock_factory);
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
@@ -189,6 +191,7 @@ TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
     config_builder.factory = std::move(mock_factory);
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
@@ -224,6 +227,7 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
     config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
     config_builder.image_host = std::make_unique<StubVMImageHost>();
+    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     mp::Daemon daemon{config_builder.build()};
 
     std::stringstream stream;
@@ -300,6 +304,7 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
     config_builder.factory = std::move(mock_factory);
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 

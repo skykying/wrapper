@@ -16,6 +16,8 @@
 
 cmake_minimum_required(VERSION 3.1)
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10") # needs to be set before "project"
+
 project(Multipass)
 
 option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
@@ -40,9 +42,12 @@ if(MSVC)
   add_definitions(/MP)
   add_definitions(-D_WIN32_WINNT=0x600) # A gprc header requires this (specifies WinXP or greater)
   add_definitions(-DMULTIPASS_PLATFORM_WINDOWS)
+elseif(APPLE)
+  add_compile_options(-Werror -Wall -pedantic -fPIC)
+  add_definitions(-DMULTIPASS_PLATFORM_APPLE)
 else()
   add_compile_options(-Werror -Wall -pedantic -fPIC)
-  add_definitions(-DMULTIPASS_PLATFORM_POSIX)
+  add_definitions(-DMULTIPASS_PLATFORM_LINUX)
 endif()
 
 set(MULTIPASS_GENERATED_SOURCE_DIR ${CMAKE_BINARY_DIR}/gen)

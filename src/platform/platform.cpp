@@ -20,12 +20,14 @@
 #include <multipass/platform.h>
 #include <multipass/virtual_machine_factory.h>
 
-#ifdef MULTIPASS_PLATFORM_POSIX
+#ifdef MULTIPASS_PLATFORM_WINDOWS
+#include "backends/hyperv/hyperv_virtual_machine_factory.h"
+#elif MULTIPASS_PLATFORM_APPLE
+#include "backends/hyperkit/hyperkit_virtual_machine_factory.h"
+#else
 #include "backends/qemu/openssh_key_provider.h"
 #include "backends/qemu/qemu_virtual_machine_execute.h"
 #include "backends/qemu/qemu_virtual_machine_factory.h"
-#else
-#include "backends/hyperv/hyperv_virtual_machine_factory.h"
 #endif
 
 namespace mp = multipass;
@@ -39,16 +41,18 @@ std::string mp::Platform::default_server_address()
 
 mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
 {
-#ifdef MULTIPASS_PLATFORM_POSIX
-    return std::make_unique<QemuVirtualMachineFactory>();
-#else
+#ifdef MULTIPASS_PLATFORM_WINDOWS
     return std::make_unique<HyperVVirtualMachineFactory>();
+#elif MULTIPASS_PLATFORM_APPLE
+    return std::make_unique<HyperkitVirtualMachineFactory>();
+#else
+    return std::make_unique<QemuVirtualMachineFactory>();
 #endif
 }
 
 mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute()
 {
-#ifdef MULTIPASS_PLATFORM_POSIX
+#ifdef MULTIPASS_PLATFORM_LINUX
     return std::make_unique<QemuVirtualMachineExecute>();
 #else
     return nullptr;
@@ -57,7 +61,7 @@ mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute()
 
 std::unique_ptr<mp::SshPubKey> mp::Platform::public_key()
 {
-#ifdef MULTIPASS_PLATFORM_POSIX
+#ifdef MULTIPASS_PLATFORM_LINUX
     return OpenSSHKeyProvider::public_key();
 #else
     return nullptr;

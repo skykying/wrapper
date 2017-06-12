@@ -11,20 +11,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-add_library(platform STATIC
-  platform.cpp
-  ${PROJECT_SOURCE_DIR}/include/multipass/ssh_key.h)
+add_library(hyperkit_backend STATIC
+  hyperkit_virtual_machine_factory.cpp)
 
-if(MSVC)
-  target_link_libraries(platform hyperv_backend)
-elseif(APPLE)
-  target_link_libraries(platform hyperkit_backend)
-else()
-  target_link_libraries(platform qemu_backend)
-endif()
-
-add_subdirectory(backends)
-
+target_link_libraries(hyperkit_backend
+  Qt5::Core
+  yaml-cpp)

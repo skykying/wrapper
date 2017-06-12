@@ -36,6 +36,8 @@ include_directories(
 
 if(MSVC)
   list(APPEND BACKEND_TESTS test_hyperv_backend.cpp)
+elseif(APPLE)
+  list(APPEND BACKEND_TESTS test_hyperkit_backend.cpp)
 else()
   list(APPEND BACKEND_TESTS test_qemu_backend.cpp)
 endif()
