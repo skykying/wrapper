@@ -136,7 +136,7 @@ std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config)
         throw std::runtime_error{"Call to genisoimage failed: "s + iso_creator.readAllStandardError().data()};
     }
 
-    return cloud_init_img;
+    return std::move(cloud_init_img); // explicit move to satisfy clang
 }
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path& cloud_init_image)
