@@ -105,6 +105,10 @@ std::unique_ptr<mp::SshPubKey> mp::OpenSSHKeyProvider::public_key()
             }
         }
         create_keypair(QDir{cfg_dir}.filePath("id_rsa"));
+        if (!QFile::exists(key_path))
+        {
+            throw std::runtime_error{"Failed to create multipassd SSH keypair"};
+        }
     }
 
     QFile key{key_path};
