@@ -40,38 +40,9 @@ namespace mp = multipass;
 
 namespace
 {
-std::unique_ptr<QFile> check_legacy_cloud_init()
-{
-
-    const QString cloudinit_img_name("cloudinit-seed.img");
-
-    const auto candidate_paths = {QStandardPaths::locate(QStandardPaths::CacheLocation, cloudinit_img_name),
-                                  QDir(QCoreApplication::applicationDirPath()).filePath(cloudinit_img_name)};
-
-    for (const auto& candidate : candidate_paths)
-    {
-        if (QFile::exists(candidate))
-        {
-            return std::make_unique<QFile>(candidate);
-        }
-    }
-
-    return {};
-}
-
-std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config)
+std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config, const std::string& name)
 {
     using namespace std::string_literals;
-
-    {
-        // Preferentially use the existing cloudinit-seed.img for the moment, until we
-        // manage SSH keys.
-        auto legacy = check_legacy_cloud_init();
-        if (legacy)
-        {
-            return legacy;
-        }
-    }
 
     QTemporaryDir scratch_dir;
 
@@ -88,7 +59,9 @@ std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config)
         throw std::runtime_error{"Failed to open files for writing"};
     }
 
-    metadata.write("instance-id: multipass-maybe-replace-with-uuid\n");
+    metadata.write("instance-id: ");
+    metadata.write(name.c_str());
+    metadata.write("\n");
     metadata.write("local-hostname: ubuntu-multipass\n");
 
     metadata.close();
@@ -176,7 +149,8 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
 }
 
 mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor)
-    : state{State::running}, monitor{&monitor}, cloud_init_image{make_cloud_init_image(desc.cloud_init_config)},
+    : state{State::running}, monitor{&monitor}, cloud_init_image{make_cloud_init_image(desc.cloud_init_config,
+                                                                                       desc.vm_name)},
       vm_process{make_qemu_process(desc, cloud_init_image->fileName())}
 {
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
@@ -192,7 +166,9 @@ mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc
                      });
 }
 
-mp::QemuVirtualMachine::~QemuVirtualMachine() {}
+mp::QemuVirtualMachine::~QemuVirtualMachine()
+{
+}
 
 void mp::QemuVirtualMachine::start()
 {
@@ -212,4 +188,7 @@ void mp::QemuVirtualMachine::shutdown()
     monitor->on_shutdown();
 }
 
-mp::VirtualMachine::State mp::QemuVirtualMachine::current_state() { return state; }
+mp::VirtualMachine::State mp::QemuVirtualMachine::current_state()
+{
+    return state;
+}
