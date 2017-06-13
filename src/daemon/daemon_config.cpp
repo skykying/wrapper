@@ -24,6 +24,7 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/platform.h>
+#include <multipass/ssh_key.h>
 #include <multipass/virtual_machine_execute.h>
 
 namespace mp = multipass;
@@ -41,7 +42,10 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
         vm_execute = Platform::vm_execute();
     if (server_address.empty())
         server_address = Platform::default_server_address();
+    if (ssh_key == nullptr)
+        ssh_key = Platform::public_key();
 
-    return std::unique_ptr<const DaemonConfig>(new DaemonConfig{
-        std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator), std::move(vm_execute), server_address});
+    return std::unique_ptr<const DaemonConfig>(
+        new DaemonConfig{std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator),
+                         std::move(vm_execute), std::move(ssh_key), server_address});
 }

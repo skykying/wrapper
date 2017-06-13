@@ -18,10 +18,11 @@
  */
 
 #include "daemon.h"
-#include "daemon_config.h"
 #include "base_cloud_init_config.h"
+#include "daemon_config.h"
 
 #include <multipass/name_generator.h>
+#include <multipass/ssh_key.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_execute.h>
@@ -33,6 +34,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <sstream>
 #include <stdexcept>
 
 namespace mp = multipass;
@@ -54,7 +56,10 @@ auto make_server(const multipass::DaemonConfig& config, multipass::Rpc::Service*
 }
 }
 
-mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config) : config{std::move(the_config)}, server{make_server(*config, this)} {}
+mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
+    : config{std::move(the_config)}, server{make_server(*config, this)}
+{
+}
 
 void mp::Daemon::run()
 {
@@ -62,7 +67,10 @@ void mp::Daemon::run()
     server->Wait();
 }
 
-void mp::Daemon::shutdown() { server->Shutdown(); }
+void mp::Daemon::shutdown()
+{
+    server->Shutdown();
+}
 
 grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
 {
@@ -103,6 +111,14 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, error.what(), "");
     }
     desc.cloud_init_config = YAML::Load(mp::base_cloud_init_config);
+
+    std::stringstream ssh_key_line;
+    ssh_key_line << "ssh-rsa"
+                 << " " << config->ssh_key->as_base64() << " "
+                 << "multipass@localhost";
+
+    desc.cloud_init_config["ssh_authorized_keys"].push_back(ssh_key_line.str());
+
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
 
     reply->set_vm_instance_name(desc.vm_name);
@@ -130,8 +146,14 @@ grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequ
     return grpc::Status::OK;
 }
 
-void mp::Daemon::on_shutdown() {}
+void mp::Daemon::on_shutdown()
+{
+}
 
-void mp::Daemon::on_resume() {}
+void mp::Daemon::on_resume()
+{
+}
 
-void mp::Daemon::on_stop() {}
+void mp::Daemon::on_stop()
+{
+}

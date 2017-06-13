@@ -32,6 +32,7 @@ class VMImageHost;
 class VMImageVault;
 class VirtualMachineExecute;
 class VirtualMachineFactory;
+class SshPubKey;
 struct DaemonConfig
 {
     const std::unique_ptr<VirtualMachineFactory> factory;
@@ -39,6 +40,7 @@ struct DaemonConfig
     const std::unique_ptr<VMImageVault> vault;
     const std::unique_ptr<NameGenerator> name_generator;
     const std::unique_ptr<VirtualMachineExecute> vm_execute;
+    const std::unique_ptr<SshPubKey> ssh_key;
     const std::string server_address;
 };
 
@@ -49,6 +51,7 @@ struct DaemonConfigBuilder
     std::unique_ptr<VMImageVault> vault;
     std::unique_ptr<NameGenerator> name_generator;
     std::unique_ptr<VirtualMachineExecute> vm_execute;
+    std::unique_ptr<SshPubKey> ssh_key;
     std::string server_address;
 
     std::unique_ptr<const DaemonConfig> build();

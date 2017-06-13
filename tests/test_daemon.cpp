@@ -22,6 +22,7 @@
 #include <src/daemon/daemon_config.h>
 
 #include <multipass/name_generator.h>
+#include <multipass/ssh_key.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
@@ -37,8 +38,8 @@
 
 #include <memory>
 #include <sstream>
-#include <thread>
 #include <string>
+#include <thread>
 
 namespace mp = multipass;
 using namespace testing;
@@ -80,17 +81,27 @@ struct LaunchTrackingDaemon : public mp::Daemon
 
 struct StubNameGenerator : public mp::NameGenerator
 {
-    StubNameGenerator(std::string name) : name{name} {}
-    std::string make_name() override { return name; }
+    StubNameGenerator(std::string name) : name{name}
+    {
+    }
+    std::string make_name() override
+    {
+        return name;
+    }
     std::string name;
 };
 
 template <typename DaemonType>
 struct ADaemonRunner
 {
-    ADaemonRunner(std::unique_ptr<const mp::DaemonConfig> config) : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }} {}
+    ADaemonRunner(std::unique_ptr<const mp::DaemonConfig> config)
+        : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }}
+    {
+    }
 
-    ADaemonRunner(std::string server_address) : ADaemonRunner(make_config(server_address)) {}
+    ADaemonRunner(std::string server_address) : ADaemonRunner(make_config(server_address))
+    {
+    }
 
     ~ADaemonRunner()
     {
@@ -108,7 +119,10 @@ using DaemonRunner = ADaemonRunner<mp::Daemon>;
 
 struct Daemon : public testing::Test
 {
-    void send_command(std::string command, std::ostream& cout = std::cout) { send_commands({command}, cout); }
+    void send_command(std::string command, std::ostream& cout = std::cout)
+    {
+        send_commands({command}, cout);
+    }
 
     void send_commands(std::vector<std::string> commands, std::ostream& cout = std::cout)
     {
@@ -264,7 +278,7 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
 
             if (cloud_init_config["growpart"])
             {
-                auto const &growpart_stanza = cloud_init_config["growpart"];
+                auto const& growpart_stanza = cloud_init_config["growpart"];
 
                 EXPECT_THAT(growpart_stanza, YAMLNodeContainsString("mode", "auto"));
                 EXPECT_THAT(growpart_stanza, YAMLNodeContainsStringArray("devices", std::vector<std::string>({"/"})));
