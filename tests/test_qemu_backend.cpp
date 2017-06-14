@@ -31,6 +31,7 @@
 
 #include <QtCore/QTemporaryDir>
 #include <gmock/gmock.h>
+#include <src/platform/backends/qemu/openssh_key_provider.h>
 
 namespace mp = multipass;
 
@@ -66,13 +67,23 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
     machine->shutdown();
 }
 
+namespace
+{
+auto HasCorrectSshArguments()
+{
+    return AllOf(StartsWith("ssh "), HasSubstr("-p 2222"),
+                 HasSubstr(std::string("-i ") + mp::OpenSSHKeyProvider::private_key_path().toStdString()));
+}
+}
+
 TEST_F(QemuBackend, execute_mangles_command)
 {
     mp::QemuVirtualMachineExecute vm_execute;
 
     auto cmd_line = vm_execute.execute("foo");
 
-    EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost foo"));
+    EXPECT_THAT(cmd_line, HasCorrectSshArguments());
+    EXPECT_THAT(cmd_line, EndsWith(" foo"));
 }
 
 TEST_F(QemuBackend, execute_ssh_only_no_command)
@@ -81,7 +92,7 @@ TEST_F(QemuBackend, execute_ssh_only_no_command)
 
     auto cmd_line = vm_execute.execute();
 
-    EXPECT_THAT(cmd_line, Eq("ssh -p 2222 ubuntu@localhost"));
+    EXPECT_THAT(cmd_line, HasCorrectSshArguments());
 }
 
 namespace

@@ -18,6 +18,7 @@
  */
 
 #include "qemu_virtual_machine_execute.h"
+#include "openssh_key_provider.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -27,24 +28,19 @@
 
 namespace mp = multipass;
 
-namespace {
+namespace
+{
 auto construct_ssh_command()
 {
-    const QString id_rsa_name("id_rsa");
-    QString id_rsa_path(QStandardPaths::locate(QStandardPaths::CacheLocation, id_rsa_name));
+    const auto private_key_path = mp::OpenSSHKeyProvider::private_key_path();
 
-    if (!QFile::exists(id_rsa_path))
+    if (!QFile::exists(private_key_path))
     {
-        id_rsa_path = QDir(QCoreApplication::applicationDirPath()).filePath(id_rsa_name);
+        throw std::runtime_error{"Failed to find multipass SSH keys"};
     }
 
     // The following ssh command will undoubtedly change in The Future
-    QString ssh_cmd("ssh -p 2222 ubuntu@localhost");
-
-    if (QFile::exists(id_rsa_path))
-    {
-        ssh_cmd = "ssh -p 2222 -i " + id_rsa_path + " ubuntu@localhost";
-    }
+    QString ssh_cmd("ssh -p 2222 -i " + private_key_path + " ubuntu@localhost");
 
     return ssh_cmd.toStdString();
 }
