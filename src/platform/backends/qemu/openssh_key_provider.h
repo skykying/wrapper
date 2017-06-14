@@ -20,6 +20,7 @@
 #ifndef MULTIPASS_OPENSSHKEYPROVIDER_H
 #define MULTIPASS_OPENSSHKEYPROVIDER_H
 
+#include <multipass/path.h>
 #include <multipass/ssh_key.h>
 
 #include <memory>
@@ -30,6 +31,7 @@ class OpenSSHKeyProvider
 {
 public:
     static std::unique_ptr<SshPubKey> public_key();
+    static Path private_key_path();
 };
 }
 

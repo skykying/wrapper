@@ -119,3 +119,8 @@ std::unique_ptr<mp::SshPubKey> mp::OpenSSHKeyProvider::public_key()
     QTextStream keydata{key.readAll()};
     return std::make_unique<OpenSSHPubKey>(keydata);
 }
+
+mp::Path mp::OpenSSHKeyProvider::private_key_path()
+{
+    return QStandardPaths::locate(QStandardPaths::AppDataLocation, "id_rsa");
+}
