@@ -19,21 +19,6 @@ Building
     cmake ../
     make multipassd ubuntu
 
-Manually setting up an image for launching
-------------------------------------------
-
-    mkdir ~/.cache/multipassd
-    cd ~/.cache/multipassd
-
-    cat > cloudinit-config <<EOF
-    #cloud-config
-    ssh_authorized_keys:
-      - <your public key>
-    manage_etc_hosts: true
-    EOF
-
-    cloud-localds cloudinit-seed.img cloudinit-config
-
 Running multipass daemon and client
 ---------------------------------------
 
