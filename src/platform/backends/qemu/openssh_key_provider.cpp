@@ -85,18 +85,18 @@ std::unique_ptr<mp::SshPubKey> mp::OpenSSHKeyProvider::public_key()
 {
     QCoreApplication::setApplicationName("multipassd");
     const auto key_path = []() {
-        auto const path = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "id_rsa.pub");
+        auto const path = QStandardPaths::locate(QStandardPaths::AppDataLocation, "id_rsa.pub");
         if (path.isEmpty())
         {
             // QStandardPaths returns empty string on file-not-found
-            return QDir{QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)}.filePath("id_rsa.pub");
+            return QDir{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)}.filePath("id_rsa.pub");
         }
         return path;
     }();
 
     if (!QFile::exists(key_path))
     {
-        const QDir cfg_dir{QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
+        const QDir cfg_dir{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)};
         if (!cfg_dir.exists())
         {
             if (!cfg_dir.mkpath(cfg_dir.absolutePath()))

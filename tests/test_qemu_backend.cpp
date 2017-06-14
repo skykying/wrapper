@@ -144,7 +144,7 @@ TEST_F(QemuBackend, public_key_is_stable)
 TEST_F(QemuBackend, uses_public_key_from_xdg_config_dir)
 {
     QTemporaryDir fake_config_dir;
-    TemporaryEnvironmentVariable cfg_override{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+    TemporaryEnvironmentVariable cfg_override{"XDG_DATA_HOME", fake_config_dir.path().toStdString()};
 
     QDir fake_config_path{fake_config_dir.path()};
     fake_config_path.mkdir("multipassd");
@@ -177,7 +177,7 @@ TEST_F(QemuBackend, uses_public_key_from_xdg_config_dir)
 TEST_F(QemuBackend, creates_new_pubkey_when_none_exists)
 {
     QTemporaryDir fake_config_dir;
-    TemporaryEnvironmentVariable cfg_override{"XDG_CONFIG_HOME", fake_config_dir.path().toStdString()};
+    TemporaryEnvironmentVariable cfg_override{"XDG_DATA_HOME", fake_config_dir.path().toStdString()};
 
     QDir fake_config_path{fake_config_dir.path()};
     fake_config_path.mkdir("multipassd");
