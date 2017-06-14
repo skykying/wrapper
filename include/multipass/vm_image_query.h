@@ -27,7 +27,7 @@ namespace multipass
 class VMImageQuery
 {
 public:
-    std::string release;
+    std::string query_string;
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_QUERY_H

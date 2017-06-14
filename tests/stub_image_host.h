@@ -25,6 +25,8 @@
 struct StubVMImageHost final : public multipass::VMImageHost
 {
     multipass::VMImage fetch(const multipass::VMImageQuery&) override { return {}; }
+    void update_image_manifest() override { return; }
+    std::string get_image_hash_for_query(std::string query_string) override { return {}; }
 };
 
 #endif // MULTIPASS_STUB_IMAGE_HOST_H

@@ -78,8 +78,9 @@ public:
     explicit SimpleStreams(QString const& base_path, QString const& index_file_name, QObject* parent = 0);
     virtual ~SimpleStreams() = default;
 
-    void save_ss_json_file();
-    QString download_image_by_alias_or_hash(std::string const& alias);
+    void update_ss_manifest();
+    std::string get_image_hash(std::string const& query_string);
+    QString download_image_by_hash(std::string const& hash);
 
 signals:
     void download_complete();
@@ -87,14 +88,13 @@ signals:
 
 private:
     void download_image(QUrl const& url);
-    void set_ss_image_path(QString const& alias);
 
 private:
     QString base_path;
     QString index_path;
     QByteArray index;
     QJsonObject ss_manifest;
-    QString ss_image_path;
+    QJsonObject ss_image_item;
     QDir cache_dir;
 };
 }

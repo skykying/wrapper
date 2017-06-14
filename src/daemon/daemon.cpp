@@ -99,18 +99,23 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
 
     if (request->release().empty())
     {
-        vm_image_query.release = "xenial";
+        vm_image_query.query_string = "xenial";
     }
+
+    std::string image_hash;
 
     try
     {
-        auto fetcher = config->factory->create_image_fetcher(config->image_host);
-        desc.image = fetcher->fetch(vm_image_query);
+        config->image_host->update_image_manifest();
+        image_hash = config->image_host->get_image_hash_for_query(vm_image_query.query_string);
     }
     catch (const std::runtime_error& error)
     {
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, error.what(), "");
     }
+    auto fetcher = config->factory->create_image_fetcher(config->image_host);
+    desc.image = fetcher->fetch(vm_image_query);
+
     desc.cloud_init_config = YAML::Load(mp::base_cloud_init_config);
 
     std::stringstream ssh_key_line;

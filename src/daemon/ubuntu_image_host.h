@@ -20,6 +20,7 @@
 #ifndef MULTIPASS_UBUNTU_IMAGE_HOST_H
 #define MULTIPASS_UBUNTU_IMAGE_HOST_H
 
+#include <multipass/simplestreams.h>
 #include <multipass/vm_image.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_query.h>
@@ -30,6 +31,11 @@ class UbuntuVMImageHost final : public VMImageHost
 {
 public:
     VMImage fetch(VMImageQuery const& query) override;
+    void update_image_manifest() override;
+    std::string get_image_hash_for_query(std::string query_string) override;
+
+private:
+    SimpleStreams ss_mgr;
 };
 }
 #endif // MULTIPASS_UBUNTU_IMAGE_HOST_H

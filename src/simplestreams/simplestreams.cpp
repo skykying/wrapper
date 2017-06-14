@@ -128,30 +128,30 @@ bool alias_matches(QStringList const& aliases, QString const& alias)
     return false;
 }
 
-QString get_ss_path_by_hash(QJsonObject const& ss_product, QString const& hash)
+QJsonObject get_ss_image_item_by_hash(QJsonObject const& ss_product, QString const& hash)
 {
     for (auto const& version : ss_product["versions"].toObject())
     {
         auto items = version.toObject()["items"].toObject();
-        for (auto const& item : items)
-        {
-            const QJsonObject meta(item.toObject());
 
-            if (meta["ftype"].toString() == "disk1.img" &&
-                meta["sha256"].toString() == hash)
+        if (!items["disk1.img"].isUndefined())
+        {
+            auto image_item = items["disk1.img"].toObject();
+
+            if (image_item["sha256"].toString() == hash)
             {
-                return meta["path"].toString();
+                return image_item;
             }
         }
     }
 
-    return QString();
+    return QJsonObject();
 }
 
-QString get_ss_path_by_alias_product(QJsonObject const& ss_product)
+QJsonObject get_ss_image_item_by_alias(QJsonObject const& ss_product)
 {
-    QString last_pub_name,
-            image_path;
+    QString last_pub_name;
+    QJsonObject image_item;
 
     for (auto const& version : ss_product["versions"].toObject())
     {
@@ -161,18 +161,39 @@ QString get_ss_path_by_alias_product(QJsonObject const& ss_product)
 
         last_pub_name = version_string;
         auto items = version.toObject()["items"].toObject();
-        for (auto const& item : items)
-        {
-            const QJsonObject meta(item.toObject());
 
-            if (meta["ftype"].toString() == "disk1.img")
-            {
-                image_path = meta["path"].toString();
-            }
+        if (!items["disk1.img"].isUndefined())
+        {
+            image_item = items["disk1.img"].toObject();
         }
     }
 
-    return image_path;
+    return image_item;
+}
+
+QJsonObject get_image_item_by_query(QJsonObject manifest, QString const& query_string)
+{
+    QJsonObject image_item;
+
+    for (const QJsonValue& product : manifest["products"].toObject())
+    {
+        if (product.toObject()["arch"].toString() != "amd64")
+            continue;
+
+        auto aliases = product.toObject()["aliases"].toString().split(",");
+
+        if (alias_matches(aliases, query_string))
+        {
+            return get_ss_image_item_by_alias(product.toObject());
+        }
+
+        image_item = get_ss_image_item_by_hash(product.toObject(), query_string);
+
+        if (!image_item.empty())
+            return image_item;
+    }
+
+    throw std::runtime_error("Image info could not be found for " + query_string.toStdString());
 }
 } // anonymous namespace
 
@@ -270,30 +291,37 @@ void mp::ImageDownloader::error(QNetworkReply::NetworkError code) { qDebug() << 
 mp::SimpleStreams::SimpleStreams(QObject* parent)
     : QObject(parent), base_path("http://cloud-images.ubuntu.com/releases/"),
       index_path(base_path + "streams/v1/index.json"),
-      index(download_ss_index(index_path)), ss_manifest(get_ss_manifest(index, base_path)),
       cache_dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation))
 {
 }
 
 mp::SimpleStreams::SimpleStreams(QString const& base_path, QString const& index_file_name, QObject* parent)
     : QObject(parent), base_path(base_path), index_path(QDir(base_path).filePath(index_file_name)),
-      index(download_ss_index(index_path)), ss_manifest(get_ss_manifest(index, base_path)), cache_dir(base_path)
+      cache_dir(base_path)
 {
 }
 
-void mp::SimpleStreams::save_ss_json_file()
+void mp::SimpleStreams::update_ss_manifest()
 {
-    QFile index_file("./index.json");
-
-    index_file.open(QIODevice::WriteOnly);
-    index_file.write(index);
-    index_file.close();
+    index = download_ss_index(index_path);
+    ss_manifest = get_ss_manifest(index, base_path);
 }
 
-QString mp::SimpleStreams::download_image_by_alias_or_hash(std::string const& alias)
+std::string mp::SimpleStreams::get_image_hash(std::string const& query_string)
 {
-    set_ss_image_path(QString::fromStdString(alias));
+    ss_image_item = get_image_item_by_query(ss_manifest, QString::fromStdString(query_string));
 
+    return ss_image_item["sha256"].toString().toStdString();
+}
+
+QString mp::SimpleStreams::download_image_by_hash(std::string const& hash)
+{
+    if (ss_image_item["sha256"].toString().toStdString() != hash)
+    {
+        ss_image_item = get_image_item_by_query(ss_manifest, QString::fromStdString(hash));
+    }
+
+    QString ss_image_path = ss_image_item["path"].toString();
     QFileInfo file_info(ss_image_path);
     QString file_name = file_info.fileName();
     QString image_path = cache_dir.filePath(file_name);
@@ -310,29 +338,4 @@ QString mp::SimpleStreams::download_image_by_alias_or_hash(std::string const& al
     }
 
     return image_path;
-}
-
-void mp::SimpleStreams::set_ss_image_path(QString const& alias)
-{
-    for (const QJsonValue& product : ss_manifest["products"].toObject())
-    {
-        if (product.toObject()["arch"].toString() != "amd64")
-            continue;
-
-        auto aliases = product.toObject()["aliases"].toString().split(",");
-
-        if (alias_matches(aliases, alias))
-        {
-            ss_image_path = get_ss_path_by_alias_product(product.toObject());
-            break;
-        }
-
-        ss_image_path = get_ss_path_by_hash(product.toObject(), alias);
-
-        if (!ss_image_path.isEmpty())
-            break;
-    }
-
-    if (ss_image_path.isEmpty())
-        throw std::runtime_error("Could not find " + alias.toStdString());
 }
