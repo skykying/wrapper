@@ -108,7 +108,7 @@ parts:
       usr/share/seabios/bios-256k.bin: qemu/bios-256k.bin
       usr/share/seabios/vgabios-stdvga.bin: qemu/vgabios-stdvga.bin
       usr/share/seabios/kvmvapic.bin: qemu/kvmvapic.bin
-      usr/lib/ipxe/qemu/efi-e1000.rom: qemu/efi-e1000.rom
+      usr/lib/ipxe/qemu/efi-virtio.rom: qemu/efi-virtio.rom
 
   electron-app:
     after: [desktop-gtk2]
