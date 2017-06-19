@@ -30,6 +30,7 @@
 #include <multipass/vm_image_vault.h>
 
 #include "mock_virtual_machine_factory.h"
+#include "mock_vm_image_fetcher.h"
 #include "stub_image_host.h"
 #include "stub_virtual_machine_factory.h"
 #include "stub_vm_image_vault.h"
@@ -171,6 +172,33 @@ TEST_F(Daemon, creates_virtual_machines)
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
 
+    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
+        .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
+
+    send_command("launch");
+}
+
+TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
+{
+    auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
+    auto mock_factory_ptr = mock_factory.get();
+
+    mp::DaemonConfigBuilder config_builder;
+    config_builder.factory = std::move(mock_factory);
+    config_builder.image_host = std::make_unique<StubVMImageHost>();
+    config_builder.vault = std::make_unique<StubVMImageVault>();
+    config_builder.server_address = server_address;
+    DaemonRunner daemon_runner{config_builder.build()};
+
+    EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
+        .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
+
+    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_)).WillOnce(Invoke([](auto const&) {
+        auto fetcher = std::make_unique<MockVMImageFetcher>();
+        EXPECT_CALL(*fetcher.get(), fetch(_));
+        return std::move(fetcher);
+    }));
+
     send_command("launch");
 }
 
@@ -286,5 +314,9 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
             }
             return std::make_unique<StubVirtualMachine>();
         }));
+
+    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
+        .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
+
     send_command("launch");
 }

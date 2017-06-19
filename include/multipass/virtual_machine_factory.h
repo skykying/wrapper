@@ -25,6 +25,8 @@
 namespace multipass
 {
 class VirtualMachineDescription;
+class VMImageFetcher;
+class VMImageHost;
 class VMStatusMonitor;
 class VirtualMachineFactory
 {
@@ -34,6 +36,8 @@ public:
     virtual VirtualMachine::UPtr
     create_virtual_machine(const VirtualMachineDescription& desc,
                            VMStatusMonitor& monitor) = 0;
+
+    virtual std::unique_ptr<VMImageFetcher> create_image_fetcher(const std::unique_ptr<VMImageHost>& host) = 0;
 
 protected:
     VirtualMachineFactory() = default;

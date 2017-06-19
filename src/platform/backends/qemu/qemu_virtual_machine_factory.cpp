@@ -19,6 +19,7 @@
 
 #include "qemu_virtual_machine_factory.h"
 #include "qemu_virtual_machine.h"
+#include "qemu_vm_image_fetcher.h"
 
 namespace mp = multipass;
 
@@ -27,4 +28,10 @@ mp::QemuVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescri
                                                       VMStatusMonitor& monitor)
 {
     return std::make_unique<mp::QemuVirtualMachine>(desc, monitor);
+}
+
+std::unique_ptr<mp::VMImageFetcher>
+mp::QemuVirtualMachineFactory::create_image_fetcher(const std::unique_ptr<mp::VMImageHost>& host)
+{
+    return std::make_unique<mp::QemuVMImageFetcher>(host);
 }

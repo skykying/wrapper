@@ -13,30 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
- *
+ * Authored by: Gerry Boland <gerry.boland@canonical.com>
  */
 
-#ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-#define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+#include "qemu_vm_image_fetcher.h"
 
-#include <multipass/vm_image.h>
-#include <string>
-#include <yaml-cpp/yaml.h>
+#include <multipass/vm_image_host.h>
 
-namespace multipass
+namespace mp = multipass;
+
+mp::QemuVMImageFetcher::QemuVMImageFetcher(const std::unique_ptr<mp::VMImageHost>& image_host) : image_host(image_host)
 {
-class VirtualMachineDescription
-{
-public:
-    using MBytes = size_t;
-
-    int num_cores;
-    MBytes mem_size;
-    MBytes disk_space;
-    std::string vm_name;
-    VMImage image;
-    YAML::Node cloud_init_config;
-};
 }
-#endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+
+mp::VMImage mp::QemuVMImageFetcher::fetch(const mp::VMImageQuery& query)
+{
+    return image_host->fetch(query);
+}

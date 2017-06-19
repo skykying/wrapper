@@ -31,5 +31,8 @@ struct MockVirtualMachineFactory final : public multipass::VirtualMachineFactory
     MOCK_METHOD2(create_virtual_machine,
                  multipass::VirtualMachine::UPtr(const multipass::VirtualMachineDescription&,
                                                  multipass::VMStatusMonitor&));
+
+    MOCK_METHOD1(create_image_fetcher,
+                 std::unique_ptr<multipass::VMImageFetcher>(const std::unique_ptr<multipass::VMImageHost>&));
 };
 #endif // MULTIPASS_MOCK_VIRTUAL_MACHINE_FACTORY_H

@@ -28,6 +28,7 @@
 #include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image.h>
+#include <multipass/vm_image_fetcher.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_query.h>
 #include <multipass/vm_image_vault.h>
@@ -103,8 +104,8 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
 
     try
     {
-        VMImage vm_image = config->image_host->fetch(vm_image_query);
-        desc.image_path = vm_image.image_path;
+        auto fetcher = config->factory->create_image_fetcher(config->image_host);
+        desc.image = fetcher->fetch(vm_image_query);
     }
     catch (const std::runtime_error& error)
     {

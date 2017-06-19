@@ -13,30 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
- *
+ * Authored by: Gerry Boland <gerry.boland@canonical.com>
  */
 
-#ifndef MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
-#define MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+#ifndef MULTIPASS_STUB_VM_IMAGE_FETCHER_H
+#define MULTIPASS_STUB_VM_IMAGE_FETCHER_H
 
-#include <multipass/vm_image.h>
-#include <string>
-#include <yaml-cpp/yaml.h>
+#include <multipass/vm_image_fetcher.h>
 
-namespace multipass
+struct StubVMImageFetcher final : public multipass::VMImageFetcher
 {
-class VirtualMachineDescription
-{
-public:
-    using MBytes = size_t;
-
-    int num_cores;
-    MBytes mem_size;
-    MBytes disk_space;
-    std::string vm_name;
-    VMImage image;
-    YAML::Node cloud_init_config;
+    multipass::VMImage fetch(const multipass::VMImageQuery&) final
+    {
+        return multipass::VMImage();
+    }
 };
-}
-#endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
+
+#endif // MULTIPASS_STUB_VM_IMAGE_FETCHER_H

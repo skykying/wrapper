@@ -116,10 +116,10 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
 {
     QStringList args{"--enable-kvm"};
 
-    if (QFile::exists(desc.image_path) && QFile::exists(cloud_init_image))
+    if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
     {
         using namespace std::string_literals;
-        args << "-hda" << desc.image_path << // The VM image itself
+        args << "-hda" << desc.image.image_path << // The VM image itself
             "-drive"
              << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"}
              // For the cloud-init configuration

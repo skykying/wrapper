@@ -21,6 +21,7 @@
 #define MULTIPASS_STUB_VIRTUAL_MACHINE_FACTORY_H
 
 #include "stub_virtual_machine.h"
+#include "stub_vm_image_fetcher.h"
 
 #include <multipass/virtual_machine_factory.h>
 
@@ -31,6 +32,12 @@ struct StubVirtualMachineFactory final : public multipass::VirtualMachineFactory
                            multipass::VMStatusMonitor&) override
     {
         return std::make_unique<StubVirtualMachine>();
+    }
+
+    std::unique_ptr<multipass::VMImageFetcher>
+    create_image_fetcher(const std::unique_ptr<multipass::VMImageHost>&) override
+    {
+        return std::make_unique<StubVMImageFetcher>();
     }
 };
 
