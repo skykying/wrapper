@@ -20,7 +20,7 @@ package multipass;
 service Rpc {
     rpc connect (ConnectRequest) returns (ConnectReply);
     rpc destroy (DestroyRequest) returns (DestroyReply);
-    rpc launch (LaunchRequest) returns (LaunchReply);
+    rpc launch (LaunchRequest) returns (stream LaunchReply);
     rpc list (ListRequest) returns (ListReply);
     rpc start (StartRequest) returns (StartReply);
     rpc stop (StopRequest) returns (StopReply);
@@ -68,7 +68,11 @@ message LaunchRequest {
 }
 
 message LaunchReply {
-    string vm_instance_name = 1;
+    oneof launch_oneof {
+        string vm_instance_name = 1;
+        string download_progress = 2;
+        string launch_complete = 3;
+    }
 }
 
 message ListRequest {

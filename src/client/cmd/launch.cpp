@@ -37,12 +37,23 @@ int cmd::Launch::run()
         return EXIT_FAILURE;
     };
 
+    auto streaming_callback = [this](mp::LaunchReply& reply) {
+        if (reply.launch_oneof_case() == 2)
+        { 
+            cout << "Downloaded " << reply.download_progress() << "%" << '\r' << std::flush;
+        }
+        else if (reply.launch_oneof_case() == 3)
+        {
+            cout << "\n" << reply.launch_complete() << std::endl;
+        }
+    };
+
     mp::LaunchRequest request;
 
     // Set some defaults
     request.set_mem_size(1024);
 
-    return dispatch(&RpcMethod::launch, request, on_success, on_failure);
+    return dispatch(&RpcMethod::launch, request, on_success, on_failure, streaming_callback);
 }
 
 std::string cmd::Launch::name() const { return "launch"; }

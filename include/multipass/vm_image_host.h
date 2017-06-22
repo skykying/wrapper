@@ -19,17 +19,25 @@
 
 #ifndef MULTIPASS_VM_IMAGE_HOST_H
 #define MULTIPASS_VM_IMAGE_HOST_H
+
+#include <QObject>
+
 namespace multipass
 {
 class VMImageQuery;
 class VMImage;
-class VMImageHost
+class VMImageHost : public QObject
 {
+    Q_OBJECT
+
 public:
     virtual ~VMImageHost() = default;
     virtual VMImage fetch(const VMImageQuery& query) = 0;
     virtual void update_image_manifest() = 0;
     virtual std::string get_image_hash_for_query(std::string query_string) = 0;
+
+signals:
+    void progress(int const& percentage);
 
 protected:
     VMImageHost() = default;

@@ -52,7 +52,7 @@ protected:
 
     grpc::Status stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response) override;
 
-    grpc::Status launch(grpc::ServerContext* context, const LaunchRequest* request, LaunchReply* reply) override;
+    grpc::Status launch(grpc::ServerContext* context, const LaunchRequest* request, grpc::ServerWriter<LaunchReply>* reply) override;
 
     grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
 

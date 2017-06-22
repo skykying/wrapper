@@ -19,7 +19,8 @@ add_library(daemon STATIC
   daemon_config.cpp
   ubuntu_image_host.cpp
   vm_image_repository.cpp
-  base_cloud_init_config.h)
+  base_cloud_init_config.h
+  ${CMAKE_SOURCE_DIR}/include/multipass/vm_image_host.h)
 
 target_link_libraries(daemon
   rpc

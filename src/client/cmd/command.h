@@ -44,17 +44,9 @@ protected:
     template <typename RpcFunc, typename Request, typename SuccessCallable, typename FailureCallable>
     int dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure)
     {
-        using SuccessCallableTraits = multipass::callable_traits<SuccessCallable>;
-        using ReplyType = typename std::remove_reference<typename SuccessCallableTraits::template arg<0>::type>::type;
-        using FailureCallableTraits = multipass::callable_traits<FailureCallable>;
-        using FailureCallableArgType = typename FailureCallableTraits::template arg<0>::type;
+        check_return_callables(on_success, on_failure);
 
-        static_assert(SuccessCallableTraits::num_args == 1, "");
-        static_assert(FailureCallableTraits::num_args == 1, "");
-        static_assert(std::is_same<typename SuccessCallableTraits::return_type, int>::value, "");
-        static_assert(std::is_same<typename FailureCallableTraits::return_type, int>::value, "");
-        static_assert(std::is_same<FailureCallableArgType, grpc::Status&>::value, "");
-
+        using ReplyType = typename std::remove_reference<typename multipass::callable_traits<SuccessCallable>::template arg<0>::type>::type;
         ReplyType reply;
 
         auto rpc_method =
@@ -71,6 +63,35 @@ protected:
         return on_failure(status);
     }
 
+    template <typename RpcFunc, typename Request, typename SuccessCallable, typename FailureCallable, typename StreamingCallback>
+    int dispatch(RpcFunc&& rpc_func, const Request& request, SuccessCallable&& on_success, FailureCallable&& on_failure, StreamingCallback&& streaming_callback)
+    {   
+        check_return_callables(on_success, on_failure);
+
+        using ReplyType = typename std::remove_reference<typename multipass::callable_traits<SuccessCallable>::template arg<0>::type>::type;
+        ReplyType reply;
+
+        auto rpc_method =
+            std::bind(rpc_func, stub, std::placeholders::_1, std::placeholders::_2);
+
+        grpc::ClientContext context;
+        std::unique_ptr<grpc::ClientReader<ReplyType>> reader = rpc_method(&context, request);
+
+        while (reader->Read(&reply))
+        {
+            streaming_callback(reply);
+        }
+
+        auto status = reader->Finish();
+
+        if (status.ok())
+        {   
+            return on_success(reply);
+        }
+
+        return on_failure(status);
+    }
+
     Command(const Command&) = delete;
     Command& operator=(const Command&) = delete;
 
@@ -78,6 +99,21 @@ protected:
     Rpc::Stub* stub;
     std::ostream& cout;
     std::ostream& cerr;
+
+private:
+    template <typename SuccessCallable, typename FailureCallable>
+    void check_return_callables(SuccessCallable&& on_success, FailureCallable&& on_failure)
+    {
+        using SuccessCallableTraits = multipass::callable_traits<SuccessCallable>;
+        using FailureCallableTraits = multipass::callable_traits<FailureCallable>;
+        using FailureCallableArgType = typename FailureCallableTraits::template arg<0>::type;
+
+        static_assert(SuccessCallableTraits::num_args == 1, "");
+        static_assert(FailureCallableTraits::num_args == 1, "");
+        static_assert(std::is_same<typename SuccessCallableTraits::return_type, int>::value, "");
+        static_assert(std::is_same<typename FailureCallableTraits::return_type, int>::value, "");
+        static_assert(std::is_same<FailureCallableArgType, grpc::Status&>::value, "");
+     }
 };
 }
 }

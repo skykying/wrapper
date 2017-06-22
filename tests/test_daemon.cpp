@@ -60,7 +60,7 @@ struct MockDaemon : public mp::Daemon
     using mp::Daemon::Daemon;
     MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
     MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
-    MOCK_METHOD3(launch, grpc::Status(grpc::ServerContext*, const mp::LaunchRequest*, mp::LaunchReply*));
+    MOCK_METHOD3(launch, grpc::Status(grpc::ServerContext*, const mp::LaunchRequest*, grpc::ServerWriter<mp::LaunchReply>*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
@@ -70,14 +70,11 @@ struct MockDaemon : public mp::Daemon
 struct LaunchTrackingDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
-    grpc::Status launch(grpc::ServerContext* context, const mp::LaunchRequest* request, mp::LaunchReply* reply) override
+    grpc::Status launch(grpc::ServerContext* context, const mp::LaunchRequest* request, grpc::ServerWriter<mp::LaunchReply>* reply) override
     {
         auto status = mp::Daemon::launch(context, request, reply);
-        vm_instance_name = reply->vm_instance_name();
         return status;
     }
-
-    std::string vm_instance_name;
 };
 
 struct StubNameGenerator : public mp::NameGenerator
@@ -224,9 +221,10 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
 
     ADaemonRunner<LaunchTrackingDaemon> daemon_runner{config_builder.build()};
 
-    send_command("launch");
+    std::stringstream stream;
+    send_command("launch", stream);
 
-    EXPECT_THAT(daemon_runner.daemon.vm_instance_name, Eq(expected_name));
+    EXPECT_THAT(stream.str(), HasSubstr(expected_name));
 }
 
 MATCHER_P2(YAMLNodeContainsString, key, val, "")

@@ -281,7 +281,6 @@ void mp::ImageDownloader::download_progress(qint64 const& bytes_received, qint64
     file.write(current_reply->readAll());
 
     int percentage = static_cast<int>((static_cast<float>(bytes_received) * 100.0) / static_cast<float>(bytes_total));
-    qDebug() << "Downloaded" << percentage << "%";
 
     emit progress(percentage);
 }
@@ -332,6 +331,9 @@ QString mp::SimpleStreams::download_image_by_hash(std::string const& hash)
         ImageDownloader image_downloader;
 
         QObject::connect(&image_downloader, SIGNAL(download_complete()), &event_loop, SLOT(quit()));
+        QObject::connect(&image_downloader, &ImageDownloader::progress, [this] (int const& percentage) {
+            emit progress(percentage);
+        });
         image_downloader.download(QUrl(base_path + ss_image_path), cache_dir, file_name);
 
         event_loop.exec();

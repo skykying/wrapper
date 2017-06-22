@@ -25,6 +25,9 @@ mp::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query)
 {
     VMImage image_info;
 
+    QObject::connect(&ss_mgr, &mp::SimpleStreams::progress, [this] (int const& percentage) {
+        emit progress(percentage);
+    });
     image_info.image_path = ss_mgr.download_image_by_hash(query.query_string);
     return image_info;
 }
