@@ -16,8 +16,8 @@
 
 add_library(commands STATIC
   connect.cpp
+  create.cpp
   destroy.cpp
-  launch.cpp
   list.cpp
   start.cpp
   stop.cpp

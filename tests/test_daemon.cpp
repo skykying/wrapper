@@ -59,20 +59,20 @@ struct MockDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
     MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
+    MOCK_METHOD3(create, grpc::Status(grpc::ServerContext*, const mp::CreateRequest*, grpc::ServerWriter<mp::CreateReply>*));
     MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
-    MOCK_METHOD3(launch, grpc::Status(grpc::ServerContext*, const mp::LaunchRequest*, grpc::ServerWriter<mp::LaunchReply>*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
 };
 
-struct LaunchTrackingDaemon : public mp::Daemon
+struct CreateTrackingDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
-    grpc::Status launch(grpc::ServerContext* context, const mp::LaunchRequest* request, grpc::ServerWriter<mp::LaunchReply>* reply) override
+    grpc::Status create(grpc::ServerContext* context, const mp::CreateRequest* request, grpc::ServerWriter<mp::CreateReply>* reply) override
     {
-        auto status = mp::Daemon::launch(context, request, reply);
+        auto status = mp::Daemon::create(context, request, reply);
         return status;
     }
 };
@@ -144,14 +144,14 @@ TEST_F(Daemon, receives_commands)
     ADaemonRunner<MockDaemon> daemon_runner{server_address};
 
     EXPECT_CALL(daemon_runner.daemon, connect(_, _, _));
+    EXPECT_CALL(daemon_runner.daemon, create(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, destroy(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, launch(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, list(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, start(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, stop(_, _, _));
     EXPECT_CALL(daemon_runner.daemon, version(_, _, _));
 
-    send_commands({"connect", "destroy", "launch", "list", "start", "stop", "version"});
+    send_commands({"connect", "create", "destroy", "list", "start", "stop", "version"});
 }
 
 TEST_F(Daemon, creates_virtual_machines)
@@ -172,7 +172,7 @@ TEST_F(Daemon, creates_virtual_machines)
     EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
         .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
-    send_command("launch");
+    send_command("create");
 }
 
 TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
@@ -196,7 +196,7 @@ TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
         return std::move(fetcher);
     }));
 
-    send_command("launch");
+    send_command("create");
 }
 
 TEST_F(Daemon, provides_version)
@@ -219,10 +219,10 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
     config_builder.image_host = std::make_unique<StubVMImageHost>();
 
-    ADaemonRunner<LaunchTrackingDaemon> daemon_runner{config_builder.build()};
+    ADaemonRunner<CreateTrackingDaemon> daemon_runner{config_builder.build()};
 
     std::stringstream stream;
-    send_command("launch", stream);
+    send_command("create", stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(expected_name));
 }
@@ -316,5 +316,5 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
     EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
         .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
-    send_command("launch");
+    send_command("create");
 }

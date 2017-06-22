@@ -85,7 +85,7 @@ grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequ
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchRequest* request, grpc::ServerWriter<LaunchReply>* reply)
+grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request, grpc::ServerWriter<CreateReply>* reply)
 {
     VirtualMachineDescription desc;
     desc.mem_size = request->mem_size();
@@ -114,11 +114,11 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, error.what(), "");
     }
 
-    LaunchReply launch_reply;
+    CreateReply create_reply;
     QObject::connect(config->image_host.get(), &mp::VMImageHost::progress, [=] (int const& percentage) {
-        LaunchReply launch_reply;
-        launch_reply.set_download_progress(std::to_string(percentage));
-        reply->Write(launch_reply);
+        CreateReply create_reply;
+        create_reply.set_download_progress(std::to_string(percentage));
+        reply->Write(create_reply);
     });
 
     auto fetcher = config->factory->create_image_fetcher(config->image_host);
@@ -135,11 +135,11 @@ grpc::Status mp::Daemon::launch(grpc::ServerContext* context, const LaunchReques
 
     vms.push_back(config->factory->create_virtual_machine(desc, *this));
 
-    launch_reply.set_launch_complete("Launch setup complete.");
-    reply->Write(launch_reply);
+    create_reply.set_create_complete("Create setup complete.");
+    reply->Write(create_reply);
 
-    launch_reply.set_vm_instance_name(desc.vm_name);
-    reply->Write(launch_reply);
+    create_reply.set_vm_instance_name(desc.vm_name);
+    reply->Write(create_reply);
 
     return grpc::Status::OK;
 }

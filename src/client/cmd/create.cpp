@@ -17,43 +17,43 @@
  *
  */
 
-#include "launch.h"
+#include "create.h"
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-int cmd::Launch::run()
+int cmd::Create::run()
 {
-    auto on_success = [this](mp::LaunchReply& reply) {
+    auto on_success = [this](mp::CreateReply& reply) {
 
-        cout << "launched: " << reply.vm_instance_name();
+        cout << "created: " << reply.vm_instance_name();
         cout << std::endl;
         return EXIT_SUCCESS;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "failed to launch: " << status.error_message() << std::endl;
+        cerr << "failed to create: " << status.error_message() << std::endl;
         return EXIT_FAILURE;
     };
 
-    auto streaming_callback = [this](mp::LaunchReply& reply) {
-        if (reply.launch_oneof_case() == 2)
+    auto streaming_callback = [this](mp::CreateReply& reply) {
+        if (reply.create_oneof_case() == 2)
         { 
             cout << "Downloaded " << reply.download_progress() << "%" << '\r' << std::flush;
         }
-        else if (reply.launch_oneof_case() == 3)
+        else if (reply.create_oneof_case() == 3)
         {
-            cout << "\n" << reply.launch_complete() << std::endl;
+            cout << "\n" << reply.create_complete() << std::endl;
         }
     };
 
-    mp::LaunchRequest request;
+    mp::CreateRequest request;
 
     // Set some defaults
     request.set_mem_size(1024);
 
-    return dispatch(&RpcMethod::launch, request, on_success, on_failure, streaming_callback);
+    return dispatch(&RpcMethod::create, request, on_success, on_failure, streaming_callback);
 }
 
-std::string cmd::Launch::name() const { return "launch"; }
+std::string cmd::Create::name() const { return "create"; }

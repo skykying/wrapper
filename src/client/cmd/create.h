@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef MULTIPASS_LAUNCH_H
-#define MULTIPASS_LAUNCH_H
+#ifndef MULTIPASS_CREATE_H
+#define MULTIPASS_CREATE_H
 
 #include "command.h"
 
@@ -26,7 +26,7 @@ namespace multipass
 {
 namespace cmd
 {
-class Launch final : public Command
+class Create final : public Command
 {
 public:
     using Command::Command;
@@ -35,4 +35,4 @@ public:
 };
 }
 }
-#endif // MULTIPASS_LAUNCH_H
+#endif // MULTIPASS_CREATE_H

@@ -18,8 +18,8 @@
  */
 #include "client.h"
 #include "cmd/connect.h"
+#include "cmd/create.h"
 #include "cmd/destroy.h"
-#include "cmd/launch.h"
 #include "cmd/list.h"
 #include "cmd/start.h"
 #include "cmd/stop.h"
@@ -50,7 +50,7 @@ mp::Client::Client(const ClientConfig& config)
     : rpc_channel{grpc::CreateChannel(config.server_address, grpc::InsecureChannelCredentials())},
       stub{mp::Rpc::NewStub(rpc_channel)}, cout{config.cout}, cerr{config.cerr}
 {
-    add_command<cmd::Launch>();
+    add_command<cmd::Create>();
     add_command<cmd::Version>();
     add_command<cmd::Start>();
     add_command<cmd::Stop>();
