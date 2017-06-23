@@ -17,6 +17,7 @@
 add_library(daemon STATIC
   daemon.cpp
   daemon_config.cpp
+  daemon_rpc.cpp
   ubuntu_image_host.cpp
   vm_image_repository.cpp
   base_cloud_init_config.h

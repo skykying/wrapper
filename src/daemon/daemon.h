@@ -20,31 +20,44 @@
 #ifndef MULTIPASS_DAEMON_H
 #define MULTIPASS_DAEMON_H
 
+#include "auto_join_thread.h"
 #include "daemon_config.h"
-#include <grpc++/grpc++.h>
-#include <multipass/rpc/multipass.grpc.pb.h>
+#include "daemon_rpc.h"
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_status_monitor.h>
 
-#include <memory>
-
 namespace multipass
 {
-struct DaemonConfig;
-class Daemon : public multipass::Rpc::Service, public multipass::VMStatusMonitor
+
+class Daemon;
+class DaemonRunner
 {
 public:
-    Daemon(std::unique_ptr<const DaemonConfig> config);
-    void run();
-    void shutdown();
+    DaemonRunner(const std::string& server_address, Daemon* daemon);
+    ~DaemonRunner();
 
 private:
-    const std::unique_ptr<const DaemonConfig> config;
-    const std::unique_ptr<grpc::Server> server;
-    std::vector<VirtualMachine::UPtr> vms;
+    DaemonRpc daemon_rpc;
+    AutoJoinThread daemon_thread;
+};
+
+struct DaemonConfig;
+class Daemon : public QObject, public multipass::Rpc::Service, public multipass::VMStatusMonitor
+{
+    Q_OBJECT
+public:
+    Daemon(std::unique_ptr<const DaemonConfig> config);
 
 protected:
+    void on_resume() override;
+    void on_stop() override;
+    void on_shutdown() override;
+
+public slots:
     grpc::Status connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response) override;
+
+    grpc::Status create(grpc::ServerContext* context, const CreateRequest* request,
+                        grpc::ServerWriter<CreateReply>* reply) override;
 
     grpc::Status destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response) override;
 
@@ -52,15 +65,14 @@ protected:
 
     grpc::Status stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response) override;
 
-    grpc::Status create(grpc::ServerContext* context, const CreateRequest* request, grpc::ServerWriter<CreateReply>* reply) override;
-
     grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
 
     grpc::Status version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response) override;
 
-    void on_resume() override;
-    void on_stop() override;
-    void on_shutdown() override;
+private:
+    std::unique_ptr<const DaemonConfig> config;
+    std::vector<VirtualMachine::UPtr> vms;
+    DaemonRunner runner;
 
     Daemon(const Daemon&) = delete;
     Daemon& operator=(const Daemon&) = delete;

@@ -19,6 +19,7 @@
 
 #include "daemon.h"
 #include "daemon_config.h"
+#include "auto_join_thread.h"
 
 #include <multipass/platform.h>
 #include <multipass/name_generator.h>
@@ -27,37 +28,9 @@
 #include <multipass/vm_image_vault.h>
 
 #include <QCoreApplication>
-#include <thread>
 
 namespace
 {
-class AutoJoinThread
-{
-public:
-    template <typename Callable, typename... Args>
-    AutoJoinThread(Callable&& f, Args&&... args) : thread{std::forward<Callable>(f), std::forward<Args>(args)...}
-    {
-    }
-    ~AutoJoinThread()
-    {
-        if (thread.joinable())
-            thread.join();
-    }
-
-private:
-    std::thread thread;
-};
-
-class DaemonRunner
-{
-public:
-    DaemonRunner() : daemon{multipass::DaemonConfigBuilder{}.build()}, daemon_thread{[this] { daemon.run(); }} {}
-    ~DaemonRunner() { daemon.shutdown(); }
-
-private:
-    multipass::Daemon daemon;
-    AutoJoinThread daemon_thread;
-};
 
 #if !defined(_MSC_VER)
 #include <signal.h>
@@ -93,7 +66,7 @@ public:
     }
 
 private:
-    AutoJoinThread signal_handling_thread;
+    multipass::AutoJoinThread signal_handling_thread;
 };
 #endif // _MSC_VER
 }
@@ -105,7 +78,7 @@ try
 #if !defined(_MSC_VER)
     UnixSignalHandler handler(app);
 #endif
-    DaemonRunner daemon_runner;
+    multipass::Daemon daemon(multipass::DaemonConfigBuilder{}.build());
 
     app.exec();
 

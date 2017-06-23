@@ -37,6 +37,8 @@
 
 #include <gtest/gtest.h>
 
+#include <QCoreApplication>
+
 #include <memory>
 #include <sstream>
 #include <string>
@@ -59,22 +61,13 @@ struct MockDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
     MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
-    MOCK_METHOD3(create, grpc::Status(grpc::ServerContext*, const mp::CreateRequest*, grpc::ServerWriter<mp::CreateReply>*));
+    MOCK_METHOD3(create,
+                 grpc::Status(grpc::ServerContext*, const mp::CreateRequest*, grpc::ServerWriter<mp::CreateReply>*));
     MOCK_METHOD3(destroy, grpc::Status(grpc::ServerContext*, const mp::DestroyRequest*, mp::DestroyReply*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
-};
-
-struct CreateTrackingDaemon : public mp::Daemon
-{
-    using mp::Daemon::Daemon;
-    grpc::Status create(grpc::ServerContext* context, const mp::CreateRequest* request, grpc::ServerWriter<mp::CreateReply>* reply) override
-    {
-        auto status = mp::Daemon::create(context, request, reply);
-        return status;
-    }
 };
 
 struct StubNameGenerator : public mp::NameGenerator
@@ -88,35 +81,15 @@ struct StubNameGenerator : public mp::NameGenerator
     }
     std::string name;
 };
-
-template <typename DaemonType>
-struct ADaemonRunner
-{
-    ADaemonRunner(std::unique_ptr<const mp::DaemonConfig> config)
-        : daemon{std::move(config)}, daemon_thread{[this] { daemon.run(); }}
-    {
-    }
-
-    ADaemonRunner(std::string server_address) : ADaemonRunner(make_config(server_address))
-    {
-    }
-
-    ~ADaemonRunner()
-    {
-        daemon.shutdown();
-        if (daemon_thread.joinable())
-            daemon_thread.join();
-    }
-
-    DaemonType daemon;
-    std::thread daemon_thread;
-};
-
-using DaemonRunner = ADaemonRunner<mp::Daemon>;
-}
+} // namespace
 
 struct Daemon : public testing::Test
 {
+    void SetUp() override
+    {
+        loop.reset(new QEventLoop());
+    }
+
     void send_command(std::string command, std::ostream& cout = std::cout)
     {
         send_commands({command}, cout);
@@ -124,12 +97,19 @@ struct Daemon : public testing::Test
 
     void send_commands(std::vector<std::string> commands, std::ostream& cout = std::cout)
     {
-        mp::ClientConfig client_config{server_address, cout, std::cerr};
-        mp::Client client{client_config};
-        for (const auto& command : commands)
-        {
-            client.run(command);
-        }
+        // Commands need to be sent from a thread different from that the QEventLoop is on.
+        // Event loop is started/stopped to ensure all signals are delivered
+        std::thread t([this, &commands, &cout]() {
+            mp::ClientConfig client_config{server_address, cout, std::cerr};
+            mp::Client client{client_config};
+            for (const auto& command : commands)
+            {
+                client.run(command);
+            }
+            loop->quit();
+        });
+        loop->exec();
+        t.join();
     }
 
 #ifdef WIN32
@@ -137,19 +117,20 @@ struct Daemon : public testing::Test
 #else
     std::string server_address{"unix:/tmp/test-multipassd.socket"};
 #endif
+    std::unique_ptr<QEventLoop> loop; // needed as cross-thread signal/slots used internally by mp::Daemon
 };
 
 TEST_F(Daemon, receives_commands)
 {
-    ADaemonRunner<MockDaemon> daemon_runner{server_address};
+    MockDaemon daemon{make_config(server_address)};
 
-    EXPECT_CALL(daemon_runner.daemon, connect(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, create(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, destroy(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, list(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, start(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, stop(_, _, _));
-    EXPECT_CALL(daemon_runner.daemon, version(_, _, _));
+    EXPECT_CALL(daemon, connect(_, _, _));
+    EXPECT_CALL(daemon, create(_, _, _));
+    EXPECT_CALL(daemon, destroy(_, _, _));
+    EXPECT_CALL(daemon, list(_, _, _));
+    EXPECT_CALL(daemon, start(_, _, _));
+    EXPECT_CALL(daemon, stop(_, _, _));
+    EXPECT_CALL(daemon, version(_, _, _));
 
     send_commands({"connect", "create", "destroy", "list", "start", "stop", "version"});
 }
@@ -164,7 +145,7 @@ TEST_F(Daemon, creates_virtual_machines)
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.server_address = server_address;
-    DaemonRunner daemon_runner{config_builder.build()};
+    mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
@@ -185,7 +166,7 @@ TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.server_address = server_address;
-    DaemonRunner daemon_runner{config_builder.build()};
+    mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
@@ -201,9 +182,10 @@ TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
 
 TEST_F(Daemon, provides_version)
 {
-    DaemonRunner daemon_runner{server_address};
+    mp::Daemon daemon{make_config(server_address)};
 
     std::stringstream stream;
+
     send_command("version", stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(mp::version_string));
@@ -218,10 +200,10 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
     config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
     config_builder.image_host = std::make_unique<StubVMImageHost>();
-
-    ADaemonRunner<CreateTrackingDaemon> daemon_runner{config_builder.build()};
+    mp::Daemon daemon{config_builder.build()};
 
     std::stringstream stream;
+
     send_command("create", stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(expected_name));
@@ -295,7 +277,7 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.server_address = server_address;
-    DaemonRunner daemon_runner{config_builder.build()};
+    mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Invoke([](auto const& description, auto const&) {

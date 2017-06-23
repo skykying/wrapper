@@ -22,17 +22,17 @@
 
 #include <multipass/rpc/multipass.grpc.pb.h>
 
+#include <multipass/virtual_machine_factory.h>
+#include <multipass/virtual_machine_execute.h>
+#include <multipass/vm_image_vault.h>
+#include <multipass/name_generator.h>
+#include <multipass/ssh_key.h>
+
 #include <memory>
 
 namespace multipass
 {
-class NameGenerator;
-class VirtualMachineFactory;
-class VMImageHost;
-class VMImageVault;
-class VirtualMachineExecute;
-class VirtualMachineFactory;
-class SshPubKey;
+
 struct DaemonConfig
 {
     const std::unique_ptr<VirtualMachineFactory> factory;

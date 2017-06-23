@@ -19,7 +19,6 @@
 
 #include "daemon.h"
 #include "base_cloud_init_config.h"
-#include "daemon_config.h"
 
 #include <multipass/name_generator.h>
 #include <multipass/ssh_key.h>
@@ -40,37 +39,29 @@
 
 namespace mp = multipass;
 
-namespace
+mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon)
+    : daemon_rpc{server_address}, daemon_thread{[this, daemon] {
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_create, daemon, &Daemon::create, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_connect, daemon, &Daemon::connect, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_destroy, daemon, &Daemon::destroy, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_start, daemon, &Daemon::start, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_stop, daemon, &Daemon::stop, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_version, daemon, &Daemon::version, Qt::BlockingQueuedConnection);
+          daemon_rpc.run();
+      }}
 {
-auto make_server(const multipass::DaemonConfig& config, multipass::Rpc::Service* service)
+}
+
+mp::DaemonRunner::~DaemonRunner()
 {
-    grpc::ServerBuilder builder;
-
-    builder.AddListeningPort(config.server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(service);
-
-    std::unique_ptr<grpc::Server> server{builder.BuildAndStart()};
-    if (server == nullptr)
-        throw std::runtime_error("Failed to start the RPC service");
-
-    return server;
+    daemon_rpc.shutdown();
 }
-}
+
 
 mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
-    : config{std::move(the_config)}, server{make_server(*config, this)}
+    : config{std::move(the_config)}, runner(config->server_address, this)
 {
-}
-
-void mp::Daemon::run()
-{
-    std::cout << "Server listening on " << config->server_address << "\n";
-    server->Wait();
-}
-
-void mp::Daemon::shutdown()
-{
-    server->Shutdown();
 }
 
 grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
@@ -80,12 +71,8 @@ grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequ
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response)
-{
-    return grpc::Status::OK;
-}
-
-grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request, grpc::ServerWriter<CreateReply>* reply)
+grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
+                                grpc::ServerWriter<CreateReply>* reply)
 {
     VirtualMachineDescription desc;
     desc.mem_size = request->mem_size();
@@ -115,7 +102,7 @@ grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateReques
     }
 
     CreateReply create_reply;
-    QObject::connect(config->image_host.get(), &mp::VMImageHost::progress, [=] (int const& percentage) {
+    QObject::connect(config->image_host.get(), &mp::VMImageHost::progress, [=](int const& percentage) {
         CreateReply create_reply;
         create_reply.set_download_progress(std::to_string(percentage));
         reply->Write(create_reply);
@@ -141,6 +128,11 @@ grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateReques
     create_reply.set_vm_instance_name(desc.vm_name);
     reply->Write(create_reply);
 
+    return grpc::Status::OK;
+}
+
+grpc::Status mp::Daemon::destroy(grpc::ServerContext* context, const DestroyRequest* request, DestroyReply* response)
+{
     return grpc::Status::OK;
 }
 
