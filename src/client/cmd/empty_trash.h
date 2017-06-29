@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef MULTIPASS_START_H
-#define MULTIPASS_START_H
+#ifndef MULTIPASS_EMPTY_TRASH_H
+#define MULTIPASS_EMPTY_TRASH_H
 
 #include <multipass/cli/command.h>
 
@@ -26,7 +26,7 @@ namespace multipass
 {
 namespace cmd
 {
-class Start final : public Command
+class EmptyTrash final : public Command
 {
 public:
     using Command::Command;
@@ -37,10 +37,8 @@ public:
     QString description() const override;
 
 private:
-    StartRequest request;
-
     ParseCode parse_args(ArgParser *parser) override;
 };
 }
 }
-#endif // MULTIPASS_START_H
+#endif // MULTIPASS_EMPTY_TRASH_H

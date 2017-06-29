@@ -13,12 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_START_H
-#define MULTIPASS_START_H
+#ifndef MULTIPASS_EXEC_H
+#define MULTIPASS_EXEC_H
 
 #include <multipass/cli/command.h>
 
@@ -26,7 +26,7 @@ namespace multipass
 {
 namespace cmd
 {
-class Start final : public Command
+class Exec final : public Command
 {
 public:
     using Command::Command;
@@ -37,10 +37,10 @@ public:
     QString description() const override;
 
 private:
-    StartRequest request;
+    ExecRequest request;
 
     ParseCode parse_args(ArgParser *parser) override;
 };
 }
 }
-#endif // MULTIPASS_START_H
+#endif // MULTIPASS_EXEC_H

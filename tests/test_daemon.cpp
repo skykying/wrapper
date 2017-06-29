@@ -59,13 +59,16 @@ auto make_config(std::string server_address)
 struct MockDaemon : public mp::Daemon
 {
     using mp::Daemon::Daemon;
-    MOCK_METHOD3(connect, grpc::Status(grpc::ServerContext*, const mp::ConnectRequest*, mp::ConnectReply*));
     MOCK_METHOD3(create,
                  grpc::Status(grpc::ServerContext*, const mp::CreateRequest*, grpc::ServerWriter<mp::CreateReply>*));
+    MOCK_METHOD3(empty_trash, grpc::Status(grpc::ServerContext*, const mp::EmptyTrashRequest*, mp::EmptyTrashReply*));
+    MOCK_METHOD3(exec, grpc::Status(grpc::ServerContext*, const mp::ExecRequest*, mp::ExecReply*));
+    MOCK_METHOD3(info, grpc::Status(grpc::ServerContext*, const mp::InfoRequest*, mp::InfoReply*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
+    MOCK_METHOD3(recover, grpc::Status(grpc::ServerContext*, const mp::RecoverRequest*, mp::RecoverReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
-    MOCK_METHOD3(trash, grpc::Status(grpc::ServerContext*, const multipass::TrashRequest*, multipass::TrashReply*));
+    MOCK_METHOD3(trash, grpc::Status(grpc::ServerContext*, const mp::TrashRequest*, mp::TrashReply*));
     MOCK_METHOD3(version, grpc::Status(grpc::ServerContext*, const mp::VersionRequest*, mp::VersionReply*));
 };
 
@@ -131,17 +134,25 @@ TEST_F(Daemon, receives_commands)
 {
     MockDaemon daemon{make_config(server_address)};
 
-    EXPECT_CALL(daemon, connect(_, _, _));
     EXPECT_CALL(daemon, create(_, _, _));
+    EXPECT_CALL(daemon, empty_trash(_, _, _));
+    // Expect this is called twice due to the connect and exec commands using the same call
+    EXPECT_CALL(daemon, exec(_, _, _)).Times(2);
+    EXPECT_CALL(daemon, info(_, _, _));
     EXPECT_CALL(daemon, list(_, _, _));
+    EXPECT_CALL(daemon, recover(_, _, _));
     EXPECT_CALL(daemon, start(_, _, _));
     EXPECT_CALL(daemon, stop(_, _, _));
     EXPECT_CALL(daemon, trash(_, _, _));
     EXPECT_CALL(daemon, version(_, _, _));
 
-    send_commands({{"connect", "foo"}, // name argument is required
+    send_commands({{"connect", "foo"},
                    {"create"},
+                   {"empty-trash"},
+                   {"exec", "foo", "--", "cmd"},
+                   {"info", "foo"},    // name argument is required
                    {"list"},
+                   {"recover", "foo"}, // name argument is required
                    {"start", "foo"},   // name argument is required
                    {"stop", "foo"},    // name argument is required
                    {"trash", "foo"},   // name argument is required

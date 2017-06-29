@@ -41,9 +41,10 @@ public:
         stub_daemon.shutdown();
     }
 
-    auto send_command(std::vector<std::string> command, std::ostream& cout = std::cout)
+    auto send_command(std::vector<std::string> command, std::ostream& cout = std::cout,
+                      std::ostream& cerr = std::cerr)
     {
-        mp::ClientConfig client_config{server_address, cout, std::cerr};
+        mp::ClientConfig client_config{server_address, cout, cerr};
         mp::Client client{client_config};
         QStringList args = QStringList() << "multipass_test";
 
@@ -61,101 +62,251 @@ public:
 #endif
     mp::DaemonRpc stub_daemon{server_address};
     mp::AutoJoinThread daemon_thread;
+
+    // Use these to squelch the noise during tests
+    std::stringstream stdout_stream;
+    std::stringstream stderr_stream;
 };
 
+// Tests for no postional args given
 TEST_F(Client, no_command_is_error)
 {
-    EXPECT_THAT(send_command({}), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, no_command_help_ok)
 {
-    EXPECT_THAT(send_command({"-h"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
-TEST_F(Client, create_cmd_good_arguments)
-{
-    EXPECT_THAT(send_command({"create", "foo"}), Eq(mp::ReturnCode::Ok));
-}
-
-TEST_F(Client, create_cmd_help_ok)
-{
-     EXPECT_THAT(send_command({"create", "-h"}), Eq(mp::ReturnCode::Ok));
-}
-
+// connect cli test
 TEST_F(Client, connect_cmd_good_arguments)
 {
-    EXPECT_THAT(send_command({"connect", "foo"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"connect", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
 TEST_F(Client, connect_cmd_help_ok)
 {
-     EXPECT_THAT(send_command({"connect", "-h"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"connect", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// create cli tests
+TEST_F(Client, create_cmd_good_arguments)
+{
+    EXPECT_THAT(send_command({"create", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, create_cmd_help_ok)
+{
+     EXPECT_THAT(send_command({"create", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, create_cmd_fails_multiple_args)
+{
+    EXPECT_THAT(send_command({"create", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, create_cmd_unknown_option_fails)
+{
+    EXPECT_THAT(send_command({"create", "-z", "2"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, create_cmd_name_option_ok)
+{
+    EXPECT_THAT(send_command({"create", "-n", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, create_cmd_name_option_fails_no_value)
+{
+    EXPECT_THAT(send_command({"create", "-n"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, create_cmd_memory_option_ok)
+{
+    EXPECT_THAT(send_command({"create", "-m", "1G"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, create_cmd_memory_option_fails_no_value)
+{
+    EXPECT_THAT(send_command({"create", "-m"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, create_cmd_cpu_option_ok)
+{
+    EXPECT_THAT(send_command({"create", "-c", "2"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, create_cmd_cpu_option_fails_no_value)
+{
+    EXPECT_THAT(send_command({"create", "-c"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+// empty-trash cli tests
+TEST_F(Client, empty_trash_cmd_ok_no_args)
+{
+    EXPECT_THAT(send_command({"empty-trash"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, empty_trash_cmd_fails_with_args)
+{
+    EXPECT_THAT(send_command({"empty-trash", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, empty_trash_cmd_help_ok)
+{
+    EXPECT_THAT(send_command({"empty-trash", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+// exec cli tests
+TEST_F(Client, exec_cmd_ok_with_correct_args)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "--", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, exec_cmd_fails_with_missing_name_arg)
+{
+    EXPECT_THAT(send_command({"exec", "--", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, exec_cmd_fails_with_missing_double_dash)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, exec_cmd_fails_with_missing_command_to_exec)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "--"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, exec_cmd_help_ok)
+{
+    EXPECT_THAT(send_command({"exec", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+// info cli tests
+TEST_F(Client, info_cmd_fails_no_args)
+{
+    EXPECT_THAT(send_command({"info"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, info_cmd_ok_with_one_arg)
+{
+    EXPECT_THAT(send_command({"info", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, info_cmd_fails_with_multiple_args)
+{
+    EXPECT_THAT(send_command({"info", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, info_cmd_help_ok)
+{
+    EXPECT_THAT(send_command({"info", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+// list cli tests
 TEST_F(Client, list_cmd_ok_no_args)
 {
-    EXPECT_THAT(send_command({"list"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"list"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
 TEST_F(Client, list_cmd_fails_with_args)
 {
-    EXPECT_THAT(send_command({"list", "foo"}), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({"list", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, list_cmd_help_ok)
 {
-     EXPECT_THAT(send_command({"list", "-h"}), Eq(mp::ReturnCode::Ok));
+     EXPECT_THAT(send_command({"list", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// recover cli tests
+TEST_F(Client, recover_cmd_fails_no_args)
+{
+    EXPECT_THAT(send_command({"recover"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, recover_cmd_ok_with_one_arg)
+{
+    EXPECT_THAT(send_command({"recover", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, recover_cmd_fails_with_multiple_args)
+{
+    EXPECT_THAT(send_command({"recover", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, recover_cmd_help_ok)
+{
+    EXPECT_THAT(send_command({"recover", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+// start cli tests
 TEST_F(Client, start_cmd_fails_no_args)
 {
-    EXPECT_THAT(send_command({"start"}), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({"start"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, start_cmd_ok_with_one_arg)
 {
-    EXPECT_THAT(send_command({"start", "foo"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"start", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, start_cmd_fails_with_multiple_args)
+{
+    EXPECT_THAT(send_command({"start", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, start_cmd_help_ok)
 {
-     EXPECT_THAT(send_command({"start", "-h"}), Eq(mp::ReturnCode::Ok));
+     EXPECT_THAT(send_command({"start", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// stop cli tests
 TEST_F(Client, stop_cmd_fails_no_args)
 {
-    EXPECT_THAT(send_command({"stop"}), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({"stop"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, stop_cmd_ok_with_one_arg)
 {
-    EXPECT_THAT(send_command({"stop", "foo"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"stop", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, stop_cmd_fails_with_multiple_args)
+{
+    EXPECT_THAT(send_command({"stop", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, stop_cmd_help_ok)
 {
-     EXPECT_THAT(send_command({"stop", "-h"}), Eq(mp::ReturnCode::Ok));
+     EXPECT_THAT(send_command({"stop", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// trash cli tests
 TEST_F(Client, trash_cmd_fails_no_args)
 {
-    EXPECT_THAT(send_command({"trash"}), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({"trash"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, trash_cmd_ok_with_one_arg)
 {
-    EXPECT_THAT(send_command({"trash", "foo"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"trash", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, trash_cmd_fails_with_multiple_args)
+{
+    EXPECT_THAT(send_command({"trash", "foo", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, trash_cmd_help_ok)
 {
-    EXPECT_THAT(send_command({"trash", "-h"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"trash", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
 TEST_F(Client, help_returns_ok_return_code)
 {
-    EXPECT_THAT(send_command({"--help"}), Eq(mp::ReturnCode::Ok));
+    EXPECT_THAT(send_command({"--help"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
 TEST_F(Client, command_help_is_different_than_general_help)

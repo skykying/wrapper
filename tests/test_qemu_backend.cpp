@@ -39,7 +39,7 @@ using namespace testing;
 
 struct QemuBackend : public testing::Test
 {
-    mp::VirtualMachineDescription default_description{2, 1024 * 1024 * 1024};
+    mp::VirtualMachineDescription default_description{2, "3M"};
     mp::QemuVirtualMachineFactory backend;
 };
 

@@ -37,6 +37,8 @@ public:
     QString description() const override;
 
 private:
+    ExecRequest request;
+
     ParseCode parse_args(ArgParser *parser) override;
 };
 }

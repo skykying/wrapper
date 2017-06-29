@@ -13,34 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_START_H
-#define MULTIPASS_START_H
+#ifndef MULTIPASS_EXECUTE_HELPER_H
+#define MULTIPASS_EXECUTE_HELPER_H
 
-#include <multipass/cli/command.h>
+#include <multipass/cli/argparser.h>
+
+#include <string>
 
 namespace multipass
 {
-namespace cmd
-{
-class Start final : public Command
-{
-public:
-    using Command::Command;
-    ReturnCode run(ArgParser *parser) override;
-
-    std::string name() const override;
-    QString short_help() const override;
-    QString description() const override;
-
-private:
-    StartRequest request;
-
-    ParseCode parse_args(ArgParser *parser) override;
-};
+ReturnCode execute_process(std::string exec_line);
 }
-}
-#endif // MULTIPASS_START_H
+
+#endif // MULTIPASS_EXECUTE_HELPER_H

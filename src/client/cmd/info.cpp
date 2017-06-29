@@ -13,11 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
  *
  */
 
-#include "trash.h"
+#include "info.h"
 
 #include <multipass/cli/argparser.h>
 
@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Trash::run(ArgParser *parser)
+mp::ReturnCode cmd::Info::run(ArgParser *parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -33,34 +33,34 @@ mp::ReturnCode cmd::Trash::run(ArgParser *parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::TrashReply& reply) {
-        cout << "received trash reply\n";
-        return mp::ReturnCode::Ok;
+    auto on_success = [this](mp::InfoReply& reply) {
+        cout << "received info reply\n";
+        return ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "trash failed: " << status.error_message() << "\n";
-        return mp::ReturnCode::CommandFail;
+        cerr << "info failed: " << status.error_message() << "\n";
+        return ReturnCode::CommandFail;
     };
 
-    return dispatch(&RpcMethod::trash, request, on_success, on_failure);
+    return dispatch(&RpcMethod::info, request, on_success, on_failure);
 }
 
-std::string cmd::Trash::name() const { return "trash"; }
+std::string cmd::Info::name() const { return "info"; }
 
-QString cmd::Trash::short_help() const
+QString cmd::Info::short_help() const
 {
-    return QStringLiteral("Move an instance to trash");
+    return QStringLiteral("Display information about an instance");
 }
 
-QString cmd::Trash::description() const
+QString cmd::Info::description() const
 {
-    return QStringLiteral("The trash command moves the instance to the trash.\n");
+    return QStringLiteral("Display information about an instance");
 }
 
-mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Info::parse_args(ArgParser *parser)
 {
-    parser->addPositionalArgument("name", "Name of instance to trash", "<name>");
+    parser->addPositionalArgument("name", "Name of instance to display information about", "<name>");
 
     auto status = parser->commandParse(this);
 

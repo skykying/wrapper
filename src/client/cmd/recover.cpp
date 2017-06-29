@@ -17,7 +17,7 @@
  *
  */
 
-#include "trash.h"
+#include "recover.h"
 
 #include <multipass/cli/argparser.h>
 
@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Trash::run(ArgParser *parser)
+mp::ReturnCode cmd::Recover::run(ArgParser *parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -33,34 +33,34 @@ mp::ReturnCode cmd::Trash::run(ArgParser *parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::TrashReply& reply) {
-        cout << "received trash reply\n";
+    auto on_success = [this](mp::RecoverReply& reply) {
+        cout << "received recover reply\n";
         return mp::ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "trash failed: " << status.error_message() << "\n";
+        cerr << "recover failed: " << status.error_message() << "\n";
         return mp::ReturnCode::CommandFail;
     };
 
-    return dispatch(&RpcMethod::trash, request, on_success, on_failure);
+    return dispatch(&RpcMethod::recover, request, on_success, on_failure);
 }
 
-std::string cmd::Trash::name() const { return "trash"; }
+std::string cmd::Recover::name() const { return "recover"; }
 
-QString cmd::Trash::short_help() const
+QString cmd::Recover::short_help() const
 {
-    return QStringLiteral("Move an instance to trash");
+    return QStringLiteral("Recovers an instance from the trash");
 }
 
-QString cmd::Trash::description() const
+QString cmd::Recover::description() const
 {
-    return QStringLiteral("The trash command moves the instance to the trash.\n");
+    return QStringLiteral("Recovers the instance from the trash so it can be used again.");
 }
 
-mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Recover::parse_args(ArgParser *parser)
 {
-    parser->addPositionalArgument("name", "Name of instance to trash", "<name>");
+    parser->addPositionalArgument("name", "Name of instance to recover", "<name>");
 
     auto status = parser->commandParse(this);
 

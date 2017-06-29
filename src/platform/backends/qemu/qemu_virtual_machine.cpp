@@ -119,15 +119,19 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
     if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
     {
         using namespace std::string_literals;
-        args << "-hda" << desc.image.image_path << // The VM image itself
-            "-drive"
-             << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"}
+        args <<
+            // The VM image itself
+            "-hda" << desc.image.image_path << // The VM image itself
              // For the cloud-init configuration
-             << "-m" << QString::number(desc.mem_size) << // Memory to use for VM
-            "-device"
-             << "virtio-net-pci,netdev=hostnet0,id=net0" << // Create a virtual NIC in the VM
-            "-netdev"
-             << "user,id=hostnet0,hostfwd=tcp::2222-:22"; // Forward host port 2222 to guest port 22 for ssh
+            "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"} <<
+            // Number of cpu cores
+            "-smp" << QString::number(desc.num_cores) <<
+            // Memory to use for VM
+            "-m" << QString::fromStdString(desc.mem_size) <<
+            // Create a virtual NIC in the VM
+            "-device" << "virtio-net-pci,netdev=hostnet0,id=net0" <<
+            // Forward host port 2222 to guest port 22 for ssh
+            "-netdev" << "user,id=hostnet0,hostfwd=tcp::2222-:22";
     }
 
     auto process = std::make_unique<QProcess>();

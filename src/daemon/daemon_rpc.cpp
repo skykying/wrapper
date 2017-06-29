@@ -60,25 +60,36 @@ void mp::DaemonRpc::shutdown()
     server->Shutdown();
 }
 
-grpc::Status mp::DaemonRpc::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
-{
-    return emit on_connect(context, request, response); // must block until slot returns
-}
-
-grpc::Status mp::DaemonRpc::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
-{
-    return emit on_trash(context, request, response); // must block until slot returns
-}
-
 grpc::Status mp::DaemonRpc::create(grpc::ServerContext* context, const CreateRequest* request,
                                    grpc::ServerWriter<CreateReply>* reply)
 {
     return emit on_create(context, request, reply); // must block until slot returns
 }
 
+grpc::Status mp::DaemonRpc::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response)
+{
+    return emit on_exec(context, request, response); // must block until slot returns
+}
+
+grpc::Status mp::DaemonRpc::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request,
+                                        EmptyTrashReply* response)
+{
+    return emit on_empty_trash(context, request, response); // must block until slot returns
+}
+
+grpc::Status mp::DaemonRpc::info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response)
+{
+    return emit on_info(context, request, response); // must block until slot returns
+}
+
 grpc::Status mp::DaemonRpc::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
 {
     return emit on_list(context, request, response); // must block until slot returns
+}
+
+grpc::Status mp::DaemonRpc::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response)
+{
+    return emit on_recover(context, request, response); // must block until slot returns
 }
 
 grpc::Status mp::DaemonRpc::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
@@ -89,6 +100,11 @@ grpc::Status mp::DaemonRpc::start(grpc::ServerContext* context, const StartReque
 grpc::Status mp::DaemonRpc::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
 {
     return emit on_stop(context, request, response); // must block until slot returns
+}
+
+grpc::Status mp::DaemonRpc::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
+{
+    return emit on_trash(context, request, response); // must block until slot returns
 }
 
 grpc::Status mp::DaemonRpc::version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response)

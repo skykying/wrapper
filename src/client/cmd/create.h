@@ -39,7 +39,8 @@ public:
 private:
     ParseCode parse_args(ArgParser *parser) override;
 
-    int mem_size{1024};
+    CreateRequest request;
+    QString default_image_name{"xenial"};
 };
 }
 }

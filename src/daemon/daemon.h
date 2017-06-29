@@ -54,18 +54,24 @@ protected:
     void on_shutdown() override;
 
 public slots:
-    grpc::Status connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response) override;
-
     grpc::Status create(grpc::ServerContext* context, const CreateRequest* request,
                         grpc::ServerWriter<CreateReply>* reply) override;
 
-    grpc::Status trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response) override;
+    grpc::Status empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request, EmptyTrashReply* response) override;
+
+    grpc::Status exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response) override;
+
+    grpc::Status info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response) override;
+
+    grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
+
+    grpc::Status recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response) override;
 
     grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 
     grpc::Status stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response) override;
 
-    grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
+    grpc::Status trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response) override;
 
     grpc::Status version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response) override;
 

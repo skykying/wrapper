@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef MULTIPASS_START_H
-#define MULTIPASS_START_H
+#ifndef MULTIPASS_RECOVER_H
+#define MULTIPASS_RECOVER_H
 
 #include <multipass/cli/command.h>
 
@@ -26,7 +26,7 @@ namespace multipass
 {
 namespace cmd
 {
-class Start final : public Command
+class Recover final : public Command
 {
 public:
     using Command::Command;
@@ -37,10 +37,10 @@ public:
     QString description() const override;
 
 private:
-    StartRequest request;
+    RecoverRequest request;
 
     ParseCode parse_args(ArgParser *parser) override;
 };
 }
 }
-#endif // MULTIPASS_START_H
+#endif // MULTIPASS_RECOVER_H

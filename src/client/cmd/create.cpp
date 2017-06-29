@@ -54,11 +54,6 @@ mp::ReturnCode cmd::Create::run(ArgParser *parser)
         }
     };
 
-    mp::CreateRequest request;
-
-    // Set some defaults
-    request.set_mem_size(mem_size);
-
     return dispatch(&RpcMethod::create, request, on_success, on_failure, streaming_callback);
 }
 
@@ -77,18 +72,42 @@ QString cmd::Create::description() const
 mp::ParseCode cmd::Create::parse_args(ArgParser *parser)
 {
     parser->addPositionalArgument("image", "Ubuntu image to start", "<image>");
-    QCommandLineOption cpusOption(   {"c", "cpus"},     "Number of CPUs to allocate", "cpus", "default");
-    QCommandLineOption diskOption(   {"d", "disk"},     "Disk space to allocate in bytes, or with K, M, G suffix", "disk", "default");
-    QCommandLineOption memOption(    {"m", "mem"},      "Amount of memory to allocate in bytes, or with K, M, G suffix", "mem", "default");
-    QCommandLineOption nameOption(   {"n", "name"},     "Name for the instance", "name");
+    QCommandLineOption cpusOption(   {"c", "cpus"}, "Number of CPUs to allocate", "cpus", "1");
+    QCommandLineOption diskOption(   {"d", "disk"}, "Disk space to allocate in bytes, or with K, M, G suffix", "disk", "default");
+    QCommandLineOption memOption(    {"m", "mem"},  "Amount of memory to allocate in bytes, or with K, M, G suffix", "mem", "1024"); // In MB's
+    QCommandLineOption nameOption(   {"n", "name"}, "Name for the instance", "name");
     parser->addOptions({cpusOption, diskOption, memOption, nameOption});
 
-    auto ret = parser->commandParse(this);
+    auto status = parser->commandParse(this);
 
-    // TODO: sanity check the command line options passed
-//    if (parser->positionalArguments().count() > 1) {
-//        cerr << "Too many parameters supplied" << std::endl;
-//        return ReturnCode::CommandLineError;
-//    }
-    return ret;
+    if (status != ParseCode::Ok)
+    {
+        return status;
+    }
+
+    if (parser->positionalArguments().count() > 1)
+    {
+        cerr << "Too many arguments supplied" << std::endl;
+        return ParseCode::CommandLineError;
+    }
+
+    if (!parser->positionalArguments().isEmpty())
+    {
+        request.set_image(parser->positionalArguments().first().toStdString());
+    }
+    else
+    {
+        request.set_image(default_image_name.toStdString());
+    }
+
+    if (parser->isSet(nameOption))
+    {
+        request.set_instance_name(parser->value(nameOption).toStdString());
+    }
+
+    request.set_num_cores(parser->value(cpusOption).toInt());
+
+    request.set_mem_size(parser->value(memOption).toStdString());
+
+    return status;
 }

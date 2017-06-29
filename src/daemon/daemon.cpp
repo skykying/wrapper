@@ -42,11 +42,14 @@ namespace mp = multipass;
 mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon)
     : daemon_rpc{server_address}, daemon_thread{[this, daemon] {
           QObject::connect(&daemon_rpc, &DaemonRpc::on_create, daemon, &Daemon::create, Qt::BlockingQueuedConnection);
-          QObject::connect(&daemon_rpc, &DaemonRpc::on_connect, daemon, &Daemon::connect, Qt::BlockingQueuedConnection);
-          QObject::connect(&daemon_rpc, &DaemonRpc::on_trash, daemon, &Daemon::trash, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_empty_trash, daemon, &Daemon::empty_trash, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_exec, daemon, &Daemon::exec, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_info, daemon, &Daemon::info, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_recover, daemon, &Daemon::recover, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_start, daemon, &Daemon::start, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_stop, daemon, &Daemon::stop, Qt::BlockingQueuedConnection);
-          QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_trash, daemon, &Daemon::trash, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_version, daemon, &Daemon::version, Qt::BlockingQueuedConnection);
           daemon_rpc.run();
       }}
@@ -64,29 +67,28 @@ mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
 {
 }
 
-grpc::Status mp::Daemon::connect(grpc::ServerContext* context, const ConnectRequest* request, ConnectReply* response)
-{
-    response->set_exec_line(config->vm_execute->execute());
-
-    return grpc::Status::OK;
-}
-
 grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
                                 grpc::ServerWriter<CreateReply>* reply)
 {
     VirtualMachineDescription desc;
-    desc.mem_size = request->mem_size();
 
-    if (request->vm_name().empty())
+    desc.mem_size = request->mem_size();
+    desc.num_cores = request->num_cores();
+
+    if (request->instance_name().empty())
     {
         desc.vm_name = config->name_generator->make_name();
     }
 
     VMImageQuery vm_image_query;
 
-    if (request->release().empty())
+    if (request->image().empty())
     {
         vm_image_query.query_string = "xenial";
+    }
+    else
+    {
+        vm_image_query.query_string = request->image();
     }
 
     std::string image_hash;
@@ -131,12 +133,36 @@ grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateReques
     return grpc::Status::OK;
 }
 
-grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
+grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request, EmptyTrashReply* response)
+{
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+}
+
+grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response)
+{
+    if (request->command_line().empty())
+    {
+        response->set_exec_line(config->vm_execute->execute());
+    }
+    else
+    {
+        response->set_exec_line(config->vm_execute->execute(request->command_line()));
+    }
+
+    return grpc::Status::OK;
+}
+
+grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response)
 {
     return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
 
 grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
+{
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+}
+
+grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response)
 {
     return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }
@@ -147,6 +173,11 @@ grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest*
 }
 
 grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
+{
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+}
+
+grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
 {
     return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }

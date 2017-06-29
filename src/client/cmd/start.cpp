@@ -43,7 +43,6 @@ mp::ReturnCode cmd::Start::run(ArgParser *parser)
         return ReturnCode::CommandFail;
     };
 
-    mp::StartRequest request;
     return dispatch(&RpcMethod::start, request, on_success, on_failure);
 }
 
@@ -65,14 +64,27 @@ mp::ParseCode cmd::Start::parse_args(ArgParser *parser)
 {
     parser->addPositionalArgument("name", "Name of the instance to start", "<name>");
 
-    auto ret = parser->commandParse(this);
-    if (ret != ParseCode::Ok)
-        return ret;
+    auto status = parser->commandParse(this);
 
-    if (parser->positionalArguments().count() != 1)
+    if (status != ParseCode::Ok)
+    {
+        return status;
+    }
+
+    if (parser->positionalArguments().count() == 0)
     {
         cerr << "Name argument is required" << std::endl;
-        return ParseCode::CommandLineError;
+        status = ParseCode::CommandLineError;
     }
-    return ret;
+    else if (parser->positionalArguments().count() > 1)
+    {
+        cerr << "Too many arguments given" << std::endl;
+        status = ParseCode::CommandLineError;
+    }
+    else
+    {
+        request.set_instance_name(parser->positionalArguments().first().toStdString());
+    }
+
+    return status;
 }

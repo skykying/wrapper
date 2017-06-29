@@ -17,7 +17,7 @@
  *
  */
 
-#include "trash.h"
+#include "empty_trash.h"
 
 #include <multipass/cli/argparser.h>
 
@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Trash::run(ArgParser *parser)
+mp::ReturnCode cmd::EmptyTrash::run(ArgParser *parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -33,35 +33,34 @@ mp::ReturnCode cmd::Trash::run(ArgParser *parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::TrashReply& reply) {
-        cout << "received trash reply\n";
+    auto on_success = [this](mp::EmptyTrashReply& reply) {
+        cout << "received empty-trash reply\n";
         return mp::ReturnCode::Ok;
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "trash failed: " << status.error_message() << "\n";
+        cerr << "empty-trash failed: " << status.error_message() << "\n";
         return mp::ReturnCode::CommandFail;
     };
 
-    return dispatch(&RpcMethod::trash, request, on_success, on_failure);
+    mp::EmptyTrashRequest request;
+    return dispatch(&RpcMethod::empty_trash, request, on_success, on_failure);
 }
 
-std::string cmd::Trash::name() const { return "trash"; }
+std::string cmd::EmptyTrash::name() const { return "empty-trash"; }
 
-QString cmd::Trash::short_help() const
+QString cmd::EmptyTrash::short_help() const
 {
-    return QStringLiteral("Move an instance to trash");
+    return QStringLiteral("Deletes all trashed instances permanently");
 }
 
-QString cmd::Trash::description() const
+QString cmd::EmptyTrash::description() const
 {
-    return QStringLiteral("The trash command moves the instance to the trash.\n");
+    return QStringLiteral("Deletes all trashed instances permanently, including all their data.");
 }
 
-mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
+mp::ParseCode cmd::EmptyTrash::parse_args(ArgParser *parser)
 {
-    parser->addPositionalArgument("name", "Name of instance to trash", "<name>");
-
     auto status = parser->commandParse(this);
 
     if (status != ParseCode::Ok)
@@ -69,19 +68,10 @@ mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
         return status;
     }
 
-    if (parser->positionalArguments().count() == 0)
+    if (parser->positionalArguments().count() > 0)
     {
-        cerr << "Name argument is required" << std::endl;
-        status = ParseCode::CommandLineError;
-    }
-    else if (parser->positionalArguments().count() > 1)
-    {
-        cerr << "Too many arguments given" << std::endl;
-        status = ParseCode::CommandLineError;
-    }
-    else
-    {
-        request.set_instance_name(parser->positionalArguments().first().toStdString());
+        cerr << "This command takes no arguments" << std::endl;
+        return ParseCode::CommandLineError;
     }
 
     return status;

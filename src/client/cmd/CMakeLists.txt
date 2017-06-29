@@ -17,7 +17,12 @@
 add_library(commands STATIC
   connect.cpp
   create.cpp
+  empty_trash.cpp
+  exec.cpp
+  execute_helper.cpp
+  info.cpp
   list.cpp
+  recover.cpp
   start.cpp
   stop.cpp
   trash.cpp

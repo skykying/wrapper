@@ -61,15 +61,18 @@ QString cmd::List::description() const
 
 mp::ParseCode cmd::List::parse_args(ArgParser *parser)
 {
-    auto ret = parser->commandParse(this);
+    auto status = parser->commandParse(this);
 
-    if (ret != ParseCode::Ok)
-        return ret;
+    if (status != ParseCode::Ok)
+    {
+        return status;
+    }
 
     if (parser->positionalArguments().count() > 0)
     {
         cerr << "This command takes no arguments" << std::endl;
         return ParseCode::CommandLineError;
     }
-    return ret;
+
+    return status;
 }

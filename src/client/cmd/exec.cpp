@@ -17,7 +17,8 @@
  *
  */
 
-#include "stop.h"
+#include "exec.h"
+#include "execute_helper.h"
 
 #include <multipass/cli/argparser.h>
 
@@ -25,7 +26,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Stop::run(ArgParser *parser)
+mp::ReturnCode cmd::Exec::run(ArgParser *parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -33,35 +34,42 @@ mp::ReturnCode cmd::Stop::run(ArgParser *parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::StopReply& reply) {
-        cout << "received stop reply\n";
-        return ReturnCode::Ok;
+    auto on_success = [this](mp::ExecReply& reply) {
+        if (reply.exec_line().empty())
+        {
+            cout << "received exec reply\n";
+            return ReturnCode::Ok;
+        }
+        else
+        {
+            return execute_process(reply.exec_line());
+        }
     };
 
     auto on_failure = [this](grpc::Status& status) {
-        cerr << "stop failed: " << status.error_message() << "\n";
+        cerr << "exec failed: " << status.error_message() << "\n";
         return ReturnCode::CommandFail;
     };
 
-    return dispatch(&RpcMethod::stop, request, on_success, on_failure);
+    return dispatch(&RpcMethod::exec, request, on_success, on_failure);
 }
 
-std::string cmd::Stop::name() const { return "stop"; }
+std::string cmd::Exec::name() const { return "exec"; }
 
-QString cmd::Stop::short_help() const
+QString cmd::Exec::short_help() const
 {
-    return QStringLiteral("Stop a running instance");
+    return QStringLiteral("Run a command on the instance");
 }
 
-QString cmd::Stop::description() const
+QString cmd::Exec::description() const
 {
-    return QStringLiteral("Stop the named instance, if running. Exits with\n"
-                          "return code 0 if successful.");
+    return QStringLiteral("Execute a command on the instance");
 }
 
-mp::ParseCode cmd::Stop::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Exec::parse_args(ArgParser *parser)
 {
-    parser->addPositionalArgument("name", "Name of instance to stop", "<name>");
+    parser->addPositionalArgument("name", "Name of instance to execute the command on", "<name>");
+    parser->addPositionalArgument("command", "Command to execute on the instance", "[--] <command>");
 
     auto status = parser->commandParse(this);
 
@@ -70,19 +78,22 @@ mp::ParseCode cmd::Stop::parse_args(ArgParser *parser)
         return status;
     }
 
-    if (parser->positionalArguments().count() == 0)
+    if (!parser->isExecLineValid())
     {
-        cerr << "Name argument is required" << std::endl;
-        status = ParseCode::CommandLineError;
-    }
-    else if (parser->positionalArguments().count() > 1)
-    {
-        cerr << "Too many arguments given" << std::endl;
+        cerr << "Not enough arguments supplied" << std::endl;
         status = ParseCode::CommandLineError;
     }
     else
     {
         request.set_instance_name(parser->positionalArguments().first().toStdString());
+
+        std::string exec_line;
+
+        for (int i = 1; i < parser->positionalArguments().size(); ++i)
+        {
+            exec_line.append(parser->positionalArguments().at(i).toStdString() + " ");
+        }
+        request.set_command_line(exec_line);
     }
 
     return status;

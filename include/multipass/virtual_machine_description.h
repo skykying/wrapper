@@ -32,7 +32,7 @@ public:
     using MBytes = size_t;
 
     int num_cores;
-    MBytes mem_size;
+    std::string mem_size;
     MBytes disk_space;
     std::string vm_name;
     VMImage image;
