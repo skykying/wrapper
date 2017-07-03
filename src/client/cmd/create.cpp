@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Create::run(ArgParser *parser)
+mp::ReturnCode cmd::Create::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -69,7 +69,7 @@ QString cmd::Create::description() const
     return QStringLiteral("Create and start a new instance.");
 }
 
-mp::ParseCode cmd::Create::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Create::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("image", "Ubuntu image to start", "<image>");
     QCommandLineOption cpusOption(   {"c", "cpus"}, "Number of CPUs to allocate", "cpus", "1");

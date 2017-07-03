@@ -17,30 +17,35 @@
  *
  */
 
-#ifndef MULTIPASS_VM_IMAGE_HOST_H
-#define MULTIPASS_VM_IMAGE_HOST_H
+#ifndef MULTIPASS_SIMPLE_STREAMS_MANIFEST_H
+#define MULTIPASS_SIMPLE_STREAMS_MANIFEST_H
 
 #include <multipass/vm_image_info.h>
 
-#include <functional>
+#include <QByteArray>
+#include <QMap>
+#include <QString>
+
+#include <memory>
+#include <vector>
 
 namespace multipass
 {
-class Query;
-class VMImage;
-class VMImageHost
+
+class SimpleStreamsManifest
 {
 public:
-    using Action = std::function<void(const VMImageInfo&)>;
+    SimpleStreamsManifest(SimpleStreamsManifest&&) = default;
+    SimpleStreamsManifest& operator=(SimpleStreamsManifest&&) = default;
 
-    virtual ~VMImageHost() = default;
-    virtual VMImageInfo info_for(const Query& query) = 0;
-    virtual void for_each_entry_do(const Action& action) = 0;
+    static std::unique_ptr<SimpleStreamsManifest> fromJson(QByteArray json);
+    const QString updated_at;
+    const std::vector<VMImageInfo> products;
+    const QMap<QString, const VMImageInfo*> image_records;
 
 protected:
-    VMImageHost() = default;
-    VMImageHost(const VMImageHost&) = delete;
-    VMImageHost& operator=(const VMImageHost&) = delete;
+    SimpleStreamsManifest(const SimpleStreamsManifest&) = delete;
+    SimpleStreamsManifest& operator=(const SimpleStreamsManifest&) = delete;
 };
 }
-#endif // MULTIPASS_VM_IMAGE_HOST_H
+#endif // MULTIPASS_SIMPLE_STREAMS_MANIFEST_H

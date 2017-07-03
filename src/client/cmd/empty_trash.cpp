@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::EmptyTrash::run(ArgParser *parser)
+mp::ReturnCode cmd::EmptyTrash::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -59,7 +59,7 @@ QString cmd::EmptyTrash::description() const
     return QStringLiteral("Deletes all trashed instances permanently, including all their data.");
 }
 
-mp::ParseCode cmd::EmptyTrash::parse_args(ArgParser *parser)
+mp::ParseCode cmd::EmptyTrash::parse_args(mp::ArgParser* parser)
 {
     auto status = parser->commandParse(this);
 

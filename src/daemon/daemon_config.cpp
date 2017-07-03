@@ -18,24 +18,31 @@
  */
 
 #include "daemon_config.h"
-
+#include "default_vm_image_vault.h"
 #include "ubuntu_image_host.h"
-#include "vm_image_repository.h"
 
 #include <multipass/name_generator.h>
 #include <multipass/platform.h>
 #include <multipass/ssh_key.h>
 #include <multipass/virtual_machine_execute.h>
 
+#include <QStandardPaths>
+
 namespace mp = multipass;
 std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
 {
+    if (url_downloader == nullptr)
+        url_downloader = std::make_unique<URLDownloader>();
     if (factory == nullptr)
         factory = Platform::vm_backend();
+    if (cache_directory.isEmpty())
+        cache_directory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     if (image_host == nullptr)
-        image_host = std::make_unique<mp::UbuntuVMImageHost>();
+        image_host =
+            std::make_unique<mp::UbuntuVMImageHost>("http://cloud-images.ubuntu.com/releases/", "streams/v1/index.json",
+                                                    url_downloader.get(), std::chrono::minutes{5});
     if (vault == nullptr)
-        vault = std::make_unique<VMImageRepository>();
+        vault = std::make_unique<DefaultVMImageVault>(image_host.get(), url_downloader.get(), cache_directory);
     if (name_generator == nullptr)
         name_generator = mp::make_default_name_generator();
     if (vm_execute == nullptr)
@@ -45,7 +52,7 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
     if (ssh_key == nullptr)
         ssh_key = Platform::public_key();
 
-    return std::unique_ptr<const DaemonConfig>(
-        new DaemonConfig{std::move(factory), std::move(image_host), std::move(vault), std::move(name_generator),
-                         std::move(vm_execute), std::move(ssh_key), server_address});
+    return std::unique_ptr<const DaemonConfig>(new DaemonConfig{
+        std::move(url_downloader), std::move(factory), std::move(image_host), std::move(vault),
+        std::move(name_generator), std::move(vm_execute), std::move(ssh_key), cache_directory, server_address});
 }

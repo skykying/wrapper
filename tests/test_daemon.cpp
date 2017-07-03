@@ -30,7 +30,6 @@
 #include <multipass/vm_image_vault.h>
 
 #include "mock_virtual_machine_factory.h"
-#include "mock_vm_image_fetcher.h"
 #include "stub_image_host.h"
 #include "stub_ssh_key.h"
 #include "stub_virtual_machine_factory.h"
@@ -162,12 +161,11 @@ TEST_F(Daemon, receives_commands)
 
 TEST_F(Daemon, creates_virtual_machines)
 {
-    auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
+    auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
     mp::DaemonConfigBuilder config_builder;
     config_builder.factory = std::move(mock_factory);
-    config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     config_builder.server_address = server_address;
@@ -175,34 +173,23 @@ TEST_F(Daemon, creates_virtual_machines)
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
         .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
-
-    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
-        .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
     send_command({"create"});
 }
 
-TEST_F(Daemon, creation_calls_fetch_on_vmimagefetcher)
+TEST_F(Daemon, on_creation_hooks_up_platform_prepare)
 {
-    auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
+    auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
     mp::DaemonConfigBuilder config_builder;
     config_builder.factory = std::move(mock_factory);
-    config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
-    EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
-        .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
-
-    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_)).WillOnce(Invoke([](auto const&) {
-        auto fetcher = std::make_unique<MockVMImageFetcher>();
-        EXPECT_CALL(*fetcher.get(), fetch(_));
-        return std::move(fetcher);
-    }));
+    EXPECT_CALL(*mock_factory_ptr, prepare(_));
 
     send_command({"create"});
 }
@@ -225,6 +212,7 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     mp::DaemonConfigBuilder config_builder;
     config_builder.server_address = server_address;
     config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
+    config_builder.vault = std::make_unique<StubVMImageVault>();
     config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
     config_builder.image_host = std::make_unique<StubVMImageHost>();
     config_builder.ssh_key = std::make_unique<StubSshPubKey>();
@@ -297,7 +285,7 @@ MATCHER_P(YAMLNodeContainsMap, key, "")
 
 TEST_F(Daemon, default_cloud_init_grows_root_fs)
 {
-    auto mock_factory = std::make_unique<MockVirtualMachineFactory>();
+    auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
     mp::DaemonConfigBuilder config_builder;
@@ -323,9 +311,6 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
             }
             return std::make_unique<StubVirtualMachine>();
         }));
-
-    EXPECT_CALL(*mock_factory_ptr, create_image_fetcher(_))
-        .WillOnce(Return(ByMove(std::make_unique<StubVMImageFetcher>())));
 
     send_command({"create"});
 }

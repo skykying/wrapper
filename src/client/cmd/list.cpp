@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::List::run(ArgParser *parser)
+mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -59,7 +59,7 @@ QString cmd::List::description() const
     return QStringLiteral("List all instances which have been created.");
 }
 
-mp::ParseCode cmd::List::parse_args(ArgParser *parser)
+mp::ParseCode cmd::List::parse_args(mp::ArgParser* parser)
 {
     auto status = parser->commandParse(this);
 

@@ -16,23 +16,14 @@
  * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
-#ifndef MULTIPASS_VM_IMAGE_VAULT_H
-#define MULTIPASS_VM_IMAGE_VAULT_H
 
-#include <multipass/fetch_type.h>
-#include <multipass/progress_monitor.h>
+#ifndef MULTIPASS_PROGRESS_MONITOR_H
+#define MULTIPASS_PROGRESS_MONITOR_H
 
 #include <functional>
+
 namespace multipass
 {
-class Query;
-class VMImage;
-class VMImageVault
-{
-public:
-    using PrepareAction = std::function<VMImage(const VMImage&)>;
-    virtual VMImage fetch_image(const FetchType& fetch_type, const Query& query, const PrepareAction& prepare,
-                                const ProgressMonitor& monitor) = 0;
-};
+using ProgressMonitor = std::function<void(int progress)>;
 }
-#endif // MULTIPASS_VM_IMAGE_VAULT_H
+#endif // MULTIPASS_PROGRESS_MONITOR_H

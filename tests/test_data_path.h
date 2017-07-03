@@ -17,14 +17,17 @@
  *
  */
 
-#include "vm_image_repository.h"
+#ifndef MULTIPASS_TEST_DATA_PATH_H
+#define MULTIPASS_TEST_DATA_PATH_H
 
-#include <multipass/vm_image.h>
+#include <QString>
 
-namespace mp = multipass;
-
-void mp::VMImageRepository::add_vm_image(mp::VMImage image) {}
-
-mp::VMImage mp::VMImageRepository::find_image(const VaultQuery& query) { return {}; }
-
-void mp::VMImageRepository::for_each_image_do(const Action& action) {}
+namespace multipass
+{
+namespace test
+{
+QString test_data_path();
+QString test_data_path_for(const char* file_name);
+}
+}
+#endif //MULTIPASS_TEST_DATA_PATH_H

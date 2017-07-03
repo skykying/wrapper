@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Stop::run(ArgParser *parser)
+mp::ReturnCode cmd::Stop::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -59,7 +59,7 @@ QString cmd::Stop::description() const
                           "return code 0 if successful.");
 }
 
-mp::ParseCode cmd::Stop::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Stop::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of instance to stop", "<name>");
 

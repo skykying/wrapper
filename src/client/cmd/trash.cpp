@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Trash::run(ArgParser *parser)
+mp::ReturnCode cmd::Trash::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -58,7 +58,7 @@ QString cmd::Trash::description() const
     return QStringLiteral("The trash command moves the instance to the trash.\n");
 }
 
-mp::ParseCode cmd::Trash::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Trash::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of instance to trash", "<name>");
 

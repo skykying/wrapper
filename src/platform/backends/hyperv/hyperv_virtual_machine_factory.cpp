@@ -19,8 +19,6 @@
 
 #include "hyperv_virtual_machine_factory.h"
 
-#include <multipass/vm_image_fetcher.h>
-
 namespace mp = multipass;
 
 mp::VirtualMachine::UPtr
@@ -30,8 +28,12 @@ mp::HyperVVirtualMachineFactory::create_virtual_machine(const VirtualMachineDesc
     return nullptr;
 }
 
-std::unique_ptr<mp::VMImageFetcher>
-mp::HyperVVirtualMachineFactory::create_image_fetcher(const std::unique_ptr<mp::VMImageHost>& host)
+mp::FetchType mp::HyperVVirtualMachineFactory::fetch_type()
 {
-    return nullptr;
+    return mp::FetchType::ImageOnly;
+}
+
+mp::VMImage mp::HyperVVirtualMachineFactory::prepare(const mp::VMImage& source_image)
+{
+    return source_image;
 }

@@ -13,26 +13,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
+ *              Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
-#ifndef MULTIPASS_VM_IMAGE_VAULT_H
-#define MULTIPASS_VM_IMAGE_VAULT_H
 
-#include <multipass/fetch_type.h>
+#ifndef MULTIPASS_URL_DOWNLOADER_H
+#define MULTIPASS_URL_DOWNLOADER_H
+
 #include <multipass/progress_monitor.h>
 
-#include <functional>
+#include <QByteArray>
+#include <QNetworkAccessManager>
+
+class QUrl;
+class QString;
 namespace multipass
 {
-class Query;
-class VMImage;
-class VMImageVault
+class URLDownloader
 {
 public:
-    using PrepareAction = std::function<VMImage(const VMImage&)>;
-    virtual VMImage fetch_image(const FetchType& fetch_type, const Query& query, const PrepareAction& prepare,
-                                const ProgressMonitor& monitor) = 0;
+    URLDownloader() = default;
+    virtual void download_to(const QUrl& url, const QString& file_name, const ProgressMonitor& monitor);
+    virtual QByteArray download(const QUrl& url);
+
+private:
+    QNetworkAccessManager manager;
+    URLDownloader(const URLDownloader&) = delete;
+    URLDownloader& operator=(const URLDownloader&) = delete;
 };
 }
-#endif // MULTIPASS_VM_IMAGE_VAULT_H
+#endif // MULTIPASS_URL_DOWNLOADER_H

@@ -19,19 +19,25 @@
 
 #include "qemu_virtual_machine_factory.h"
 #include "qemu_virtual_machine.h"
-#include "qemu_vm_image_fetcher.h"
+
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 
 namespace mp = multipass;
 
-mp::VirtualMachine::UPtr
-mp::QemuVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& desc,
-                                                      VMStatusMonitor& monitor)
+mp::VirtualMachine::UPtr mp::QemuVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& desc,
+                                                                               VMStatusMonitor& monitor)
 {
     return std::make_unique<mp::QemuVirtualMachine>(desc, monitor);
 }
 
-std::unique_ptr<mp::VMImageFetcher>
-mp::QemuVirtualMachineFactory::create_image_fetcher(const std::unique_ptr<mp::VMImageHost>& host)
+mp::FetchType mp::QemuVirtualMachineFactory::fetch_type()
 {
-    return std::make_unique<mp::QemuVMImageFetcher>(host);
+    return mp::FetchType::ImageOnly;
+}
+
+mp::VMImage mp::QemuVirtualMachineFactory::prepare(const mp::VMImage& source_image)
+{
+    return source_image;
 }

@@ -26,6 +26,9 @@
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_status_monitor.h>
 
+#include <memory>
+#include <unordered_map>
+
 namespace multipass
 {
 
@@ -77,7 +80,7 @@ public slots:
 
 private:
     std::unique_ptr<const DaemonConfig> config;
-    std::vector<VirtualMachine::UPtr> vms;
+    std::unordered_map<std::string, VirtualMachine::UPtr> vm_instances;
     DaemonRunner runner;
 
     Daemon(const Daemon&) = delete;

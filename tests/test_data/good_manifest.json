@@ -20,7 +20,7 @@
             "disk1.img": {
               "ftype": "disk1.img",
               "md5": "7388b8e7e0e114b941a04aca591e2d64",
-              "path": "test_image.img",
+              "path": "server/releases/xenial/release-20170516/ubuntu-16.04-server-cloudimg-amd64-disk1.img",
               "sha256": "1797c5c82016c1e65f4008fcf89deae3a044ef76087a9ec5b907c6d64a3609ac",
               "size": 287440896
             },

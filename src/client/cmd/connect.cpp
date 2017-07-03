@@ -26,7 +26,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Connect::run(ArgParser *parser)
+mp::ReturnCode cmd::Connect::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -66,7 +66,7 @@ QString cmd::Connect::description() const
     return QStringLiteral("Open a prompt on the instance.");
 }
 
-mp::ParseCode cmd::Connect::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Connect::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of instance to connect to", "<name>");
 

@@ -17,19 +17,26 @@
  *
  */
 
-#ifndef MULTIPASS_VM_IMAGE_REPOSITORY_H
-#define MULTIPASS_VM_IMAGE_REPOSITORY_H
+#include "file_reader.h"
+#include "test_data_path.h"
 
-#include <multipass/vm_image_vault.h>
+#include <QFile>
 
-namespace multipass
+namespace mpt = multipass::test;
+
+QByteArray mpt::load(QString path)
 {
-class VMImageRepository final : public VMImageVault
-{
-public:
-    void add_vm_image(VMImage image) override;
-    VMImage find_image(const VaultQuery& query) override;
-    void for_each_image_do(const Action& action) override;
-};
+    QFile file(path);
+    if (file.exists())
+    {
+        file.open(QIODevice::ReadOnly);
+        return file.readAll();
+    }
+    throw std::invalid_argument(path.toStdString() + " does not exist");
 }
-#endif // MULTIPASS_VM_IMAGE_REPOSITORY_H
+
+QByteArray mpt::load_test_file(const char* file_name)
+{
+    auto file_path = multipass::test::test_data_path_for(file_name);
+    return multipass::test::load(file_path);
+}

@@ -16,6 +16,7 @@ AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ---
 Language: Proto
 DisableFormat: true

@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Start::run(ArgParser *parser)
+mp::ReturnCode cmd::Start::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -60,7 +60,7 @@ QString cmd::Start::description() const
                           "it fails to start.");
 }
 
-mp::ParseCode cmd::Start::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Start::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of the instance to start", "<name>");
 

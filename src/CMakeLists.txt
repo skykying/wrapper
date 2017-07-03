@@ -22,7 +22,9 @@ configure_file(
 
 add_subdirectory(client)
 add_subdirectory(daemon)
+add_subdirectory(network)
 add_subdirectory(petname)
 add_subdirectory(platform)
 add_subdirectory(rpc)
 add_subdirectory(simplestreams)
+

@@ -19,25 +19,74 @@
 
 #include "ubuntu_image_host.h"
 
+#include <multipass/query.h>
+#include <multipass/simple_streams_index.h>
+#include <multipass/url_downloader.h>
+
+#include <QUrl>
+
 namespace mp = multipass;
 
-mp::VMImage mp::UbuntuVMImageHost::fetch(VMImageQuery const& query)
+namespace
 {
-    VMImage image_info;
+auto download_manifest(const QString& host_url, const QString& index_path, mp::URLDownloader* url_downloader)
+{
+    auto json_index = url_downloader->download({host_url + index_path});
+    auto index = mp::SimpleStreamsIndex::fromJson(json_index);
 
-    QObject::connect(&ss_mgr, &mp::SimpleStreams::progress, [this] (int const& percentage) {
-        emit progress(percentage);
-    });
-    image_info.image_path = ss_mgr.download_image_by_hash(query.query_string);
-    return image_info;
+    auto json_manifest = url_downloader->download({host_url + index.manifest_path});
+    return mp::SimpleStreamsManifest::fromJson(json_manifest);
 }
 
-void mp::UbuntuVMImageHost::update_image_manifest()
+mp::VMImageInfo with_location_fully_resolved(const QString& host_url, const mp::VMImageInfo& info)
 {
-    ss_mgr.update_ss_manifest();
+    return {info.aliases,
+            info.release,
+            host_url + info.image_location,
+            host_url + info.kernel_location,
+            host_url + info.initrd_location,
+            info.id};
+}
 }
 
-std::string mp::UbuntuVMImageHost::get_image_hash_for_query(std::string query_string)
+mp::UbuntuVMImageHost::UbuntuVMImageHost(QString host_url, QString index_path, URLDownloader* downloader,
+                                         std::chrono::seconds manifest_time_to_live)
+    : manifest_time_to_live{manifest_time_to_live},
+      url_downloader{downloader},
+      host_url{host_url},
+      index_path{index_path}
 {
-    return ss_mgr.get_image_hash(query_string);
+}
+
+mp::VMImageInfo mp::UbuntuVMImageHost::info_for(const Query& query)
+{
+    update_manifest();
+    auto key = QString::fromStdString(query.release);
+    if (key.isEmpty())
+        key = "default";
+    auto it = manifest->image_records.find(key);
+    if (it == manifest->image_records.end())
+        throw std::runtime_error("unable to find query on manifest");
+
+    const auto info = it.value();
+    return with_location_fully_resolved(host_url, *info);
+}
+
+void mp::UbuntuVMImageHost::for_each_entry_do(const Action& action)
+{
+    update_manifest();
+    for (const auto& product : manifest->products)
+    {
+        action(with_location_fully_resolved(host_url, product));
+    }
+}
+
+void mp::UbuntuVMImageHost::update_manifest()
+{
+    const auto now = std::chrono::steady_clock::now();
+    if ((now - last_update) > manifest_time_to_live || manifest == nullptr)
+    {
+        manifest = download_manifest(host_url, index_path, url_downloader);
+        last_update = now;
+    }
 }

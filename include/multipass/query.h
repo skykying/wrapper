@@ -13,20 +13,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Gerry Boland <gerry.boland@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ *
  */
 
-#ifndef MULTIPASS_STUB_VM_IMAGE_FETCHER_H
-#define MULTIPASS_STUB_VM_IMAGE_FETCHER_H
+#ifndef MULTIPASS_QUERY_H
+#define MULTIPASS_QUERY_H
 
-#include <multipass/vm_image_fetcher.h>
+#include <string>
 
-struct StubVMImageFetcher final : public multipass::VMImageFetcher
+namespace multipass
 {
-    multipass::VMImage fetch(const multipass::VMImageQuery&) final
-    {
-        return multipass::VMImage();
-    }
+class Query
+{
+public:
+    std::string name;
+    std::string release;
+    std::string kernel_name;
+    bool persistent;
 };
-
-#endif // MULTIPASS_STUB_VM_IMAGE_FETCHER_H
+}
+#endif // MULTIPASS_QUERY_H

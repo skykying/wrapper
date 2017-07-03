@@ -13,21 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Chris Townsend <christopher.townsend@canonical.com> 
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_VIRTUAL_MACHINE_QUERY_H
-#define MULTIPASS_VIRTUAL_MACHINE_QUERY_H
+#ifndef MULTIPASS_VM_IMAGE_INFO_H
+#define MULTIPASS_VM_IMAGE_INFO_H
 
-#include <string>
+#include <QString>
+#include <QStringList>
 
 namespace multipass
 {
-class VMImageQuery
+class VMImageInfo
 {
 public:
-    std::string query_string;
+    const QStringList aliases;
+    const QString release;
+    const QString image_location;
+    const QString kernel_location;
+    const QString initrd_location;
+    const QString id;
 };
 }
-#endif // MULTIPASS_VIRTUAL_MACHINE_QUERY_H
+#endif // MULTIPASS_VM_IMAGE_INFO_H

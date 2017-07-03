@@ -13,19 +13,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Gerry Boland <gerry.boland@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ *
  */
 
-#ifndef MULTIPASS_MOCK_VM_IMAGE_FETCHER_H
-#define MULTIPASS_MOCK_VM_IMAGE_FETCHER_H
-
-#include <multipass/vm_image_fetcher.h>
-#include <multipass/vm_image_query.h>
-
-#include <gmock/gmock.h>
-
-struct MockVMImageFetcher final : public multipass::VMImageFetcher
+#ifndef MULTIPASS_FETCH_TYPE_H
+#define MULTIPASS_FETCH_TYPE_H
+namespace multipass
 {
-    MOCK_METHOD1(fetch, multipass::VMImage(const multipass::VMImageQuery&));
+enum class FetchType
+{
+    ImageOnly,
+    ImageKernelAndInitrd
 };
-#endif // MULTIPASS_MOCK_VM_IMAGE_FETCHER_H
+}
+#endif //MULTIPASS_FETCH_TYPE_H

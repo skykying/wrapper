@@ -1,8 +1,8 @@
 {
   "index": {
     "com.ubuntu.cloud:released:download": {
-      "datatype": "mock",
-      "path": "test_manifest.json",
+      "datatype": "bad-type",
+      "path": "bad_manifest.json",
       "updated": "Thu, 18 May 2017 09:18:01 +0000",
       "products": [
         "com.ubuntu.cloud:server:16.04:amd64"

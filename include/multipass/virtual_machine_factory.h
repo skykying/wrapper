@@ -20,12 +20,13 @@
 #ifndef MULTIPASS_VIRTUAL_MACHINE_FACTORY_H
 #define MULTIPASS_VIRTUAL_MACHINE_FACTORY_H
 
+#include <multipass/fetch_type.h>
 #include <multipass/virtual_machine.h>
+#include <multipass/vm_image.h>
 
 namespace multipass
 {
 class VirtualMachineDescription;
-class VMImageFetcher;
 class VMImageHost;
 class VMStatusMonitor;
 class VirtualMachineFactory
@@ -33,11 +34,11 @@ class VirtualMachineFactory
 public:
     using UPtr = std::unique_ptr<VirtualMachineFactory>;
     virtual ~VirtualMachineFactory() = default;
-    virtual VirtualMachine::UPtr
-    create_virtual_machine(const VirtualMachineDescription& desc,
-                           VMStatusMonitor& monitor) = 0;
+    virtual VirtualMachine::UPtr create_virtual_machine(const VirtualMachineDescription& desc,
+                                                        VMStatusMonitor& monitor) = 0;
 
-    virtual std::unique_ptr<VMImageFetcher> create_image_fetcher(const std::unique_ptr<VMImageHost>& host) = 0;
+    virtual FetchType fetch_type() = 0;
+    virtual VMImage prepare(const VMImage& source_image) = 0;
 
 protected:
     VirtualMachineFactory() = default;

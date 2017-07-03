@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Recover::run(ArgParser *parser)
+mp::ReturnCode cmd::Recover::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -58,7 +58,7 @@ QString cmd::Recover::description() const
     return QStringLiteral("Recovers the instance from the trash so it can be used again.");
 }
 
-mp::ParseCode cmd::Recover::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Recover::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of instance to recover", "<name>");
 

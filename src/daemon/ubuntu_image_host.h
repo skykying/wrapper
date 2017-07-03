@@ -20,22 +20,30 @@
 #ifndef MULTIPASS_UBUNTU_IMAGE_HOST_H
 #define MULTIPASS_UBUNTU_IMAGE_HOST_H
 
-#include <multipass/simplestreams.h>
-#include <multipass/vm_image.h>
+#include <multipass/simple_streams_manifest.h>
 #include <multipass/vm_image_host.h>
-#include <multipass/vm_image_query.h>
+
+#include <chrono>
 
 namespace multipass
 {
+class URLDownloader;
 class UbuntuVMImageHost final : public VMImageHost
 {
 public:
-    VMImage fetch(VMImageQuery const& query) override;
-    void update_image_manifest() override;
-    std::string get_image_hash_for_query(std::string query_string) override;
+    UbuntuVMImageHost(QString host_url, QString index_path, URLDownloader* downloader,
+                      std::chrono::seconds manifest_time_to_live);
+    VMImageInfo info_for(const Query& query) override;
+    void for_each_entry_do(const Action& action) override;
 
 private:
-    SimpleStreams ss_mgr;
+    void update_manifest();
+    std::chrono::seconds manifest_time_to_live;
+    std::chrono::steady_clock::time_point last_update;
+    std::unique_ptr<multipass::SimpleStreamsManifest> manifest;
+    URLDownloader* const url_downloader;
+    QString host_url;
+    QString index_path;
 };
 }
 #endif // MULTIPASS_UBUNTU_IMAGE_HOST_H

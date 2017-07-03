@@ -24,9 +24,11 @@
 
 struct StubVMImageVault final : public multipass::VMImageVault
 {
-    void add_vm_image(multipass::VMImage) override{};
-    multipass::VMImage find_image(const multipass::VaultQuery&) override { return {}; }
-    void for_each_image_do(const multipass::VMImageVault::Action&) override{};
+    virtual multipass::VMImage fetch_image(const multipass::FetchType&, const multipass::Query&,
+                                           const PrepareAction& prepare, const multipass::ProgressMonitor&)
+    {
+        return prepare({});
+    };
 };
 
 #endif // MULTIPASS_STUB_VM_IMAGE_VAULT_H

@@ -18,7 +18,6 @@ add_library(qemu_backend STATIC
   qemu_virtual_machine_factory.cpp
   qemu_virtual_machine.cpp
   qemu_virtual_machine_execute.cpp
-  qemu_vm_image_fetcher.cpp
   openssh_key_provider.cpp
   openssh_key_provider.h)
 

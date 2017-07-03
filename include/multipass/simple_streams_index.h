@@ -13,20 +13,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Gerry Boland <gerry.boland@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ *
  */
 
-#include "qemu_vm_image_fetcher.h"
+#ifndef MULTIPASS_SIMPLE_STREAMS_INDEX_H
+#define MULTIPASS_SIMPLE_STREAMS_INDEX_H
 
-#include <multipass/vm_image_host.h>
+#include <QByteArray>
+#include <QString>
 
-namespace mp = multipass;
-
-mp::QemuVMImageFetcher::QemuVMImageFetcher(const std::unique_ptr<mp::VMImageHost>& image_host) : image_host(image_host)
+namespace multipass
 {
-}
-
-mp::VMImage mp::QemuVMImageFetcher::fetch(const mp::VMImageQuery& query)
+class SimpleStreamsIndex
 {
-    return image_host->fetch(query);
+public:
+    static SimpleStreamsIndex fromJson(QByteArray json);
+
+    const QString manifest_path;
+    const QString updated_at;
+};
 }
+#endif // MULTIPASS_SIMPLE_STREAMS_INDEX_H

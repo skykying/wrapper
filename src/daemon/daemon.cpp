@@ -21,15 +21,14 @@
 #include "base_cloud_init_config.h"
 
 #include <multipass/name_generator.h>
+#include <multipass/query.h>
 #include <multipass/ssh_key.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image.h>
-#include <multipass/vm_image_fetcher.h>
 #include <multipass/vm_image_host.h>
-#include <multipass/vm_image_query.h>
 #include <multipass/vm_image_vault.h>
 
 #include <yaml-cpp/yaml.h>
@@ -39,10 +38,45 @@
 
 namespace mp = multipass;
 
+namespace
+{
+mp::Query query_from(const mp::CreateRequest* request, const std::string& name)
+{
+    // TODO: persistence should be specified by the rpc as well
+    return {name, request->image(), request->kernel_name(), false};
+}
+
+auto make_cloud_init_config(const mp::SshPubKey& key)
+{
+    auto config = YAML::Load(mp::base_cloud_init_config);
+    std::stringstream ssh_key_line;
+    ssh_key_line << "ssh-rsa"
+                 << " " << key.as_base64() << " "
+                 << "multipass@localhost";
+    config["ssh_authorized_keys"].push_back(ssh_key_line.str());
+    return config;
+}
+
+mp::VirtualMachineDescription to_machine_desc(const mp::CreateRequest* request, const std::string& name,
+                                              const mp::VMImage& image, YAML::Node cloud_init_config)
+{
+    using mpvm = mp::VirtualMachineDescription;
+    return {
+        request->num_cores(),        request->mem_size(), static_cast<mpvm::MBytes>(request->disk_space()), name, image,
+        std::move(cloud_init_config)};
+}
+
+auto name_from(const mp::CreateRequest* request, mp::NameGenerator& name_gen)
+{
+    return request->instance_name().empty() ? name_gen.make_name() : request->instance_name();
+}
+}
+
 mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon)
     : daemon_rpc{server_address}, daemon_thread{[this, daemon] {
           QObject::connect(&daemon_rpc, &DaemonRpc::on_create, daemon, &Daemon::create, Qt::BlockingQueuedConnection);
-          QObject::connect(&daemon_rpc, &DaemonRpc::on_empty_trash, daemon, &Daemon::empty_trash, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_empty_trash, daemon, &Daemon::empty_trash,
+                           Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_exec, daemon, &Daemon::exec, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_info, daemon, &Daemon::info, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
@@ -61,79 +95,56 @@ mp::DaemonRunner::~DaemonRunner()
     daemon_rpc.shutdown();
 }
 
-
 mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
     : config{std::move(the_config)}, runner(config->server_address, this)
 {
 }
 
 grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
-                                grpc::ServerWriter<CreateReply>* reply)
+                                grpc::ServerWriter<CreateReply>* server)
+try
 {
-    VirtualMachineDescription desc;
+    auto name = name_from(request, *config->name_generator);
 
-    desc.mem_size = request->mem_size();
-    desc.num_cores = request->num_cores();
-
-    if (request->instance_name().empty())
+    if (vm_instances.find(name) != vm_instances.end())
     {
-        desc.vm_name = config->name_generator->make_name();
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" already exists", "");
     }
 
-    VMImageQuery vm_image_query;
-
-    if (request->image().empty())
-    {
-        vm_image_query.query_string = "xenial";
-    }
-    else
-    {
-        vm_image_query.query_string = request->image();
-    }
-
-    std::string image_hash;
-
-    try
-    {
-        config->image_host->update_image_manifest();
-        image_hash = config->image_host->get_image_hash_for_query(vm_image_query.query_string);
-    }
-    catch (const std::runtime_error& error)
-    {
-        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, error.what(), "");
-    }
-
-    CreateReply create_reply;
-    QObject::connect(config->image_host.get(), &mp::VMImageHost::progress, [=](int const& percentage) {
+    auto query = query_from(request, name);
+    auto download_monitor = [server](int percentage) {
         CreateReply create_reply;
         create_reply.set_download_progress(std::to_string(percentage));
-        reply->Write(create_reply);
-    });
+        server->Write(create_reply);
+    };
 
-    auto fetcher = config->factory->create_image_fetcher(config->image_host);
-    desc.image = fetcher->fetch(vm_image_query);
+    auto prepare_action = [this](const VMImage& source_image) -> VMImage {
+        return config->factory->prepare(source_image);
+    };
 
-    desc.cloud_init_config = YAML::Load(mp::base_cloud_init_config);
+    auto fetch_type = config->factory->fetch_type();
+    auto vm_image = config->vault->fetch_image(fetch_type, query, prepare_action, download_monitor);
+    auto cloud_init_config = make_cloud_init_config(*config->ssh_key);
+    auto vm_desc = to_machine_desc(request, name, vm_image, std::move(cloud_init_config));
 
-    std::stringstream ssh_key_line;
-    ssh_key_line << "ssh-rsa"
-                 << " " << config->ssh_key->as_base64() << " "
-                 << "multipass@localhost";
+    vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
 
-    desc.cloud_init_config["ssh_authorized_keys"].push_back(ssh_key_line.str());
+    CreateReply reply;
+    reply.set_create_complete("Create setup complete.");
+    server->Write(reply);
 
-    vms.push_back(config->factory->create_virtual_machine(desc, *this));
-
-    create_reply.set_create_complete("Create setup complete.");
-    reply->Write(create_reply);
-
-    create_reply.set_vm_instance_name(desc.vm_name);
-    reply->Write(create_reply);
+    reply.set_vm_instance_name(name);
+    server->Write(reply);
 
     return grpc::Status::OK;
 }
+catch(const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request, EmptyTrashReply* response)
+grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request,
+                                     EmptyTrashReply* response)
 {
     return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
 }

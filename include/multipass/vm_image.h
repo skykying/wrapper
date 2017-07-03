@@ -28,6 +28,9 @@ class VMImage
 {
 public:
     Path image_path;
+    Path kernel_path;
+    Path initrd_path;
+    std::string id;
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_IMAGE_H

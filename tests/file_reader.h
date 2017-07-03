@@ -13,30 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Gerry Boland <gerry.boland@canonical.com>
+ * Authored by: Chris Townsend <christopher.townsend@canonical.com>
+ *              Alberto Aguirre <alberto.aguirre@canonical.com>
+ *
  */
 
-#ifndef QEMU_VM_IMAGE_FETCHER_H
-#define QEMU_VM_IMAGE_FETCHER_H
+#ifndef MULTIPASS_FILE_READER_H
+#define MULTIPASS_FILE_READER_H
 
-#include <multipass/vm_image_fetcher.h>
+#include <QByteArray>
 
 namespace multipass
 {
-class VMImageHost;
-
-class QemuVMImageFetcher : public VMImageFetcher
+namespace test
 {
-public:
-    QemuVMImageFetcher(const std::unique_ptr<VMImageHost>& image_host);
-    ~QemuVMImageFetcher() = default;
-
-    VMImage fetch(const VMImageQuery& query) override;
-
-private:
-    const std::unique_ptr<VMImageHost>& image_host;
-};
-
-} // namespace multipass
-
-#endif // QEMU_VM_IMAGE_FETCHER_H
+QByteArray load(QString path);
+QByteArray load_test_file(const char* file_name);
+}
+}
+#endif // MULTIPASS_FILE_READER_H

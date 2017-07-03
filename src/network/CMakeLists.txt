@@ -14,11 +14,9 @@
 #
 # Authored by: Chris Townsend <christopher.townsend@canonical.com>
 
-add_library(simplestreams STATIC
-            simple_streams_index.cpp
-            simple_streams_manifest.cpp)
+add_library(network STATIC
+            url_downloader.cpp)
 
-target_link_libraries(simplestreams
+target_link_libraries(network
   Qt5::Core
-  Qt5::Network
-  network)
+  Qt5::Network)

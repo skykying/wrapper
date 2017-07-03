@@ -26,7 +26,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Exec::run(ArgParser *parser)
+mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -66,7 +66,7 @@ QString cmd::Exec::description() const
     return QStringLiteral("Execute a command on the instance");
 }
 
-mp::ParseCode cmd::Exec::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Exec::parse_args(mp::ArgParser* parser)
 {
     parser->addPositionalArgument("name", "Name of instance to execute the command on", "<name>");
     parser->addPositionalArgument("command", "Command to execute on the instance", "[--] <command>");

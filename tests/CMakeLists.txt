@@ -43,14 +43,19 @@ else()
 endif()
 
 add_executable(multipass_tests
+  file_reader.cpp
   main.cpp
   test_cli_client.cpp
   test_daemon.cpp
+  test_data_path.cpp
+  test_image_vault.cpp
   test_petname.cpp
-  test_simplestreams.cpp
+  test_simple_streams_index.cpp
+  test_simple_streams_manifest.cpp
+  test_ubuntu_image_host.cpp
 
   ${BACKEND_TESTS}
-  )
+)
 
 target_link_libraries(multipass_tests
   daemon
@@ -65,4 +70,4 @@ target_link_libraries(multipass_tests
 
 add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)
 
-file(COPY test_data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY test_data DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

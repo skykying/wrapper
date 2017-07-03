@@ -25,7 +25,7 @@ namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
-mp::ReturnCode cmd::Version::run(ArgParser *parser)
+mp::ReturnCode cmd::Version::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
     if (ret != ParseCode::Ok)
@@ -60,7 +60,7 @@ QString cmd::Version::description() const
                           "and the multipass daemon.");
 }
 
-mp::ParseCode cmd::Version::parse_args(ArgParser *parser)
+mp::ParseCode cmd::Version::parse_args(mp::ArgParser* parser)
 {
     return parser->commandParse(this);
 }

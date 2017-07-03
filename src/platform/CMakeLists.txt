@@ -15,8 +15,7 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(platform STATIC
-  platform.cpp
-  ${PROJECT_SOURCE_DIR}/include/multipass/ssh_key.h)
+  platform.cpp)
 
 if(MSVC)
   target_link_libraries(platform hyperv_backend)

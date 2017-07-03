@@ -13,29 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Gerry Boland <gerry.boland@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
+ *
  */
 
-#ifndef MULTIPASS_VM_IMAGE_FETCHER_H
-#define MULTIPASS_VM_IMAGE_FETCHER_H
+#include "test_data_path.h"
 
-#include <multipass/virtual_machine.h>
-#include <multipass/vm_image.h>
+#include <QCoreApplication>
+#include <QDir>
 
-namespace multipass
+namespace mpt = multipass::test;
+
+QString mpt::test_data_path()
 {
-class VMImageQuery;
-class VMImageFetcher
-{
-public:
-    virtual ~VMImageFetcher() = default;
-
-    virtual VMImage fetch(const VMImageQuery& query) = 0;
-
-protected:
-    VMImageFetcher() = default;
-    VMImageFetcher(const VMImageFetcher&) = delete;
-    VMImageFetcher& operator=(const VMImageFetcher&) = delete;
-};
+    QDir dir{QCoreApplication::applicationDirPath()};
+    const auto test_data_dir_exists = dir.cd("test_data");
+    if (!test_data_dir_exists)
+        throw std::runtime_error("could not find test_data directory");
+    return dir.path()+dir.separator();
 }
-#endif // MULTIPASS_VM_IMAGE_FETCHER_H
+
+QString mpt::test_data_path_for(const char* file_name)
+{
+    QDir dir{test_data_path()};
+    return dir.filePath(file_name);
+}

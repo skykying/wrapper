@@ -26,13 +26,12 @@
 
 #include <gmock/gmock.h>
 
-struct MockVirtualMachineFactory final : public multipass::VirtualMachineFactory
+struct MockVirtualMachineFactory : public multipass::VirtualMachineFactory
 {
-    MOCK_METHOD2(create_virtual_machine,
-                 multipass::VirtualMachine::UPtr(const multipass::VirtualMachineDescription&,
-                                                 multipass::VMStatusMonitor&));
+    MOCK_METHOD2(create_virtual_machine, multipass::VirtualMachine::UPtr(const multipass::VirtualMachineDescription&,
+                                                                         multipass::VMStatusMonitor&));
 
-    MOCK_METHOD1(create_image_fetcher,
-                 std::unique_ptr<multipass::VMImageFetcher>(const std::unique_ptr<multipass::VMImageHost>&));
+    MOCK_METHOD0(fetch_type, multipass::FetchType());
+    MOCK_METHOD1(prepare, multipass::VMImage(const multipass::VMImage&));
 };
 #endif // MULTIPASS_MOCK_VIRTUAL_MACHINE_FACTORY_H
