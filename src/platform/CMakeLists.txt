@@ -18,8 +18,11 @@ add_library(platform STATIC
   platform.cpp
   ${PROJECT_SOURCE_DIR}/include/multipass/ssh_key.h)
 
-#TODO: only link to appropriate backend per platform
-target_link_libraries(platform
-  qemu_backend)
+if(MSVC)
+  target_link_libraries(platform hyperv_backend)
+else()
+  target_link_libraries(platform qemu_backend)
+endif()
 
 add_subdirectory(backends)
+

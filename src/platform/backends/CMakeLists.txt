@@ -14,5 +14,8 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-add_subdirectory(qemu)
-add_subdirectory(hyperv)
+if(MSVC)
+  add_subdirectory(hyperv)
+else()
+  add_subdirectory(qemu)
+endif()

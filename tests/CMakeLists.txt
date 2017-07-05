@@ -34,13 +34,20 @@ include_directories(
   ${CMAKE_SOURCE_DIR}
 )
 
+if(MSVC)
+  list(APPEND BACKEND_TESTS test_hyperv_backend.cpp)
+else()
+  list(APPEND BACKEND_TESTS test_qemu_backend.cpp)
+endif()
+
 add_executable(multipass_tests
   main.cpp
   test_cli_client.cpp
   test_daemon.cpp
-  test_qemu_backend.cpp
   test_petname.cpp
   test_simplestreams.cpp
+
+  ${BACKEND_TESTS}
   )
 
 target_link_libraries(multipass_tests

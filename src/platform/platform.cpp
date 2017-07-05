@@ -20,9 +20,13 @@
 #include <multipass/platform.h>
 #include <multipass/virtual_machine_factory.h>
 
+#ifdef MULTIPASS_PLATFORM_POSIX
 #include "backends/qemu/openssh_key_provider.h"
 #include "backends/qemu/qemu_virtual_machine_execute.h"
 #include "backends/qemu/qemu_virtual_machine_factory.h"
+#else
+#include "backends/hyperv/hyperv_virtual_machine_factory.h"
+#endif
 
 namespace mp = multipass;
 
@@ -35,15 +39,27 @@ std::string mp::Platform::default_server_address()
 
 mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
 {
+#ifdef MULTIPASS_PLATFORM_POSIX
     return std::make_unique<QemuVirtualMachineFactory>();
+#else
+    return std::make_unique<HyperVVirtualMachineFactory>();
+#endif
 }
 
 mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute()
 {
+#ifdef MULTIPASS_PLATFORM_POSIX
     return std::make_unique<QemuVirtualMachineExecute>();
+#else
+    return nullptr;
+#endif
 }
 
 std::unique_ptr<mp::SshPubKey> mp::Platform::public_key()
 {
+#ifdef MULTIPASS_PLATFORM_POSIX
     return OpenSSHKeyProvider::public_key();
+#else
+    return nullptr;
+#endif
 }

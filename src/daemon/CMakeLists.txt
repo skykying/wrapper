@@ -35,8 +35,7 @@ target_link_libraries(daemon
 add_executable(multipassd daemon_main.cpp)
 
 target_link_libraries(multipassd
-  daemon
-  qemu_backend)
+  daemon)
 
 install(TARGETS multipassd
   DESTINATION bin)
