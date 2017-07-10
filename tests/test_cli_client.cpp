@@ -158,24 +158,34 @@ TEST_F(Client, empty_trash_cmd_help_ok)
 }
 
 // exec cli tests
-TEST_F(Client, exec_cmd_ok_with_correct_args)
+TEST_F(Client, exec_cmd_double_dash_ok_cmd_arg)
 {
     EXPECT_THAT(send_command({"exec", "foo", "--", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
-TEST_F(Client, exec_cmd_fails_with_missing_name_arg)
+TEST_F(Client, exec_cmd_double_dash_ok_cmd_arg_with_opts)
 {
-    EXPECT_THAT(send_command({"exec", "--", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+    EXPECT_THAT(send_command({"exec", "foo", "--", "cmd", "--foo", "--bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
-TEST_F(Client, exec_cmd_fails_with_missing_double_dash)
-{
-    EXPECT_THAT(send_command({"exec", "foo", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
-}
-
-TEST_F(Client, exec_cmd_fails_with_missing_command_to_exec)
+TEST_F(Client, exec_cmd_double_dash_fails_missing_cmd_arg)
 {
     EXPECT_THAT(send_command({"exec", "foo", "--"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, exec_cmd_no_double_dash_ok_cmd_arg)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "cmd"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, exec_cmd_no_double_dash_ok_multiple_args)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "cmd", "bar"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, exec_cmd_no_double_dash_fails_cmd_arg_with_opts)
+{
+    EXPECT_THAT(send_command({"exec", "foo", "cmd", "--foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
 }
 
 TEST_F(Client, exec_cmd_help_ok)

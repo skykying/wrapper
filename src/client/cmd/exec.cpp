@@ -78,9 +78,9 @@ mp::ParseCode cmd::Exec::parse_args(ArgParser *parser)
         return status;
     }
 
-    if (!parser->isExecLineValid())
+    if (parser->positionalArguments().count() < 2)
     {
-        cerr << "Incorrect arguments supplied" << std::endl;
+        cerr << "Wrong number of arguments" << std::endl;
         status = ParseCode::CommandLineError;
     }
     else

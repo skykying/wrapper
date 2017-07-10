@@ -212,57 +212,6 @@ bool mp::ArgParser::isSet(const QCommandLineOption& option) const
     return parser.isSet(option);
 }
 
-// When the 'exec' command is called, we need to validate the number of positional arguments
-// before the '--' that signifies the command to execute in the VM.
-//  1. Ensure 3 postional args before '--'.
-//  2. Ensure a '--' is found.
-//  3. Ensure the command positonal arg is found after '--' and is before any of it's options.
-bool mp::ArgParser::isExecLineValid() const
-{
-   int positional_arg_count = 0;
-   bool double_dash_found = false;
-
-   for (QStringList::const_iterator iter = arguments.begin(); iter != arguments.end(); ++iter)
-   {
-       QString arg = *iter;
-
-       if (positional_arg_count == 4 && double_dash_found)
-       {
-           break;
-       }
-       if (arg.startsWith("--"))
-       {
-           if (positional_arg_count == 3 && double_dash_found)
-           {
-               return false;
-           }
-           else if (arg.length() == 2)
-           {
-               if (positional_arg_count < 3)
-               {
-                   return false;
-               }
-               double_dash_found = true;
-           }
-           continue;
-       }
-       else if (arg.startsWith('-'))
-       {
-           if (positional_arg_count == 3 && double_dash_found)
-           {
-               return false;
-           }
-           continue;
-       }
-       else
-       {
-           ++positional_arg_count;
-       }
-    }
-
-    return double_dash_found;
-}
-
 QString mp::ArgParser::value(const QCommandLineOption& option) const
 {
     return parser.value(option);

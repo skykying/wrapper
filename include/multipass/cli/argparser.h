@@ -43,7 +43,6 @@ public:
     cmd::Command* chosenCommand() const;
 
     bool isSet(const QCommandLineOption& option) const;
-    bool isExecLineValid() const;
 
     QString value(const QCommandLineOption& option) const;
 
