@@ -40,7 +40,7 @@ auto construct_ssh_command()
     }
 
     // The following ssh command will undoubtedly change in The Future
-    QString ssh_cmd("ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + private_key_path + " ubuntu@localhost");
+    QString ssh_cmd("ssh -p 2222 -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + private_key_path + " ubuntu@localhost");
 
     return ssh_cmd.toStdString();
 }

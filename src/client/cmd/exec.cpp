@@ -80,7 +80,7 @@ mp::ParseCode cmd::Exec::parse_args(ArgParser *parser)
 
     if (!parser->isExecLineValid())
     {
-        cerr << "Not enough arguments supplied" << std::endl;
+        cerr << "Incorrect arguments supplied" << std::endl;
         status = ParseCode::CommandLineError;
     }
     else
