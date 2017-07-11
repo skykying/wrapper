@@ -22,7 +22,6 @@
 
 #include <QEventLoop>
 #include <QFile>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>
 
@@ -59,27 +58,29 @@ QByteArray download(QNetworkAccessManager& manager, QUrl const& url, Action&& ac
 }
 }
 
+mp::URLDownloader::URLDownloader(const mp::Path& cache_dir)
+{
+    network_cache.setCacheDirectory(cache_dir);
+    manager.setCache(&network_cache);
+}
+
 void mp::URLDownloader::download_to(const QUrl& url, const QString& file_name, const mp::ProgressMonitor& monitor)
 {
     QFile file{file_name};
     file.open(QIODevice::ReadWrite | QIODevice::Truncate);
 
-    auto progress_monitor = [&file, &monitor](QNetworkReply* reply, qint64 bytes_received, qint64 bytes_total)
-    {
+    auto progress_monitor = [&file, &monitor](QNetworkReply* reply, qint64 bytes_received, qint64 bytes_total) {
         auto progress = (100 * bytes_received + bytes_total / 2) / bytes_total;
         file.write(reply->readAll());
         monitor(progress);
     };
 
-    auto on_error = [&file]()
-    {
-        file.remove();
-    };
+    auto on_error = [&file]() { file.remove(); };
 
     ::download(manager, url, progress_monitor, on_error);
 }
 
 QByteArray mp::URLDownloader::download(const QUrl& url)
 {
-    return ::download(manager, url, [](QNetworkReply*, qint64, qint64) {}, []{});
+    return ::download(manager, url, [](QNetworkReply*, qint64, qint64) {}, [] {});
 }

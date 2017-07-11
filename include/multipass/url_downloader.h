@@ -21,10 +21,12 @@
 #ifndef MULTIPASS_URL_DOWNLOADER_H
 #define MULTIPASS_URL_DOWNLOADER_H
 
+#include <multipass/path.h>
 #include <multipass/progress_monitor.h>
 
 #include <QByteArray>
 #include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
 
 class QUrl;
 class QString;
@@ -34,11 +36,13 @@ class URLDownloader
 {
 public:
     URLDownloader() = default;
+    URLDownloader(const Path& cache_dir);
     virtual void download_to(const QUrl& url, const QString& file_name, const ProgressMonitor& monitor);
     virtual QByteArray download(const QUrl& url);
 
 private:
     QNetworkAccessManager manager;
+    QNetworkDiskCache network_cache;
     URLDownloader(const URLDownloader&) = delete;
     URLDownloader& operator=(const URLDownloader&) = delete;
 };

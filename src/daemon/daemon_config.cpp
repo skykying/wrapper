@@ -31,12 +31,12 @@
 namespace mp = multipass;
 std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
 {
-    if (url_downloader == nullptr)
-        url_downloader = std::make_unique<URLDownloader>();
-    if (factory == nullptr)
-        factory = Platform::vm_backend();
     if (cache_directory.isEmpty())
         cache_directory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    if (url_downloader == nullptr)
+        url_downloader = std::make_unique<URLDownloader>(cache_directory);
+    if (factory == nullptr)
+        factory = Platform::vm_backend();
     if (image_host == nullptr)
         image_host = std::make_unique<mp::UbuntuVMImageHost>("http://cloud-images.ubuntu.com/releases/",
                                                              url_downloader.get(), std::chrono::minutes{5});
