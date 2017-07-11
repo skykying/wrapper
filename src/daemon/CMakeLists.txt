@@ -19,6 +19,7 @@ add_library(daemon STATIC
   daemon_config.cpp
   daemon_rpc.cpp
   default_vm_image_vault.cpp
+  json_writer.cpp
   ubuntu_image_host.cpp)
 
 target_link_libraries(daemon

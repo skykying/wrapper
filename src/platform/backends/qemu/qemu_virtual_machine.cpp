@@ -147,15 +147,13 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
     process->setArguments(args);
     qDebug() << "QProcess::arguments" << process->arguments();
 
-    process->start();
-
     return process;
 }
 }
 
 mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_forwarding_port,
                                            VMStatusMonitor& monitor)
-    : state{State::running},
+    : state{State::off},
       ssh_fowarding_port{ssh_forwarding_port},
       monitor{&monitor},
       cloud_init_image{make_cloud_init_image(desc.cloud_init_config, desc.vm_name)},

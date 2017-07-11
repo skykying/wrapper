@@ -18,6 +18,7 @@
  */
 
 #include "default_vm_image_vault.h"
+#include "json_writer.h"
 
 #include <multipass/query.h>
 #include <multipass/url_downloader.h>
@@ -34,7 +35,7 @@ namespace mp = multipass;
 
 namespace
 {
-constexpr char instance_db_name[] = "multipassd-instance-records.json";
+constexpr char instance_db_name[] = "multipassd-instance-image-records.json";
 constexpr char image_db_name[] = "multipassd-image-records.json";
 
 auto filename_for(const QString& path)
@@ -118,15 +119,6 @@ std::unordered_map<std::string, mp::VaultRecord> load_db(const QString& db_name)
                                       {"", release.toStdString(), persistent.toBool()}};
     }
     return reconstructed_records;
-}
-
-void write_json(const QJsonObject& root, QString file_name)
-{
-    QJsonDocument doc{root};
-    auto raw_json = doc.toJson();
-    QFile db_file{file_name};
-    db_file.open(QIODevice::ReadWrite | QIODevice::Truncate);
-    db_file.write(raw_json);
 }
 
 QString copy(const QString& file_name, const QDir& output_dir)

@@ -38,6 +38,7 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QTemporaryDir>
 
 #include <memory>
 #include <sstream>
@@ -87,9 +88,14 @@ struct StubNameGenerator : public mp::NameGenerator
 
 struct Daemon : public Test
 {
-    void SetUp() override
+    Daemon()
     {
-        loop.reset(new QEventLoop());
+        config_builder.server_address = server_address;
+        config_builder.cache_directory = cache_dir.path();
+        config_builder.vault = std::make_unique<StubVMImageVault>();
+        config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
+        config_builder.image_host = std::make_unique<StubVMImageHost>();
+        config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     }
 
     void send_command(std::vector<std::string> command, std::ostream& cout = std::cout)
@@ -116,18 +122,20 @@ struct Daemon : public Test
                 }
                 client.run(args);
             }
-            loop->quit();
+            loop.quit();
         });
-        loop->exec();
+        loop.exec();
         t.join();
     }
 
-#ifdef WIN32
+#ifdef MULTIPASS_PLATFORM_WINDOWS
     std::string server_address{"localhost:50051"};
 #else
     std::string server_address{"unix:/tmp/test-multipassd.socket"};
 #endif
-    std::unique_ptr<QEventLoop> loop; // needed as cross-thread signal/slots used internally by mp::Daemon
+    QEventLoop loop; // needed as cross-thread signal/slots used internally by mp::Daemon
+    QTemporaryDir cache_dir;
+    mp::DaemonConfigBuilder config_builder;
 };
 
 TEST_F(Daemon, receives_commands)
@@ -164,11 +172,7 @@ TEST_F(Daemon, creates_virtual_machines)
     auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
-    mp::DaemonConfigBuilder config_builder;
     config_builder.factory = std::move(mock_factory);
-    config_builder.vault = std::make_unique<StubVMImageVault>();
-    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
-    config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
@@ -182,11 +186,7 @@ TEST_F(Daemon, on_creation_hooks_up_platform_prepare)
     auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
-    mp::DaemonConfigBuilder config_builder;
     config_builder.factory = std::move(mock_factory);
-    config_builder.vault = std::make_unique<StubVMImageVault>();
-    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
-    config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, prepare(_));
@@ -196,10 +196,9 @@ TEST_F(Daemon, on_creation_hooks_up_platform_prepare)
 
 TEST_F(Daemon, provides_version)
 {
-    mp::Daemon daemon{make_config(server_address)};
+    mp::Daemon daemon{config_builder.build()};
 
     std::stringstream stream;
-
     send_command({"version"}, stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(mp::version_string));
@@ -209,17 +208,10 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
 {
     const std::string expected_name{"pied-piper-valley"};
 
-    mp::DaemonConfigBuilder config_builder;
-    config_builder.server_address = server_address;
     config_builder.name_generator = std::make_unique<StubNameGenerator>(expected_name);
-    config_builder.vault = std::make_unique<StubVMImageVault>();
-    config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
-    config_builder.image_host = std::make_unique<StubVMImageHost>();
-    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     mp::Daemon daemon{config_builder.build()};
 
     std::stringstream stream;
-
     send_command({"create"}, stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(expected_name));
@@ -288,12 +280,7 @@ TEST_F(Daemon, default_cloud_init_grows_root_fs)
     auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
     auto mock_factory_ptr = mock_factory.get();
 
-    mp::DaemonConfigBuilder config_builder;
     config_builder.factory = std::move(mock_factory);
-    config_builder.image_host = std::make_unique<StubVMImageHost>();
-    config_builder.vault = std::make_unique<StubVMImageVault>();
-    config_builder.ssh_key = std::make_unique<StubSshPubKey>();
-    config_builder.server_address = server_address;
     mp::Daemon daemon{config_builder.build()};
 
     EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))

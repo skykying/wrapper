@@ -31,6 +31,12 @@
 
 namespace multipass
 {
+struct VMSpecs
+{
+    int num_cores;
+    std::string mem_size;
+    size_t disk_space;
+};
 
 class Daemon;
 class DaemonRunner
@@ -79,7 +85,9 @@ public slots:
     grpc::Status version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response) override;
 
 private:
+    void persist_instances();
     std::unique_ptr<const DaemonConfig> config;
+    std::unordered_map<std::string, VMSpecs> vm_instance_specs;
     std::unordered_map<std::string, VirtualMachine::UPtr> vm_instances;
     DaemonRunner runner;
 

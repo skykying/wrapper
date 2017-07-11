@@ -19,6 +19,7 @@
 
 #include "daemon.h"
 #include "base_cloud_init_config.h"
+#include "json_writer.h"
 
 #include <multipass/name_generator.h>
 #include <multipass/query.h>
@@ -33,6 +34,11 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+
 #include <sstream>
 #include <stdexcept>
 
@@ -40,6 +46,8 @@ namespace mp = multipass;
 
 namespace
 {
+constexpr char instance_db_name[] = "multipassd-vm-instances.json";
+
 mp::Query query_from(const mp::CreateRequest* request, const std::string& name)
 {
     // TODO: persistence should be specified by the rpc as well
@@ -84,6 +92,40 @@ auto name_from(const mp::CreateRequest* request, mp::NameGenerator& name_gen, co
     }
     return requested_name;
 }
+
+std::unordered_map<std::string, mp::VMSpecs> load_db(const mp::Path& cache_path)
+{
+    QDir cache_dir{cache_path};
+    QFile db_file{cache_dir.filePath(instance_db_name)};
+    auto opened = db_file.open(QIODevice::ReadOnly);
+    if (!opened)
+        return {};
+
+    QJsonParseError parse_error;
+    auto doc = QJsonDocument::fromJson(db_file.readAll(), &parse_error);
+    if (doc.isNull())
+        return {};
+
+    auto records = doc.object();
+    if (records.isEmpty())
+        return {};
+
+    std::unordered_map<std::string, mp::VMSpecs> reconstructed_records;
+    for (auto it = records.constBegin(); it != records.constEnd(); ++it)
+    {
+        auto key = it.key().toStdString();
+        auto record = it.value().toObject();
+        if (record.isEmpty())
+            return {};
+
+        auto num_cores = record["num_cores"].toInt();
+        auto mem_size = record["mem_size"].toString();
+        auto disk_space = record["disk_space"].toInt();
+
+        reconstructed_records[key] = {num_cores, mem_size.toStdString(), static_cast<size_t>(disk_space)};
+    }
+    return reconstructed_records;
+}
 }
 
 mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon)
@@ -110,13 +152,29 @@ mp::DaemonRunner::~DaemonRunner()
 }
 
 mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
-    : config{std::move(the_config)}, runner(config->server_address, this)
+    : config{std::move(the_config)},
+      vm_instance_specs{load_db(config->cache_directory)},
+      runner(config->server_address, this)
 {
+    auto stub_prepare = [](const VMImage&) -> VMImage { return {}; };
+    auto stub_progress = [](int progress) {};
+
+    for (auto const& entry : vm_instance_specs)
+    {
+        const auto& name = entry.first;
+        const auto& spec = entry.second;
+
+        Query query;
+        query.name = name;
+
+        auto vm_image = config->vault->fetch_image(config->factory->fetch_type(), query, stub_prepare, stub_progress);
+        mp::VirtualMachineDescription vm_desc{spec.num_cores, spec.mem_size, spec.disk_space, name, vm_image};
+        vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
+    }
 }
 
 grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
-                                grpc::ServerWriter<CreateReply>* server)
-try
+                                grpc::ServerWriter<CreateReply>* server) try
 {
     auto name = name_from(request, *config->name_generator, vm_instances);
 
@@ -141,7 +199,12 @@ try
     auto cloud_init_config = make_cloud_init_config(*config->ssh_key);
     auto vm_desc = to_machine_desc(request, name, vm_image, std::move(cloud_init_config));
 
-    vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
+    auto vm = config->factory->create_virtual_machine(vm_desc, *this);
+    if (vm)
+        vm->start();
+    vm_instances[name] = std::move(vm);
+    vm_instance_specs[name] = {vm_desc.num_cores, vm_desc.mem_size, vm_desc.disk_space};
+    persist_instances();
 
     CreateReply reply;
     reply.set_create_complete("Create setup complete.");
@@ -152,7 +215,7 @@ try
 
     return grpc::Status::OK;
 }
-catch(const std::exception& e)
+catch (const std::exception& e)
 {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
 }
@@ -193,9 +256,8 @@ grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* r
 
 grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
 {
-    auto status_for = [](mp::VirtualMachine::State state)
-    {
-        switch(state)
+    auto status_for = [](mp::VirtualMachine::State state) {
+        switch (state)
         {
         case mp::VirtualMachine::State::running:
             return mp::ListVMInstance::RUNNING;
@@ -268,4 +330,23 @@ void mp::Daemon::on_resume()
 
 void mp::Daemon::on_stop()
 {
+}
+
+void mp::Daemon::persist_instances()
+{
+    auto vm_spec_to_json = [](const mp::VMSpecs& specs) {
+        QJsonObject json;
+        json.insert("num_cores", specs.num_cores);
+        json.insert("mem_size", QString::fromStdString(specs.mem_size));
+        json.insert("disk_space", static_cast<int>(specs.disk_space));
+        return json;
+    };
+    QJsonObject instance_records_json;
+    for (const auto& record : vm_instance_specs)
+    {
+        auto key = QString::fromStdString(record.first);
+        instance_records_json.insert(key, vm_spec_to_json(record.second));
+        QDir cache_dir{config->cache_directory};
+        mp::write_json(instance_records_json, cache_dir.filePath(instance_db_name));
+    }
 }

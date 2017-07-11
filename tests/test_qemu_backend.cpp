@@ -43,11 +43,11 @@ struct QemuBackend : public testing::Test
     mp::QemuVirtualMachineFactory backend;
 };
 
-TEST_F(QemuBackend, creates_in_running_state)
+TEST_F(QemuBackend, creates_in_off_state)
 {
     StubVMStatusMonitor stub_monitor;
     auto machine = backend.create_virtual_machine(default_description, stub_monitor);
-    EXPECT_THAT(machine->current_state(), Eq(mp::VirtualMachine::State::running));
+    EXPECT_THAT(machine->current_state(), Eq(mp::VirtualMachine::State::off));
 }
 
 TEST_F(QemuBackend, machine_sends_monitoring_events)
@@ -55,8 +55,10 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
     mp::QemuVirtualMachineFactory backend;
     MockVMStatusMonitor mock_monitor;
 
-    EXPECT_CALL(mock_monitor, on_resume());
     auto machine = backend.create_virtual_machine(default_description, mock_monitor);
+
+    EXPECT_CALL(mock_monitor, on_resume());
+    machine->start();
 
     EXPECT_CALL(mock_monitor, on_shutdown());
     machine->shutdown();
