@@ -257,11 +257,9 @@ void mp::DefaultVMImageVault::remove(const std::string& name)
     if (name_entry == instance_image_records.end())
         return;
 
-    const auto& record = name_entry->second;
-    delete_file(record.image.image_path);
-    delete_file(record.image.kernel_path);
-    delete_file(record.image.initrd_path);
-    cache_dir.rmdir(QString::fromStdString(name));
+    QDir instance_dir{cache_dir};
+    instance_dir.cd(QString::fromStdString(name));
+    instance_dir.removeRecursively();
 
     instance_image_records.erase(name);
     persist_instance_records();
