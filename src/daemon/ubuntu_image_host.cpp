@@ -29,7 +29,9 @@ namespace mp = multipass;
 
 namespace
 {
-auto download_manifest(const QString& host_url, const QString& index_path, mp::URLDownloader* url_downloader)
+constexpr auto index_path = "streams/v1/index.json";
+
+auto download_manifest(const QString& host_url, mp::URLDownloader* url_downloader)
 {
     auto json_index = url_downloader->download({host_url + index_path});
     auto index = mp::SimpleStreamsIndex::fromJson(json_index);
@@ -49,12 +51,9 @@ mp::VMImageInfo with_location_fully_resolved(const QString& host_url, const mp::
 }
 }
 
-mp::UbuntuVMImageHost::UbuntuVMImageHost(QString host_url, QString index_path, URLDownloader* downloader,
+mp::UbuntuVMImageHost::UbuntuVMImageHost(QString host_url, URLDownloader* downloader,
                                          std::chrono::seconds manifest_time_to_live)
-    : manifest_time_to_live{manifest_time_to_live},
-      url_downloader{downloader},
-      host_url{host_url},
-      index_path{index_path}
+    : manifest_time_to_live{manifest_time_to_live}, url_downloader{downloader}, host_url{host_url}
 {
 }
 
@@ -86,7 +85,7 @@ void mp::UbuntuVMImageHost::update_manifest()
     const auto now = std::chrono::steady_clock::now();
     if ((now - last_update) > manifest_time_to_live || manifest == nullptr)
     {
-        manifest = download_manifest(host_url, index_path, url_downloader);
+        manifest = download_manifest(host_url, url_downloader);
         last_update = now;
     }
 }

@@ -31,8 +31,7 @@ class URLDownloader;
 class UbuntuVMImageHost final : public VMImageHost
 {
 public:
-    UbuntuVMImageHost(QString host_url, QString index_path, URLDownloader* downloader,
-                      std::chrono::seconds manifest_time_to_live);
+    UbuntuVMImageHost(QString host_url, URLDownloader* downloader, std::chrono::seconds manifest_time_to_live);
     VMImageInfo info_for(const Query& query) override;
     void for_each_entry_do(const Action& action) override;
 

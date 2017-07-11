@@ -38,9 +38,8 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
     if (cache_directory.isEmpty())
         cache_directory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     if (image_host == nullptr)
-        image_host =
-            std::make_unique<mp::UbuntuVMImageHost>("http://cloud-images.ubuntu.com/releases/", "streams/v1/index.json",
-                                                    url_downloader.get(), std::chrono::minutes{5});
+        image_host = std::make_unique<mp::UbuntuVMImageHost>("http://cloud-images.ubuntu.com/releases/",
+                                                             url_downloader.get(), std::chrono::minutes{5});
     if (vault == nullptr)
         vault = std::make_unique<DefaultVMImageVault>(image_host.get(), url_downloader.get(), cache_directory);
     if (name_generator == nullptr)

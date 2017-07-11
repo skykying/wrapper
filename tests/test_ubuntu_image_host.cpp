@@ -48,7 +48,7 @@ struct UbuntuImageHost : public testing::Test
 
 TEST_F(UbuntuImageHost, returns_expected_info)
 {
-    mp::UbuntuVMImageHost host{host_url, "good_index.json", &url_downloader, default_ttl};
+    mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
     mp::Query query{"", "xenial", "", false};
     auto info = host.info_for(query);
@@ -59,7 +59,7 @@ TEST_F(UbuntuImageHost, returns_expected_info)
 
 TEST_F(UbuntuImageHost, uses_default_on_unspecified_release)
 {
-    mp::UbuntuVMImageHost host{host_url, "good_index.json", &url_downloader, default_ttl};
+    mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
     mp::Query empty_query{"", "", "", false};
     auto info = host.info_for(empty_query);
@@ -68,15 +68,9 @@ TEST_F(UbuntuImageHost, uses_default_on_unspecified_release)
     EXPECT_THAT(info.id, Eq(expected_id));
 }
 
-TEST_F(UbuntuImageHost, throws_on_bad_index)
-{
-    mp::UbuntuVMImageHost host{host_url, "bad_index.json", &url_downloader, default_ttl};
-    EXPECT_THROW(host.info_for({}), std::runtime_error);
-}
-
 TEST_F(UbuntuImageHost, iterates_over_all_entries)
 {
-    mp::UbuntuVMImageHost host{host_url, "good_index.json", &url_downloader, default_ttl};
+    mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
     std::unordered_set<std::string> ids;
     auto action = [&ids](const mp::VMImageInfo& info)
