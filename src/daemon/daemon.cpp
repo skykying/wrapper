@@ -214,7 +214,15 @@ grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequ
 
 grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    const auto name = request->instance_name();
+    auto it = vm_instances.find(name);
+    if (it == vm_instances.end())
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+    }
+
+    it->second->start();
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
