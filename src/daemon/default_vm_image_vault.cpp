@@ -129,24 +129,16 @@ void write_json(const QJsonObject& root, QString file_name)
     db_file.write(raw_json);
 }
 
-QString make_copy_for_instance(QString file_name, const std::string& instance_name)
+QString copy(const QString& file_name, const QDir& output_dir)
 {
     if (file_name.isEmpty())
         return {};
 
     QFileInfo info{file_name};
-    auto source_name = info.fileName();
-    QDir location{info.absolutePath()};
-    auto new_path = location.filePath(QString::fromStdString(instance_name) + "-" + source_name);
+    const auto source_name = info.fileName();
+    auto new_path = output_dir.filePath(source_name);
     QFile::copy(file_name, new_path);
     return new_path;
-}
-
-mp::VMImage image_for_instance(const std::string& name, const mp::VMImage& prepared_image)
-{
-    return {make_copy_for_instance(prepared_image.image_path, name),
-            make_copy_for_instance(prepared_image.kernel_path, name),
-            make_copy_for_instance(prepared_image.initrd_path, name), prepared_image.id};
 }
 
 void delete_file(const QString& path)
@@ -155,8 +147,9 @@ void delete_file(const QString& path)
     file.remove();
 }
 
-void delete_resources(const mp::VMImage& source_image, const mp::VMImage& prepared_image)
+void remove_source_images(const mp::VMImage& source_image, const mp::VMImage& prepared_image)
 {
+    // The prepare phase may have been a no-op, check and only remove source images
     if (source_image.image_path != prepared_image.image_path)
         delete_file(source_image.image_path);
     if (source_image.kernel_path != prepared_image.kernel_path)
@@ -165,10 +158,26 @@ void delete_resources(const mp::VMImage& source_image, const mp::VMImage& prepar
         delete_file(source_image.initrd_path);
 }
 
+QDir make_dir(const QString& name, const QDir& cache_dir)
+{
+    if (!cache_dir.mkdir(name))
+    {
+        qDebug() << "make_dir: name: " << name;
+        QString dir{cache_dir.filePath(name)};
+        throw std::runtime_error("unable to create directory \'" + dir.toStdString() + "\'");
+    }
+
+    QDir new_dir{cache_dir};
+    new_dir.cd(name);
+    return new_dir;
+}
+
 class DeleteOnException
 {
 public:
-    DeleteOnException(const mp::Path& path) : file(path) {}
+    DeleteOnException(const mp::Path& path) : file(path)
+    {
+    }
     ~DeleteOnException()
     {
         if (std::uncaught_exception())
@@ -176,6 +185,7 @@ public:
             file.remove();
         }
     }
+
 private:
     QFile file;
 };
@@ -209,23 +219,26 @@ mp::VMImage mp::DefaultVMImageVault::fetch_image(const FetchType& fetch_type, co
     {
         const auto& record = it->second;
         const auto prepared_image = record.image;
-        auto vm_image = image_for_instance(query.name, prepared_image);
+        auto vm_image = image_instance_from(query.name, prepared_image);
         instance_image_records[query.name] = {vm_image, query};
         persist_instance_records();
         return vm_image;
     }
 
+    QString image_dir_name = QString("%1-%2").arg(info.release).arg(info.version);
+    auto image_dir = make_dir(image_dir_name, cache_dir);
+
     VMImage source_image;
     source_image.id = id;
-    source_image.image_path = cache_dir.filePath(filename_for(info.image_location));
+    source_image.image_path = image_dir.filePath(filename_for(info.image_location));
     DeleteOnException image_file{source_image.image_path};
 
     url_downloader->download_to(info.image_location, source_image.image_path, monitor);
 
     if (fetch_type == FetchType::ImageKernelAndInitrd)
     {
-        source_image.kernel_path = cache_dir.filePath(filename_for(info.kernel_location));
-        source_image.initrd_path = cache_dir.filePath(filename_for(info.initrd_location));
+        source_image.kernel_path = image_dir.filePath(filename_for(info.kernel_location));
+        source_image.initrd_path = image_dir.filePath(filename_for(info.initrd_location));
         DeleteOnException kernel_file{source_image.kernel_path};
         DeleteOnException initrd_file{source_image.initrd_path};
         url_downloader->download_to(info.kernel_location, source_image.kernel_path, monitor);
@@ -234,16 +247,27 @@ mp::VMImage mp::DefaultVMImageVault::fetch_image(const FetchType& fetch_type, co
 
     auto prepared_image = prepare(source_image);
     prepared_image_records[id] = {prepared_image, query};
+    remove_source_images(source_image, prepared_image);
 
-    auto vm_image = image_for_instance(query.name, prepared_image);
+    auto vm_image = image_instance_from(query.name, prepared_image);
     instance_image_records[query.name] = {vm_image, query};
 
-    delete_resources(source_image, prepared_image);
     expunge_invalid_image_records();
     persist_image_records();
     persist_instance_records();
 
     return vm_image;
+}
+
+mp::VMImage mp::DefaultVMImageVault::image_instance_from(const std::string& instance_name,
+                                                         const VMImage& prepared_image)
+{
+    auto name = QString::fromStdString(instance_name);
+    auto output_dir = make_dir(name, cache_dir);
+
+    return {copy(prepared_image.image_path, output_dir),
+            copy(prepared_image.kernel_path, output_dir),
+            copy(prepared_image.initrd_path, output_dir), prepared_image.id};
 }
 
 void mp::DefaultVMImageVault::persist_instance_records()

@@ -44,10 +44,12 @@ mp::VMImageInfo with_location_fully_resolved(const QString& host_url, const mp::
 {
     return {info.aliases,
             info.release,
+            info.release_title,
             host_url + info.image_location,
             host_url + info.kernel_location,
             host_url + info.initrd_location,
-            info.id};
+            info.id,
+            info.version};
 }
 }
 

@@ -59,7 +59,7 @@ struct ImageHost : public mp::VMImageHost
 {
     mp::VMImageInfo info_for(const mp::Query& query) override
     {
-        return {{"default"}, "xenial", image.url, kernel.url, initrd.url, default_id};
+        return {{"default"}, "xenial", "16.04 LTS", image.url, kernel.url, initrd.url, default_id, default_version};
     }
 
     void for_each_entry_do(const Action& action) override
@@ -70,6 +70,7 @@ struct ImageHost : public mp::VMImageHost
     TempFile kernel;
     TempFile initrd;
     static constexpr auto default_id = "42";
+    static constexpr auto default_version = "20160217.1";
 };
 
 struct TrackingURLDownloader : public mp::URLDownloader
@@ -110,7 +111,6 @@ TEST_F(ImageVault, downloads_image)
 
     EXPECT_THAT(url_downloader.downloaded_files.size(), Eq(1));
     EXPECT_TRUE(url_downloader.downloaded_urls.contains(host.image.url));
-    // EXPECT_TRUE(vm_image.image_path.contains(instance_name));
 }
 
 TEST_F(ImageVault, returned_image_contains_instance_name)

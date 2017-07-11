@@ -30,10 +30,12 @@ class VMImageInfo
 public:
     const QStringList aliases;
     const QString release;
+    const QString release_title;
     const QString image_location;
     const QString kernel_location;
     const QString initrd_location;
     const QString id;
+    const QString version;
 };
 }
 #endif // MULTIPASS_VM_IMAGE_INFO_H

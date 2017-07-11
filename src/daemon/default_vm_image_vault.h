@@ -47,6 +47,7 @@ public:
                         const ProgressMonitor& monitor) override;
 
 private:
+    VMImage image_instance_from(const std::string& name, const VMImage& prepared_image);
     void persist_image_records();
     void persist_instance_records();
     void expunge_invalid_image_records();

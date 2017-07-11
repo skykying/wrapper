@@ -90,6 +90,7 @@ std::unique_ptr<mp::SimpleStreamsManifest> mp::SimpleStreamsManifest::fromJson(Q
         const auto aliases = product["aliases"].toString().split(",");
 
         const auto release = product["release"].toString();
+        const auto release_title = product["release_title"].toString();
 
         const auto versions = product["versions"].toObject();
         if (versions.isEmpty())
@@ -106,13 +107,14 @@ std::unique_ptr<mp::SimpleStreamsManifest> mp::SimpleStreamsManifest::fromJson(Q
         const auto image_location = image["path"].toString();
         const auto sha256 = image["sha256"].toString();
 
-        //NOTE: These are not defined in the manifest itself
-        //so they are not guaranteed to be correct or exist in the server
+        // NOTE: These are not defined in the manifest itself
+        // so they are not guaranteed to be correct or exist in the server
         const auto prefix = derive_unpacked_file_path_prefix_from(image_location);
         const auto kernel_location = prefix + "-vmlinuz-generic";
         const auto initrd_location = prefix + "-initrd-generic";
 
-        products.push_back({aliases, release, image_location, kernel_location, initrd_location, sha256});
+        products.push_back({aliases, release, release_title, image_location, kernel_location, initrd_location, sha256,
+                            latest_version});
     }
 
     if (products.empty())
