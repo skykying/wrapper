@@ -261,6 +261,7 @@ void mp::DefaultVMImageVault::remove(const std::string& name)
     delete_file(record.image.image_path);
     delete_file(record.image.kernel_path);
     delete_file(record.image.initrd_path);
+    cache_dir.rmdir(QString::fromStdString(name));
 
     instance_image_records.erase(name);
     persist_instance_records();
