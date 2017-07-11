@@ -38,6 +38,11 @@ namespace
 {
 struct UbuntuImageHost : public testing::Test
 {
+    mp::Query make_query(std::string release)
+    {
+        return {"", release, false};
+    }
+
     QString host_url{QUrl::fromLocalFile(mpt::test_data_path()).toString()};
     mp::URLDownloader url_downloader;
     std::chrono::seconds default_ttl{1};
@@ -50,8 +55,7 @@ TEST_F(UbuntuImageHost, returns_expected_info)
 {
     mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
-    mp::Query query{"", "xenial", false};
-    auto info = host.info_for(query);
+    auto info = host.info_for(make_query("xenial"));
 
     EXPECT_THAT(info.image_location, Eq(expected_location));
     EXPECT_THAT(info.id, Eq(expected_id));
@@ -61,8 +65,7 @@ TEST_F(UbuntuImageHost, uses_default_on_unspecified_release)
 {
     mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
-    mp::Query empty_query{"", "", false};
-    auto info = host.info_for(empty_query);
+    auto info = host.info_for(make_query(""));
 
     EXPECT_THAT(info.image_location, Eq(expected_location));
     EXPECT_THAT(info.id, Eq(expected_id));
@@ -86,4 +89,32 @@ TEST_F(UbuntuImageHost, iterates_over_all_entries)
     EXPECT_THAT(ids.count("8842e7a8adb01c7a30cc702b01a5330a1951b12042816e87efd24b61c5e2239f"), Eq(1u));
     EXPECT_THAT(ids.count("1507bd2b3288ef4bacd3e699fe71b827b7ccf321ec4487e168a30d7089d3c8e4"), Eq(1u));
     EXPECT_THAT(ids.count("0b115b83e7a8bebf3d3a02bf55ad0cb75a0ed515fcbc65fb0c9abe76c752921c"), Eq(1u));
+}
+
+TEST_F(UbuntuImageHost, can_query_by_hash)
+{
+    mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
+    const auto expected_id = "1797c5c82016c1e65f4008fcf89deae3a044ef76087a9ec5b907c6d64a3609ac";
+    auto info = host.info_for(make_query(expected_id));
+    EXPECT_THAT(info.id, Eq(expected_id));
+}
+
+TEST_F(UbuntuImageHost, can_query_by_partial_hash)
+{
+    mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
+    const auto expected_id = "1797c5c82016c1e65f4008fcf89deae3a044ef76087a9ec5b907c6d64a3609ac";
+
+    QStringList short_hashes;
+    short_hashes << "1797"
+                 << "1797c5"
+                 << "1797c5c";
+
+    for (const auto& hash : short_hashes)
+    {
+        auto info = host.info_for(make_query(hash.toStdString()));
+        EXPECT_THAT(info.id, Eq(expected_id));
+    }
+
+    EXPECT_THROW(host.info_for(make_query("abcde")), std::runtime_error);
+
 }

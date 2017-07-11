@@ -131,7 +131,6 @@ std::unique_ptr<mp::SimpleStreamsManifest> mp::SimpleStreamsManifest::fromJson(Q
     for (const auto& product : products)
     {
         map[product.id] = &product;
-        map[product.id.left(8)] = &product;
         for (const auto& alias : product.aliases)
         {
             map[alias] = &product;

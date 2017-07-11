@@ -25,6 +25,8 @@
 
 #include <QUrl>
 
+#include <algorithm>
+
 namespace mp = multipass;
 
 namespace
@@ -62,14 +64,33 @@ mp::UbuntuVMImageHost::UbuntuVMImageHost(QString host_url, URLDownloader* downlo
 mp::VMImageInfo mp::UbuntuVMImageHost::info_for(const Query& query)
 {
     update_manifest();
+
     auto key = QString::fromStdString(query.release);
     if (key.isEmpty())
         key = "default";
+
+    const VMImageInfo* info{nullptr};
+
     auto it = manifest->image_records.find(key);
     if (it == manifest->image_records.end())
-        throw std::runtime_error("unable to find an image matching \"" + query.release + "\"");
+    {
+        // Not an exact match, let's try a partial hash match.
+        auto predicate = [&info, &key](const VMImageInfo& entry)
+        {
+            auto partial_match = entry.id.startsWith(key);
+            if (partial_match)
+                info = &entry;
+            return partial_match;
+        };
+        const auto num_matches = std::count_if(manifest->products.begin(), manifest->products.end(), predicate);
+        if (num_matches != 1)
+            throw std::runtime_error("unable to find an image matching \"" + query.release + "\"");
+    }
+    else
+    {
+        info = it.value();
+    }
 
-    const auto info = it.value();
     return with_location_fully_resolved(host_url, *info);
 }
 
