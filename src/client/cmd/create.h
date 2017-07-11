@@ -40,7 +40,6 @@ private:
     ParseCode parse_args(ArgParser *parser) override;
 
     CreateRequest request;
-    QString default_image_name{"xenial"};
 };
 }
 }

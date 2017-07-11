@@ -95,19 +95,21 @@ mp::ParseCode cmd::Create::parse_args(mp::ArgParser* parser)
     {
         request.set_image(parser->positionalArguments().first().toStdString());
     }
-    else
-    {
-        request.set_image(default_image_name.toStdString());
-    }
 
     if (parser->isSet(nameOption))
     {
         request.set_instance_name(parser->value(nameOption).toStdString());
     }
 
-    request.set_num_cores(parser->value(cpusOption).toInt());
+    if (parser->isSet(cpusOption))
+    {
+        request.set_num_cores(parser->value(cpusOption).toInt());
+    }
 
-    request.set_mem_size(parser->value(memOption).toStdString());
+    if (parser->isSet(memOption))
+    {
+        request.set_mem_size(parser->value(memOption).toStdString());
+    }
 
     return status;
 }

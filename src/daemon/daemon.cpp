@@ -69,9 +69,10 @@ mp::VirtualMachineDescription to_machine_desc(const mp::CreateRequest* request, 
                                               const mp::VMImage& image, YAML::Node cloud_init_config)
 {
     using mpvm = mp::VirtualMachineDescription;
-    return {
-        request->num_cores(),        request->mem_size(), static_cast<mpvm::MBytes>(request->disk_space()), name, image,
-        std::move(cloud_init_config)};
+    auto num_cores = request->num_cores() < 1 ? 1 : request->num_cores();
+    auto mem_size = request->mem_size().empty() ? "1G" : request->mem_size();
+    auto disk_size = request->disk_space() <= 0 ? 0u : static_cast<mpvm::MBytes>(request->disk_space());
+    return {num_cores, mem_size, disk_size, name, image, std::move(cloud_init_config)};
 }
 
 template <typename T>
