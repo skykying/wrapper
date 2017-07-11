@@ -133,6 +133,9 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
         // Forward requested host port to guest port 22 for ssh
         args << "-netdev";
         args << QString("user,id=hostnet0,hostfwd=tcp::%1-:22").arg(ssh_port);
+        // Control interface
+        args << "-monitor"
+             << "stdio";
     }
 
     auto process = std::make_unique<QProcess>();
@@ -186,13 +189,12 @@ void mp::QemuVirtualMachine::start()
 
 void mp::QemuVirtualMachine::stop()
 {
-    // TODO: actually ask qemu to pause VM?
     shutdown();
 }
 
 void mp::QemuVirtualMachine::shutdown()
 {
-    vm_process->kill();
+    vm_process->write("system_powerdown\n");
     vm_process->waitForFinished();
 }
 
