@@ -276,12 +276,29 @@ grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* r
         entry->set_status(status_for(vm->current_state()));
     }
 
+    for (const auto& instance : vm_instance_trash)
+    {
+        const auto& name = instance.first;
+        auto entry = response->add_instances();
+        entry->set_name(name);
+        entry->set_status(mp::ListVMInstance::TRASHED);
+    }
+
     return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    const auto name = request->instance_name();
+    auto it = vm_instance_trash.find(name);
+    if (it == vm_instance_trash.end())
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+    }
+
+    vm_instances[it->first] = std::move(it->second);
+    vm_instance_trash.erase(name);
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
@@ -312,7 +329,17 @@ grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* r
 
 grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    const auto name = request->instance_name();
+    auto it = vm_instances.find(name);
+    if (it == vm_instances.end())
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+    }
+
+    it->second->shutdown();
+    vm_instance_trash[it->first] = std::move(it->second);
+    vm_instances.erase(name);
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response)

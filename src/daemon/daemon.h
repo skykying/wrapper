@@ -89,6 +89,7 @@ private:
     std::unique_ptr<const DaemonConfig> config;
     std::unordered_map<std::string, VMSpecs> vm_instance_specs;
     std::unordered_map<std::string, VirtualMachine::UPtr> vm_instances;
+    std::unordered_map<std::string, VirtualMachine::UPtr> vm_instance_trash;
     DaemonRunner runner;
 
     Daemon(const Daemon&) = delete;

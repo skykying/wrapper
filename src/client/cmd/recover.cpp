@@ -34,7 +34,6 @@ mp::ReturnCode cmd::Recover::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::RecoverReply& reply) {
-        cout << "received recover reply\n";
         return mp::ReturnCode::Ok;
     };
 

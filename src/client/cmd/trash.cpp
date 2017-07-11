@@ -34,7 +34,6 @@ mp::ReturnCode cmd::Trash::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::TrashReply& reply) {
-        cout << "received trash reply\n";
         return mp::ReturnCode::Ok;
     };
 
