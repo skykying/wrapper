@@ -187,7 +187,7 @@ TEST_F(ImageVault, caches_prepared_images)
     EXPECT_THAT(vm_image1.id, Eq(vm_image2.id));
 }
 
-TEST_F(ImageVault, remembers_instance_records)
+TEST_F(ImageVault, remembers_instance_images)
 {
     int prepare_called_count{0};
     auto prepare = [&prepare_called_count](const mp::VMImage& source_image) -> mp::VMImage {
@@ -207,7 +207,7 @@ TEST_F(ImageVault, remembers_instance_records)
 }
 
 
-TEST_F(ImageVault, remembers_prepared_image_records)
+TEST_F(ImageVault, remembers_prepared_images)
 {
     int prepare_called_count{0};
     auto prepare = [&prepare_called_count](const mp::VMImage& source_image) -> mp::VMImage {
