@@ -26,11 +26,15 @@ namespace multipass
 class QemuVirtualMachineFactory final : public VirtualMachineFactory
 {
 public:
+    QemuVirtualMachineFactory();
     VirtualMachine::UPtr create_virtual_machine(const VirtualMachineDescription& desc,
                                                 VMStatusMonitor& monitor) override;
 
     FetchType fetch_type() override;
     VMImage prepare(const VMImage& source_image) override;
+
+private:
+    int next_port;
 };
 }
 

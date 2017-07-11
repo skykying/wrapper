@@ -26,10 +26,25 @@
 
 namespace mp = multipass;
 
+namespace
+{
+constexpr int first_ephemeral_port{49152};
+constexpr int last_ephemeral_port{65535};
+}
+
+mp::QemuVirtualMachineFactory::QemuVirtualMachineFactory() : next_port{first_ephemeral_port}
+{
+}
+
 mp::VirtualMachine::UPtr mp::QemuVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& desc,
                                                                                VMStatusMonitor& monitor)
 {
-    return std::make_unique<mp::QemuVirtualMachine>(desc, monitor);
+    // TODO: check if port is actually available
+    const auto port_to_use = next_port;
+    if (next_port > last_ephemeral_port)
+        throw std::runtime_error("No more ssh forwarding ports available");
+    ++next_port;
+    return std::make_unique<mp::QemuVirtualMachine>(desc, port_to_use, monitor);
 }
 
 mp::FetchType mp::QemuVirtualMachineFactory::fetch_type()

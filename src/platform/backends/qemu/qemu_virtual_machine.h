@@ -32,7 +32,7 @@ class VirtualMachineDescription;
 class QemuVirtualMachine final : public VirtualMachine
 {
 public:
-    QemuVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor);
+    QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_fowarding_port, VMStatusMonitor& monitor);
     ~QemuVirtualMachine();
 
     void start() override;

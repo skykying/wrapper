@@ -112,13 +112,12 @@ std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config, const std
     return std::move(cloud_init_img); // explicit move to satisfy clang
 }
 
-auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path& cloud_init_image)
+auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, const mp::Path& cloud_init_image)
 {
     QStringList args{"--enable-kvm"};
 
     if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
     {
-        using namespace std::string_literals;
         // The VM image itself
         args << "-hda" << desc.image.image_path;
         // For the cloud-init configuration
@@ -130,9 +129,9 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
         // Create a virtual NIC in the VM
         args << "-device"
              << "virtio-net-pci,netdev=hostnet0,id=net0";
-        // Forward host port 2222 to guest port 22 for ssh
-        args << "-netdev"
-             << "user,id=hostnet0,hostfwd=tcp::2222-:22";
+        // Forward requested host port to guest port 22 for ssh
+        args << "-netdev";
+        args << QString("user,id=hostnet0,hostfwd=tcp::%1-:22").arg(ssh_port);
     }
 
     auto process = std::make_unique<QProcess>();
@@ -153,11 +152,12 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
 }
 }
 
-mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor)
+mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_forwarding_port,
+                                           VMStatusMonitor& monitor)
     : state{State::running},
       monitor{&monitor},
       cloud_init_image{make_cloud_init_image(desc.cloud_init_config, desc.vm_name)},
-      vm_process{make_qemu_process(desc, cloud_init_image->fileName())}
+      vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image->fileName())}
 {
     QObject::connect(vm_process.get(), &QProcess::started, [this]() { on_start(); });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
