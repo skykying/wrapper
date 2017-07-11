@@ -66,9 +66,23 @@ mp::VirtualMachineDescription to_machine_desc(const mp::CreateRequest* request, 
         std::move(cloud_init_config)};
 }
 
-auto name_from(const mp::CreateRequest* request, mp::NameGenerator& name_gen)
+template <typename T>
+auto name_from(const mp::CreateRequest* request, mp::NameGenerator& name_gen, const T& currently_used_names)
 {
-    return request->instance_name().empty() ? name_gen.make_name() : request->instance_name();
+    auto requested_name = request->instance_name();
+    if (requested_name.empty())
+    {
+        auto name = name_gen.make_name();
+        constexpr int num_retries = 100;
+        for (int i = 0; i < num_retries; i++)
+        {
+            if (currently_used_names.find(name) != currently_used_names.end())
+                continue;
+            return name;
+        }
+        throw std::runtime_error("unable to generate a unique name");
+    }
+    return requested_name;
 }
 }
 
@@ -104,7 +118,7 @@ grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateReques
                                 grpc::ServerWriter<CreateReply>* server)
 try
 {
-    auto name = name_from(request, *config->name_generator);
+    auto name = name_from(request, *config->name_generator, vm_instances);
 
     if (vm_instances.find(name) != vm_instances.end())
     {
