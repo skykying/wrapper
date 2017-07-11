@@ -99,7 +99,7 @@ struct ImageVault : public testing::Test
         [](const mp::VMImage& source_image) -> mp::VMImage { return source_image; }};
     QTemporaryDir cache_dir;
     std::string instance_name{"valley-pied-piper"};
-    mp::Query default_query{instance_name, "xenial", "", false};
+    mp::Query default_query{instance_name, "xenial", false};
 };
 }
 

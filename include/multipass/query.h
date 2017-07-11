@@ -29,7 +29,6 @@ class Query
 public:
     std::string name;
     std::string release;
-    std::string kernel_name;
     bool persistent;
 };
 }

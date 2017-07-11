@@ -47,7 +47,6 @@ auto query_to_json(const mp::Query& query)
 {
     QJsonObject json;
     json.insert("release", QString::fromStdString(query.release));
-    json.insert("kernel_name", QString::fromStdString(query.kernel_name));
     json.insert("persistent", query.persistent);
     return json;
 }
@@ -111,13 +110,12 @@ std::unordered_map<std::string, mp::VaultRecord> load_db(const QString& db_name)
             return {};
 
         auto release = query["release"].toString();
-        auto kernel_name = query["kernel_name"].toString();
         auto persistent = query["persistent"];
         if (!persistent.isBool())
             return {};
 
         reconstructed_records[key] = {{image_path, kernel_path, initrd_path, image_id},
-                                      {"", release.toStdString(), kernel_name.toStdString(), persistent.toBool()}};
+                                      {"", release.toStdString(), persistent.toBool()}};
     }
     return reconstructed_records;
 }

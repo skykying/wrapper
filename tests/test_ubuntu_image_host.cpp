@@ -50,7 +50,7 @@ TEST_F(UbuntuImageHost, returns_expected_info)
 {
     mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
-    mp::Query query{"", "xenial", "", false};
+    mp::Query query{"", "xenial", false};
     auto info = host.info_for(query);
 
     EXPECT_THAT(info.image_location, Eq(expected_location));
@@ -61,7 +61,7 @@ TEST_F(UbuntuImageHost, uses_default_on_unspecified_release)
 {
     mp::UbuntuVMImageHost host{host_url, &url_downloader, default_ttl};
 
-    mp::Query empty_query{"", "", "", false};
+    mp::Query empty_query{"", "", false};
     auto info = host.info_for(empty_query);
 
     EXPECT_THAT(info.image_location, Eq(expected_location));

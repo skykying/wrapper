@@ -43,7 +43,7 @@ namespace
 mp::Query query_from(const mp::CreateRequest* request, const std::string& name)
 {
     // TODO: persistence should be specified by the rpc as well
-    return {name, request->image(), request->kernel_name(), false};
+    return {name, request->image(), false};
 }
 
 auto make_cloud_init_config(const mp::SshPubKey& key)
