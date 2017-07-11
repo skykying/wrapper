@@ -23,28 +23,30 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QTcpSocket>
 
 namespace mp = multipass;
 
 namespace
 {
-constexpr int first_ephemeral_port{49152};
-constexpr int last_ephemeral_port{65535};
+int find_port()
+{
+    QTcpSocket socket;
+    if (socket.bind())
+    {
+        auto port = socket.localPort();
+        qDebug() << "port:" << port;
+        return port;
+    }
+    throw std::runtime_error("unable to find an ssh forwarding port");
 }
 
-mp::QemuVirtualMachineFactory::QemuVirtualMachineFactory() : next_port{first_ephemeral_port}
-{
 }
 
 mp::VirtualMachine::UPtr mp::QemuVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& desc,
                                                                                VMStatusMonitor& monitor)
 {
-    // TODO: check if port is actually available
-    const auto port_to_use = next_port;
-    if (next_port > last_ephemeral_port)
-        throw std::runtime_error("No more ssh forwarding ports available");
-    ++next_port;
-    return std::make_unique<mp::QemuVirtualMachine>(desc, port_to_use, monitor);
+    return std::make_unique<mp::QemuVirtualMachine>(desc, find_port(), monitor);
 }
 
 mp::FetchType mp::QemuVirtualMachineFactory::fetch_type()
