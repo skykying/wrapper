@@ -23,11 +23,14 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QObject>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
+#include <QtCore/QTemporaryDir>
+#include <QtCore/QTemporaryFile>
 
 #include <signal.h>
 
@@ -94,7 +97,8 @@ auto make_hyperkit_process(const mp::VirtualMachineDescription& desc)
                         "erased=0;runtime_asserts=false"}
          <<
         // Disk image for the cloud-init configuration
-        "-s" << QString{"1:1,ahci-cd,"} + desc.cloud_init_iso << "-f"
+        "-s" << QString{"1:1,ahci-cd,"} + desc.cloud_init_iso
+         << "-f"
          // Firmware argument
          << QString{"kexec,"} + desc.image.kernel_path + QString{","} + desc.image.initrd_path +
                 QString{",earlyprintk=serial console=ttyS0 root=/dev/sda1 rw"};
@@ -123,7 +127,23 @@ mp::HyperkitVirtualMachine::HyperkitVirtualMachine(const VirtualMachineDescripti
         if (!vm_process->canReadLine()) // buffer until line available
             return;
 
-        printf("%s", vm_process->readAllStandardOutput().constData()); // pipe VM output to stdout
+        QByteArray output = vm_process->readAllStandardOutput();
+        printf("%s", output.constData()); // pipe VM output out stdout
+
+        if (ip_address.empty())
+        {
+            // Need to use Regex to parse VM output to find the IP address - happens to be the first
+            // mention of 192.168.*.* in the output.
+            QRegExp ip_regex("192\\.168\\.(\\d{1,3})\\.(\\d{1,3})");
+            if (ip_regex.indexIn(output) > -1)
+            {
+                uint8_t third = ip_regex.cap(1).toUInt();
+                uint8_t fourth = ip_regex.cap(2).toUInt();
+
+                ip_address = "192.168." + std::to_string(third) + "." + std::to_string(fourth);
+                qDebug("IP address found: %s", ip_address.c_str());
+            }
+        }
     });
 
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardError,
@@ -192,6 +212,7 @@ void mp::HyperkitVirtualMachine::on_start()
 void mp::HyperkitVirtualMachine::on_shutdown()
 {
     state = State::off;
+    ip_address.clear();
     monitor->on_shutdown();
 }
 
@@ -209,4 +230,13 @@ void mp::HyperkitVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds tim
 {
     // TODO
     return;
+}
+
+std::string multipass::HyperkitVirtualMachine::host()
+{
+    if (ip_address.empty())
+    {
+        throw std::runtime_error("VM has not joined the network yet, please wait a moment and try again");
+    }
+    return ip_address;
 }

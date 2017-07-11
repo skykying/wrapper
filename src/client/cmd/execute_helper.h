@@ -27,9 +27,9 @@
 
 namespace multipass
 {
-ReturnCode ssh_exec(int port, const std::string& priv_key_blob,
+ReturnCode ssh_exec(const std::string& host, int port, const std::string& priv_key_blob,
                     const std::vector<std::string>& args);
-ReturnCode ssh_connect(int port, const std::string& priv_key_blob);
+ReturnCode ssh_connect(const std::string& host, int port, const std::string& priv_key_blob);
 }
 
 #endif // MULTIPASS_EXECUTE_HELPER_H

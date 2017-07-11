@@ -50,7 +50,7 @@ void write_blob_to(const std::string& blob, QFile& file)
     file.close();
 }
 
-auto ssh_cmd_for(int port, const std::string& priv_key_path)
+auto ssh_cmd_for(const std::string& host, int port, const std::string& priv_key_path)
 {
     // The following ssh command will undoubtedly change in The Future
     std::vector<std::string> ssh_cmd{"ssh",
@@ -63,7 +63,7 @@ auto ssh_cmd_for(int port, const std::string& priv_key_path)
                                      "UserKnownHostsFile=/dev/null",
                                      "-i",
                                      priv_key_path,
-                                     "ubuntu@localhost"};
+                                     "ubuntu@" + host};
 
     return ssh_cmd;
 }
@@ -82,12 +82,13 @@ auto escape_cmd_args_with_quotes(const std::vector<std::string>& command)
 }
 }
 
-mp::ReturnCode mp::ssh_exec(int port, const std::string& priv_key_blob, const std::vector<std::string>& args)
+mp::ReturnCode mp::ssh_exec(const std::string& host, int port, const std::string& priv_key_blob,
+                            const std::vector<std::string>& args)
 {
     QFile file{QDir::temp().filePath("multipass-key")};
     write_blob_to(priv_key_blob, file);
 
-    auto ssh_cmd = ssh_cmd_for(port, file.fileName().toStdString());
+    auto ssh_cmd = ssh_cmd_for(host, port, file.fileName().toStdString());
 
     if (!args.empty())
     {
@@ -101,7 +102,7 @@ mp::ReturnCode mp::ssh_exec(int port, const std::string& priv_key_blob, const st
     return static_cast<ReturnCode>(execvp(cmd[0], cmd.data()));
 }
 
-mp::ReturnCode mp::ssh_connect(int port, const std::string& priv_key_blob)
+mp::ReturnCode mp::ssh_connect(const std::string& host, int port, const std::string& priv_key_blob)
 {
-    return mp::ssh_exec(port, priv_key_blob, {});
+    return mp::ssh_exec(host, port, priv_key_blob, {});
 }

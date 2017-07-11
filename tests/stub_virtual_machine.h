@@ -44,7 +44,12 @@ struct StubVirtualMachine final : public multipass::VirtualMachine
     int forwarding_port() override
     {
         return 42;
-    };
+    }
+
+    std::string host() override
+    {
+        return "localhost";
+    }
 
     void wait_until_ssh_up(std::chrono::milliseconds timeout) override
     {

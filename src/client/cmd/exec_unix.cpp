@@ -35,9 +35,10 @@ mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this, &parser](mp::SSHInfoReply& reply) {
+        auto host = reply.host();
         auto port = reply.port();
 
-        //TODO: mainly for testing - need a better way to test parsing
+        // TODO: mainly for testing - need a better way to test parsing
         if (port == 0)
             return ReturnCode::Ok;
 
@@ -47,7 +48,7 @@ mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
         for (int i = 1; i < parser->positionalArguments().size(); ++i)
             args.push_back(parser->positionalArguments().at(i).toStdString());
 
-        return ssh_exec(port, priv_key_blob, args);
+        return ssh_exec(host, port, priv_key_blob, args);
     };
 
     auto on_failure = [this](grpc::Status& status) {

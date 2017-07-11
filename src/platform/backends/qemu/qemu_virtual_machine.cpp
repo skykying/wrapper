@@ -174,7 +174,7 @@ void mp::QemuVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout
 
         try
         {
-            mp::SSHSession session{ssh_fowarding_port};
+            mp::SSHSession session{host(), ssh_fowarding_port};
             ssh_up = true;
             break;
         }
@@ -203,4 +203,9 @@ void mp::QemuVirtualMachine::on_shutdown()
 {
     state = State::off;
     monitor->on_shutdown();
+}
+
+std::string multipass::QemuVirtualMachine::host()
+{
+    return "localhost";
 }

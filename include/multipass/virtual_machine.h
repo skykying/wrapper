@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <memory>
+#include <string>
 
 namespace multipass
 {
@@ -43,6 +44,7 @@ public:
     virtual void shutdown() = 0;
     virtual State current_state() = 0;
     virtual int forwarding_port() = 0;
+    virtual std::string host() = 0;
     virtual void wait_until_ssh_up(std::chrono::milliseconds timeout) = 0;
 
 protected:

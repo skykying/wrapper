@@ -41,6 +41,7 @@ public:
     void shutdown() override;
     State current_state() override;
     int forwarding_port() override;
+    std::string host() override;
     void wait_until_ssh_up(std::chrono::milliseconds timeout) override;
 
 private:
@@ -49,6 +50,7 @@ private:
     VirtualMachine::State state;
     VMStatusMonitor* monitor;
     std::unique_ptr<QProcess> vm_process;
+    std::string ip_address;
 };
 }
 

@@ -43,6 +43,11 @@ int mp::HyperVVirtualMachine::forwarding_port()
     return 42;
 }
 
+std::string mp::HyperVVirtualMachine::host()
+{
+    return "localhost";
+}
+
 void mp::HyperVVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout)
 {
 }

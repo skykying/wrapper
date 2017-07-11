@@ -32,6 +32,7 @@ public:
     void shutdown() override;
     State current_state() override;
     int forwarding_port() override;
+    std::string host() override;
     void wait_until_ssh_up(std::chrono::milliseconds timeout) override;
 };
 }

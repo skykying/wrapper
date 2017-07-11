@@ -35,14 +35,15 @@ mp::ReturnCode cmd::Connect::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::SSHInfoReply& reply) {
+        auto host = reply.host();
         auto port = reply.port();
 
-        //TODO: mainly for testing - need a better way to test parsing
+        // TODO: mainly for testing - need a better way to test parsing
         if (port == 0)
             return ReturnCode::Ok;
 
         auto priv_key_blob = reply.priv_key_base64();
-        return ssh_connect(port, priv_key_blob);
+        return ssh_connect(host, port, priv_key_blob);
     };
 
     auto on_failure = [this](grpc::Status& status) {

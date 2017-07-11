@@ -18,7 +18,15 @@
 
 #include "hyperkit_virtual_machine_factory.h"
 #include "hyperkit_virtual_machine.h"
+
 #include <multipass/virtual_machine_description.h>
+
+#include <QCoreApplication>
+#include <QDebug>
+#include <QFileInfo>
+#include <QProcess>
+
+#include <unistd.h> // getuid
 
 #include <QCoreApplication>
 #include <QDebug>

@@ -93,12 +93,13 @@ private:
 };
 }
 
-mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider) : session{ssh_new(), ssh_free}
+mp::SSHSession::SSHSession(const std::string& host, int port, const SSHKeyProvider* key_provider)
+    : session{ssh_new(), ssh_free}
 {
     if (session == nullptr)
         throw std::runtime_error("Could not allocate ssh session");
 
-    throw_on_error(ssh_options_set, session, SSH_OPTIONS_HOST, "localhost");
+    throw_on_error(ssh_options_set, session, SSH_OPTIONS_HOST, host.c_str());
     throw_on_error(ssh_options_set, session, SSH_OPTIONS_PORT, &port);
     throw_on_error(ssh_options_set, session, SSH_OPTIONS_USER, "ubuntu");
     throw_on_error(ssh_connect, session);
@@ -106,11 +107,12 @@ mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider) : sessi
         throw_on_error(ssh_userauth_publickey, session, nullptr, key_provider->private_key());
 }
 
-mp::SSHSession::SSHSession(int port, const SSHKeyProvider& key_provider) : SSHSession(port, &key_provider)
+mp::SSHSession::SSHSession(const std::string& host, int port, const SSHKeyProvider& key_provider)
+    : SSHSession(host, port, &key_provider)
 {
 }
 
-mp::SSHSession::SSHSession(int port) : SSHSession(port, nullptr)
+mp::SSHSession::SSHSession(const std::string& host, int port) : SSHSession(host, port, nullptr)
 {
 }
 

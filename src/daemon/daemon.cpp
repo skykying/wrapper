@@ -324,6 +324,7 @@ try //clang-format on
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
     }
 
+    auto host = it->second->host();
     auto port = it->second->forwarding_port();
 
     if (request->command_line_args_size() == 0)
@@ -335,7 +336,7 @@ try //clang-format on
         cmd_line.push_back(arg);
     }
 
-    mp::SSHSession session{port, *config->ssh_key_provider};
+    mp::SSHSession session{host, port, *config->ssh_key_provider};
     auto result = session.execute(cmd_line);
     for (auto& arg : cmd_line)
     {
@@ -462,6 +463,7 @@ try //clang-format on
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
     }
 
+    response->set_host(it->second->host());
     response->set_port(it->second->forwarding_port());
     response->set_priv_key_base64(config->ssh_key_provider->private_key_as_base64());
     return grpc::Status::OK;
