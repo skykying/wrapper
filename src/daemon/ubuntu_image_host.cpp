@@ -65,7 +65,7 @@ mp::VMImageInfo mp::UbuntuVMImageHost::info_for(const Query& query)
         key = "default";
     auto it = manifest->image_records.find(key);
     if (it == manifest->image_records.end())
-        throw std::runtime_error("unable to find query on manifest");
+        throw std::runtime_error("unable to find an image matching \"" + query.release + "\"");
 
     const auto info = it.value();
     return with_location_fully_resolved(host_url, *info);
