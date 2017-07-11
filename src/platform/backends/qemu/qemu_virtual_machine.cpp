@@ -119,19 +119,20 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
     if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
     {
         using namespace std::string_literals;
-        args <<
-            // The VM image itself
-            "-hda" << desc.image.image_path << // The VM image itself
-             // For the cloud-init configuration
-            "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"} <<
-            // Number of cpu cores
-            "-smp" << QString::number(desc.num_cores) <<
-            // Memory to use for VM
-            "-m" << QString::fromStdString(desc.mem_size) <<
-            // Create a virtual NIC in the VM
-            "-device" << "virtio-net-pci,netdev=hostnet0,id=net0" <<
-            // Forward host port 2222 to guest port 22 for ssh
-            "-netdev" << "user,id=hostnet0,hostfwd=tcp::2222-:22";
+        // The VM image itself
+        args << "-hda" << desc.image.image_path;
+        // For the cloud-init configuration
+        args << "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"};
+        // Number of cpu cores
+        args << "-smp" << QString::number(desc.num_cores);
+        // Memory to use for VM
+        args << "-m" << QString::fromStdString(desc.mem_size);
+        // Create a virtual NIC in the VM
+        args << "-device"
+             << "virtio-net-pci,netdev=hostnet0,id=net0";
+        // Forward host port 2222 to guest port 22 for ssh
+        args << "-netdev"
+             << "user,id=hostnet0,hostfwd=tcp::2222-:22";
     }
 
     auto process = std::make_unique<QProcess>();
@@ -153,20 +154,23 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, const mp::Path
 }
 
 mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor)
-    : state{State::running}, monitor{&monitor}, cloud_init_image{make_cloud_init_image(desc.cloud_init_config,
-                                                                                       desc.vm_name)},
+    : state{State::running},
+      monitor{&monitor},
+      cloud_init_image{make_cloud_init_image(desc.cloud_init_config, desc.vm_name)},
       vm_process{make_qemu_process(desc, cloud_init_image->fileName())}
 {
+    QObject::connect(vm_process.get(), &QProcess::started, [this]() { on_start(); });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
-                     [=]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
+                     [this]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
 
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardError,
-                     [=]() { qDebug("qemu.err: %s", vm_process->readAllStandardError().data()); });
+                     [this]() { qDebug("qemu.err: %s", vm_process->readAllStandardError().data()); });
 
     QObject::connect(vm_process.get(), static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                     [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                     [this](int exitCode, QProcess::ExitStatus exitStatus) {
                          qDebug() << "QProcess::finished"
                                   << "exitCode" << exitCode << "exitStatus" << exitStatus;
+                         on_shutdown();
                      });
 }
 
@@ -176,23 +180,35 @@ mp::QemuVirtualMachine::~QemuVirtualMachine()
 
 void mp::QemuVirtualMachine::start()
 {
-    state = State::running;
-    monitor->on_resume();
+    if (state != State::running)
+        vm_process->start();
 }
 
 void mp::QemuVirtualMachine::stop()
 {
-    state = State::stopped;
-    monitor->on_stop();
+    // TODO: actually ask qemu to pause VM?
+    shutdown();
 }
 
 void mp::QemuVirtualMachine::shutdown()
 {
-    state = State::off;
-    monitor->on_shutdown();
+    vm_process->kill();
+    vm_process->waitForFinished();
 }
 
 mp::VirtualMachine::State mp::QemuVirtualMachine::current_state()
 {
     return state;
+}
+
+void mp::QemuVirtualMachine::on_start()
+{
+    state = State::running;
+    monitor->on_resume();
+}
+
+void mp::QemuVirtualMachine::on_shutdown()
+{
+    state = State::off;
+    monitor->on_shutdown();
 }

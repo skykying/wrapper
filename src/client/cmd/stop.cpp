@@ -34,7 +34,6 @@ mp::ReturnCode cmd::Stop::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::StopReply& reply) {
-        cout << "received stop reply\n";
         return ReturnCode::Ok;
     };
 

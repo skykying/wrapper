@@ -41,6 +41,8 @@ public:
     State current_state() override;
 
 private:
+    void on_start();
+    void on_shutdown();
     VirtualMachine::State state;
     VMStatusMonitor* monitor;
     std::unique_ptr<QFile> cloud_init_image;
