@@ -53,5 +53,5 @@ std::string mp::QemuVirtualMachineExecute::execute()
 
 std::string mp::QemuVirtualMachineExecute::execute(std::string command)
 {
-    return construct_ssh_command() + " " + command;
+    return construct_ssh_command() + " -- " + command;
 }
