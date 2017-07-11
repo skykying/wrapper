@@ -24,11 +24,13 @@
 
 struct StubVMImageVault final : public multipass::VMImageVault
 {
-    virtual multipass::VMImage fetch_image(const multipass::FetchType&, const multipass::Query&,
-                                           const PrepareAction& prepare, const multipass::ProgressMonitor&)
+    multipass::VMImage fetch_image(const multipass::FetchType&, const multipass::Query&, const PrepareAction& prepare,
+                                   const multipass::ProgressMonitor&) override
     {
         return prepare({});
     };
+
+    void remove(const std::string& name) override{};
 };
 
 #endif // MULTIPASS_STUB_VM_IMAGE_VAULT_H

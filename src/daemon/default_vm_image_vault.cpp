@@ -251,6 +251,21 @@ mp::VMImage mp::DefaultVMImageVault::fetch_image(const FetchType& fetch_type, co
     return vm_image;
 }
 
+void mp::DefaultVMImageVault::remove(const std::string& name)
+{
+    auto name_entry = instance_image_records.find(name);
+    if (name_entry == instance_image_records.end())
+        return;
+
+    const auto& record = name_entry->second;
+    delete_file(record.image.image_path);
+    delete_file(record.image.kernel_path);
+    delete_file(record.image.initrd_path);
+
+    instance_image_records.erase(name);
+    persist_instance_records();
+}
+
 mp::VMImage mp::DefaultVMImageVault::image_instance_from(const std::string& instance_name,
                                                          const VMImage& prepared_image)
 {

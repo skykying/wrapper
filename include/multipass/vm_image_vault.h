@@ -33,6 +33,7 @@ public:
     using PrepareAction = std::function<VMImage(const VMImage&)>;
     virtual VMImage fetch_image(const FetchType& fetch_type, const Query& query, const PrepareAction& prepare,
                                 const ProgressMonitor& monitor) = 0;
+    virtual void remove(const std::string& name) = 0;
 };
 }
 #endif // MULTIPASS_VM_IMAGE_VAULT_H

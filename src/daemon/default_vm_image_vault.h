@@ -45,6 +45,7 @@ public:
     DefaultVMImageVault(VMImageHost* image_host, URLDownloader* downloader, multipass::Path cache_dir_path);
     VMImage fetch_image(const FetchType& fetch_type, const Query& query, const PrepareAction& prepare,
                         const ProgressMonitor& monitor) override;
+    void remove(const std::string& name) override;
 
 private:
     VMImage image_instance_from(const std::string& name, const VMImage& prepared_image);

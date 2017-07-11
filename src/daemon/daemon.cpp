@@ -224,7 +224,22 @@ catch (const std::exception& e)
 grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request,
                                      EmptyTrashReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    std::vector<decltype(vm_instance_trash)::key_type> keys_to_delete;
+    for (auto& trash : vm_instance_trash)
+    {
+        const auto& name = trash.first;
+        config->vault->remove(name);
+        keys_to_delete.push_back(name);
+    }
+
+    for (auto const& key : keys_to_delete)
+    {
+        vm_instance_trash.erase(key);
+        vm_instance_specs.erase(key);
+    }
+
+    persist_instances();
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response)

@@ -34,7 +34,6 @@ mp::ReturnCode cmd::EmptyTrash::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::EmptyTrashReply& reply) {
-        cout << "received empty-trash reply\n";
         return mp::ReturnCode::Ok;
     };
 
