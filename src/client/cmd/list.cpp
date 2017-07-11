@@ -21,10 +21,34 @@
 
 #include <multipass/cli/argparser.h>
 
+#include <iomanip>
+
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
 
+namespace
+{
+std::ostream& operator<<(std::ostream& out, const multipass::ListVMInstance_Status& status)
+{
+    switch(status)
+    {
+    case mp::ListVMInstance::RUNNING:
+        out << "RUNNING";
+        break;
+    case mp::ListVMInstance::STOPPED:
+        out << "STOPPED";
+        break;
+    case mp::ListVMInstance::TRASHED:
+        out << "IN TRASH";
+        break;
+    default:
+        out << "UNKOWN";
+        break;
+    }
+    return out;
+}
+}
 mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);
@@ -34,7 +58,33 @@ mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](ListReply& reply) {
-        cout << "received list reply\n";
+        const auto size = reply.instances_size();
+        if (size < 1)
+        {
+            cout << "No instances found." << "\n";
+        }
+        else
+        {
+            std::stringstream out;
+
+            out << std::setw(36) << std::left << "Name";
+            out << std::setw(12) << std::left << "State";
+            out << std::setw(19) << std::left << "IPv4";
+            out << std::left << "IPv6";
+            out << "\n";
+
+            //cout << "Name\t\tState\tIPv4\tIPv6\n";
+            for (int i = 0; i < size; i++)
+            {
+                const auto& instance = reply.instances(i);
+                out << std::setw(36) << std::left << instance.name();
+                out << std::setw(12) << std::left << instance.status();
+                out << std::setw(19) << std::left << instance.ipv4();
+                out << std::left << instance.ipv6();
+                out << "\n";
+            }
+            cout << out.str();
+        }
         return ReturnCode::Ok;
     };
 

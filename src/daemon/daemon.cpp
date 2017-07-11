@@ -184,7 +184,27 @@ grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* r
 
 grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    auto status_for = [](mp::VirtualMachine::State state)
+    {
+        switch(state)
+        {
+        case mp::VirtualMachine::State::running:
+            return mp::ListVMInstance::RUNNING;
+        default:
+            return mp::ListVMInstance::STOPPED;
+        }
+    };
+
+    for (const auto& instance : vm_instances)
+    {
+        const auto& name = instance.first;
+        const auto& vm = instance.second;
+        auto entry = response->add_instances();
+        entry->set_name(name);
+        entry->set_status(status_for(vm->current_state()));
+    }
+
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response)
