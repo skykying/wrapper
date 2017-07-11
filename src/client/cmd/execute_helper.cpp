@@ -19,7 +19,7 @@
 
 #include "execute_helper.h"
 
-#ifdef MULTIPASS_PLATFORM_POSIX
+#ifdef MULTIPASS_PLATFORM_LINUX
 #include <unistd.h>
 #endif
 
@@ -54,7 +54,7 @@ ReturnCode execute_process(std::string exec_line)
 {
     auto parsed_cmd = parse_exec_line(exec_line);
     auto cmd = to_argv(parsed_cmd);
-#ifdef MULTIPASS_PLATFORM_POSIX
+#ifdef MULTIPASS_PLATFORM_LINUX
     return static_cast<ReturnCode>(execvp(cmd[0], cmd.data()));
 #else
     return ReturnCode::Ok;
