@@ -28,6 +28,10 @@ struct StubVMImageHost final : public multipass::VMImageHost
     {
         return {};
     };
+
+    void for_each_entry_do(const Action&) override
+    {
+    }
 };
 
 #endif // MULTIPASS_STUB_IMAGE_HOST_H
