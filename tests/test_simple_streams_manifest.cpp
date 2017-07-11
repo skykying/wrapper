@@ -125,3 +125,18 @@ TEST(SimpleStreamsManifest, info_has_kernel_and_initrd_paths)
     EXPECT_FALSE(info->kernel_location.isEmpty());
     EXPECT_FALSE(info->initrd_location.isEmpty());
 }
+
+TEST(SimpleStreamsManifest, can_query_by_short_hash)
+{
+    auto json = mpt::load_test_file("multiple_versions_manifest.json");
+    auto manifest = mp::SimpleStreamsManifest::fromJson(json);
+
+    const QString expected_id{"8842e7a8adb01c7a30cc702b01a5330a1951b12042816e87efd24b61c5e2239f"};
+    const QString short_id{"8842e7a8"};
+    const QString expected_location{"newest_image.img"};
+
+    const auto info = manifest->image_records[short_id];
+    ASSERT_THAT(info, NotNull());
+    EXPECT_THAT(info->image_location, Eq(expected_location));
+    EXPECT_THAT(info->id, Eq(expected_id));
+}
