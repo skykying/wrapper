@@ -49,6 +49,7 @@ std::ostream& operator<<(std::ostream& out, const multipass::ListVMInstance_Stat
     return out;
 }
 }
+
 mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
 {
     auto ret = parse_args(parser);

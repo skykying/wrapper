@@ -127,6 +127,17 @@ std::unordered_map<std::string, mp::VMSpecs> load_db(const mp::Path& cache_path)
     }
     return reconstructed_records;
 }
+
+auto fetch_image_for(const std::string& name, const mp::FetchType& fetch_type, mp::VMImageVault& vault)
+{
+    auto stub_prepare = [](const mp::VMImage&) -> mp::VMImage { return {}; };
+    auto stub_progress = [](int progress) {};
+
+    mp::Query query;
+    query.name = name;
+
+    return vault.fetch_image(fetch_type, query, stub_prepare, stub_progress);
+}
 }
 
 mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon)
@@ -157,18 +168,12 @@ mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
       vm_instance_specs{load_db(config->cache_directory)},
       runner(config->server_address, this)
 {
-    auto stub_prepare = [](const VMImage&) -> VMImage { return {}; };
-    auto stub_progress = [](int progress) {};
-
     for (auto const& entry : vm_instance_specs)
     {
         const auto& name = entry.first;
         const auto& spec = entry.second;
 
-        Query query;
-        query.name = name;
-
-        auto vm_image = config->vault->fetch_image(config->factory->fetch_type(), query, stub_prepare, stub_progress);
+        auto vm_image = fetch_image_for(name, config->factory->fetch_type(), *config->vault);
         mp::VirtualMachineDescription vm_desc{spec.num_cores, spec.mem_size, spec.disk_space, name, vm_image};
         vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
     }
@@ -267,7 +272,44 @@ grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* r
 
 grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response)
 {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Command not implemented", "");
+    const auto name = request->instance_name();
+    auto it = vm_instances.find(name);
+    bool in_trash{false};
+    if (it == vm_instances.end())
+    {
+        it = vm_instance_trash.find(name);
+        if (it == vm_instance_trash.end())
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+        in_trash = true;
+    }
+
+    auto vm_image = fetch_image_for(name, config->factory->fetch_type(), *config->vault);
+    auto& vm = it->second;
+    response->set_name(name);
+    if (in_trash)
+    {
+        response->set_status(InfoReply::TRASHED);
+    }
+    else
+    {
+        auto status_for = [](mp::VirtualMachine::State state) {
+            switch (state)
+            {
+            case mp::VirtualMachine::State::running:
+                return InfoReply::RUNNING;
+            default:
+                return InfoReply::STOPPED;
+            }
+        };
+        response->set_status(status_for(vm->current_state()));
+    }
+
+    auto vm_image_info = config->image_host->info_for({"", vm_image.id, false});
+    response->set_release(vm_image_info.release_title.toStdString());
+    response->set_id(vm_image.id);
+
+    //TODO: fill in IP, memory usage, load, disk_usage
+    return grpc::Status::OK;
 }
 
 grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)

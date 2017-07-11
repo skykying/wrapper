@@ -21,9 +21,35 @@
 
 #include <multipass/cli/argparser.h>
 
+#include <iomanip>
+#include <sstream>
+
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
 using RpcMethod = mp::Rpc::Stub;
+
+namespace
+{
+std::ostream& operator<<(std::ostream& out, const multipass::InfoReply_Status& status)
+{
+    switch(status)
+    {
+    case mp::InfoReply::RUNNING:
+        out << "RUNNING";
+        break;
+    case mp::InfoReply::STOPPED:
+        out << "STOPPED";
+        break;
+    case mp::InfoReply::TRASHED:
+        out << "IN TRASH";
+        break;
+    default:
+        out << "UNKOWN";
+        break;
+    }
+    return out;
+}
+}
 
 mp::ReturnCode cmd::Info::run(mp::ArgParser* parser)
 {
@@ -34,7 +60,35 @@ mp::ReturnCode cmd::Info::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::InfoReply& reply) {
-        cout << "received info reply\n";
+        std::stringstream out;
+        out << std::setw(16) << std::left << "Name:";
+        out << reply.name() << "\n";
+
+        out << std::setw(16) << std::left << "State:";
+        out << reply.status() << "\n";
+
+        out << std::setw(16) << std::left << "IPv4:";
+        out << reply.ipv4() << "\n";
+
+        out << std::setw(16) << std::left << "IPV6:";
+        out << reply.ipv6() << "\n";
+
+        out << std::setw(16) << std::left << "Ubuntu release:";
+        out << reply.release() << "\n";
+
+        out << std::setw(16) << std::left << "Image hash:";
+        out << reply.id() << "\n";
+
+        out << std::setw(16) << std::left << "Load:";
+        out << reply.load() << "\n";
+
+        out << std::setw(16) << std::left << "Disk usage:";
+        out << reply.disk_usage() << "%\n";
+
+        out << std::setw(16) << std::left << "Memory usage:";
+        out << reply.memory_usage() << "%\n";
+
+        cout << out.str();
         return ReturnCode::Ok;
     };
 

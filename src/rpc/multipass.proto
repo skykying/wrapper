@@ -68,6 +68,20 @@ message InfoRequest {
 }
 
 message InfoReply {
+    string name = 1;
+    enum Status {
+        RUNNING = 0;
+        STOPPED = 1;
+        TRASHED = 2;
+    }
+    Status status = 2;
+    string release = 3;
+    string id = 4;
+    float load = 5;
+    int32 memory_usage = 6;
+    int32 disk_usage = 7;
+    string ipv4 = 8;
+    string ipv6 = 9;
 }
 
 message ListRequest {
