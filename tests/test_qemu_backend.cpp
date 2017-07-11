@@ -81,23 +81,40 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
     machine.reset();
 }
 
-namespace
+MATCHER(HasCorrectSshArguments, "")
 {
-auto HasCorrectSshArguments()
-{
-    return AllOf(StartsWith("ssh "), HasSubstr("-p 42"),
-                 HasSubstr(std::string("-i ") + mp::OpenSSHKeyProvider::private_key_path().toStdString()));
-}
+    if (arg.front() != "ssh")
+    {
+        return false;
+    }
+
+    bool port_args_found = false,
+         ssh_key_args_found = false;
+
+    for (auto i = 0u; i < arg.size(); ++i)
+    {
+        if (arg.at(i) == "-p" && arg.at(i + 1) == "42")
+        {
+            port_args_found = true;
+        }
+        else if (arg.at(i) == "-i" &&
+                 arg.at(i + 1) == mp::OpenSSHKeyProvider::private_key_path().toStdString())
+        {
+            ssh_key_args_found = true;
+        }
+    }
+
+    return port_args_found && ssh_key_args_found;
 }
 
 TEST_F(QemuBackend, execute_mangles_command)
 {
     mp::QemuVirtualMachineExecute vm_execute;
 
-    auto cmd_line = vm_execute.execute(42, "foo");
+    auto cmd_line = vm_execute.execute(42, {"foo"});
 
     EXPECT_THAT(cmd_line, HasCorrectSshArguments());
-    EXPECT_THAT(cmd_line, EndsWith(" foo"));
+    EXPECT_THAT(cmd_line.back(), Eq("'foo'"));
 }
 
 TEST_F(QemuBackend, execute_ssh_only_no_command)

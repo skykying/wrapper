@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace multipass
 {
@@ -31,8 +32,8 @@ public:
     using UPtr = std::unique_ptr<VirtualMachineExecute>;
     virtual ~VirtualMachineExecute() = default;
 
-    virtual std::string execute(int port) = 0;
-    virtual std::string execute(int port, std::string command) = 0;
+    virtual std::vector<std::string> execute(int port) = 0;
+    virtual std::vector<std::string> execute(int port, std::vector<std::string> command) = 0;
 
 protected:
     VirtualMachineExecute() = default;

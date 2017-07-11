@@ -27,8 +27,8 @@ namespace multipass
 class QemuVirtualMachineExecute final : public VirtualMachineExecute
 {
 public:
-    std::string execute(int port) override;
-    std::string execute(int port, std::string command) override;
+    std::vector<std::string> execute(int port) override;
+    std::vector<std::string> execute(int port, std::vector<std::string> command) override;
 };
 }
 

@@ -23,21 +23,8 @@
 #include <unistd.h>
 #endif
 
-#include <sstream>
-#include <vector>
-
 namespace
 {
-auto parse_exec_line(std::string exec_line)
-{
-    std::istringstream iss(exec_line);
-
-    std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
-                                    std::istream_iterator<std::string>{}};
-
-    return tokens;
-}
-
 auto to_argv(const std::vector<std::string>& v)
 {
     std::vector<char*> result;
@@ -50,10 +37,9 @@ auto to_argv(const std::vector<std::string>& v)
 
 namespace multipass
 {
-ReturnCode execute_process(std::string exec_line)
+ReturnCode execute_process(const std::vector<std::string>& exec_line)
 {
-    auto parsed_cmd = parse_exec_line(exec_line);
-    auto cmd = to_argv(parsed_cmd);
+    auto cmd = to_argv(exec_line);
 #ifdef MULTIPASS_PLATFORM_LINUX
     return static_cast<ReturnCode>(execvp(cmd[0], cmd.data()));
 #else

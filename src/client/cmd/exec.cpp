@@ -42,7 +42,11 @@ mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
         }
         else
         {
-            return execute_process(reply.exec_line());
+            std::vector<std::string> cmd_line;
+            for (const auto& arg : reply.exec_line())
+                cmd_line.push_back(arg);
+
+            return execute_process(cmd_line);
         }
     };
 
@@ -87,13 +91,10 @@ mp::ParseCode cmd::Exec::parse_args(mp::ArgParser* parser)
     {
         request.set_instance_name(parser->positionalArguments().first().toStdString());
 
-        std::string exec_line;
-
         for (int i = 1; i < parser->positionalArguments().size(); ++i)
         {
-            exec_line.append(parser->positionalArguments().at(i).toStdString() + " ");
+            request.add_command_line_args(parser->positionalArguments().at(i).toStdString());
         }
-        request.set_command_line(exec_line);
     }
 
     return status;

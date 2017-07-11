@@ -42,7 +42,11 @@ mp::ReturnCode cmd::Connect::run(mp::ArgParser* parser)
         }
         else
         {
-            return execute_process(reply.exec_line());
+            std::vector<std::string> cmd_line;
+            for (const auto& arg : reply.exec_line())
+                cmd_line.push_back(arg);
+
+            return execute_process(cmd_line);
         }
     };
 

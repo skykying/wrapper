@@ -56,11 +56,11 @@ message EmptyTrashReply {
 
 message ExecRequest {
     string instance_name = 1;
-    string command_line = 2;
+    repeated string command_line_args = 2;
 }
 
 message ExecReply {
-    string exec_line = 1;
+    repeated string exec_line = 1;
 }
 
 message InfoRequest {

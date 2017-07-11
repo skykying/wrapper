@@ -20,11 +20,7 @@
 #include "qemu_virtual_machine_execute.h"
 #include "openssh_key_provider.h"
 
-#include <QCoreApplication>
-#include <QDir>
 #include <QFile>
-#include <QStandardPaths>
-#include <QString>
 
 namespace mp = multipass;
 
@@ -40,21 +36,39 @@ auto construct_ssh_command(int port)
     }
 
     // The following ssh command will undoubtedly change in The Future
-    QString ssh_cmd =
-        QString("ssh -p %1 -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i %2 ubuntu@localhost")
-            .arg(port)
-            .arg(private_key_path);
+    std::vector<std::string> ssh_cmd{"ssh", "-p", std::to_string(port), "-t", "-o", "StrictHostKeyChecking=no", "-o",
+                                     "UserKnownHostsFile=/dev/null", "-i", private_key_path.toStdString(), "ubuntu@localhost"};
 
-    return ssh_cmd.toStdString();
+    return ssh_cmd;
+}
+
+// This is needed in order to make ssh's command parsing happy:/
+auto escape_cmd_args_with_quotes(std::vector<std::string> command)
+{
+    std::vector<std::string> escaped_cmd_line;
+
+    for (auto const& cmd : command)
+    {
+        escaped_cmd_line.push_back("'" + cmd + "'");
+    }
+
+    return escaped_cmd_line;
 }
 }
 
-std::string mp::QemuVirtualMachineExecute::execute(int port)
+std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port)
 {
     return construct_ssh_command(port);
 }
 
-std::string mp::QemuVirtualMachineExecute::execute(int port, std::string command)
+std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port, std::vector<std::string> command)
 {
-    return construct_ssh_command(port) + " -- " + command;
+    std::vector<std::string> constructed_cmd = construct_ssh_command(port);
+
+    constructed_cmd.push_back("--");
+
+    command = escape_cmd_args_with_quotes(command);
+    constructed_cmd.insert(constructed_cmd.end(), command.begin(), command.end());
+
+    return constructed_cmd;
 }

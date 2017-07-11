@@ -23,10 +23,11 @@
 #include <multipass/cli/argparser.h>
 
 #include <string>
+#include <vector>
 
 namespace multipass
 {
-ReturnCode execute_process(std::string exec_line);
+ReturnCode execute_process(const std::vector<std::string>& exec_line);
 }
 
 #endif // MULTIPASS_EXECUTE_HELPER_H

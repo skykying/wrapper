@@ -265,13 +265,25 @@ try //clang-format on
 
     auto port = it->second->forwarding_port();
 
-    if (request->command_line().empty())
+    std::vector<std::string> cmd_line;
+
+    if (request->command_line_args_size() == 0)
     {
-        response->set_exec_line(config->vm_execute->execute(port));
+        cmd_line = config->vm_execute->execute(port);
     }
     else
     {
-        response->set_exec_line(config->vm_execute->execute(port, request->command_line()));
+        for (const auto& arg : request->command_line_args())
+        {
+            cmd_line.push_back(arg);
+        }
+
+        cmd_line = config->vm_execute->execute(port, cmd_line);
+    }
+
+    for (auto& arg : cmd_line)
+    {
+        response->add_exec_line(std::move(arg));
     }
 
     return grpc::Status::OK;
