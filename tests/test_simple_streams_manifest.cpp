@@ -90,15 +90,28 @@ TEST(SimpleStreamsManifest, chooses_newest_version)
     const QString expected_id{"8842e7a8adb01c7a30cc702b01a5330a1951b12042816e87efd24b61c5e2239f"};
     const QString expected_location{"newest_image.img"};
 
-    const auto info = manifest->image_records[expected_id];
+    const auto info = manifest->image_records["default"];
     ASSERT_THAT(info, NotNull());
     EXPECT_THAT(info->image_location, Eq(expected_location));
     EXPECT_THAT(info->id, Eq(expected_id));
+}
 
-    // Older version should not be available
-    const QString older_version_hash{"1797c5c82016c1e65f4008fcf89deae3a044ef76087a9ec5b907c6d64a3609ac"};
-    const auto old_info = manifest->image_records[older_version_hash];
-    EXPECT_THAT(old_info, IsNull());
+TEST(SimpleStreamsManifest, can_query_all_versions)
+{
+    auto json = mpt::load_test_file("multiple_versions_manifest.json");
+    auto manifest = mp::SimpleStreamsManifest::fromJson(json);
+
+    QStringList all_known_hashes;
+    all_known_hashes << "1797c5c82016c1e65f4008fcf89deae3a044ef76087a9ec5b907c6d64a3609ac"
+                     << "8842e7a8adb01c7a30cc702b01a5330a1951b12042816e87efd24b61c5e2239f"
+                     << "1507bd2b3288ef4bacd3e699fe71b827b7ccf321ec4487e168a30d7089d3c8e4"
+                     << "0b115b83e7a8bebf3d3a02bf55ad0cb75a0ed515fcbc65fb0c9abe76c752921c";
+
+    for (const auto& hash : all_known_hashes)
+    {
+        const auto info = manifest->image_records[hash];
+        EXPECT_THAT(info, NotNull());
+    }
 }
 
 TEST(SimpleStreamsManifest, info_has_kernel_and_initrd_paths)

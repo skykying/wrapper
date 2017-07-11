@@ -87,7 +87,7 @@ std::unique_ptr<mp::SimpleStreamsManifest> mp::SimpleStreamsManifest::fromJson(Q
         if (product["arch"].toString() != "amd64")
             continue;
 
-        const auto aliases = product["aliases"].toString().split(",");
+        const auto product_aliases = product["aliases"].toString().split(",");
 
         const auto release = product["release"].toString();
         const auto release_title = product["release_title"].toString();
@@ -98,23 +98,29 @@ std::unique_ptr<mp::SimpleStreamsManifest> mp::SimpleStreamsManifest::fromJson(Q
 
         const auto latest_version = latest_version_in(versions);
 
-        const auto version = versions[latest_version].toObject();
-        const auto items = version["items"].toObject();
-        if (items.isEmpty())
-            continue;
+        for (auto it = versions.constBegin(); it != versions.constEnd(); ++it)
+        {
+            const auto version_string = it.key();
+            const auto version = versions[version_string].toObject();
+            const auto items = version["items"].toObject();
+            if (items.isEmpty())
+                continue;
 
-        const auto image = items["disk1.img"].toObject();
-        const auto image_location = image["path"].toString();
-        const auto sha256 = image["sha256"].toString();
+            const auto image = items["disk1.img"].toObject();
+            const auto image_location = image["path"].toString();
+            const auto sha256 = image["sha256"].toString();
 
-        // NOTE: These are not defined in the manifest itself
-        // so they are not guaranteed to be correct or exist in the server
-        const auto prefix = derive_unpacked_file_path_prefix_from(image_location);
-        const auto kernel_location = prefix + "-vmlinuz-generic";
-        const auto initrd_location = prefix + "-initrd-generic";
+            // NOTE: These are not defined in the manifest itself
+            // so they are not guaranteed to be correct or exist in the server
+            const auto prefix = derive_unpacked_file_path_prefix_from(image_location);
+            const auto kernel_location = prefix + "-vmlinuz-generic";
+            const auto initrd_location = prefix + "-initrd-generic";
 
-        products.push_back({aliases, release, release_title, image_location, kernel_location, initrd_location, sha256,
-                            latest_version});
+            // Aliases always alias to the latest version
+            const QStringList& aliases = version_string == latest_version ? product_aliases : QStringList();
+            products.push_back({aliases, release, release_title, image_location, kernel_location, initrd_location, sha256,
+                                version_string});
+        }
     }
 
     if (products.empty())
