@@ -31,5 +31,7 @@ struct StubVirtualMachine final : public multipass::VirtualMachine
     {
         return multipass::VirtualMachine::State::off;
     }
+
+    int forwarding_port() override { return 42; };
 };
 #endif // MULTIPASS_STUB_VIRTUAL_MACHINE_H

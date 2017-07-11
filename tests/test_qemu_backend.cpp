@@ -55,13 +55,8 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
     mp::QemuVirtualMachineFactory backend;
     MockVMStatusMonitor mock_monitor;
 
-    auto machine = backend.create_virtual_machine(default_description, mock_monitor);
-
-    EXPECT_CALL(mock_monitor, on_stop());
-    machine->stop();
-
     EXPECT_CALL(mock_monitor, on_resume());
-    machine->start();
+    auto machine = backend.create_virtual_machine(default_description, mock_monitor);
 
     EXPECT_CALL(mock_monitor, on_shutdown());
     machine->shutdown();
@@ -71,7 +66,7 @@ namespace
 {
 auto HasCorrectSshArguments()
 {
-    return AllOf(StartsWith("ssh "), HasSubstr("-p 2222"),
+    return AllOf(StartsWith("ssh "), HasSubstr("-p 42"),
                  HasSubstr(std::string("-i ") + mp::OpenSSHKeyProvider::private_key_path().toStdString()));
 }
 }
@@ -80,7 +75,7 @@ TEST_F(QemuBackend, execute_mangles_command)
 {
     mp::QemuVirtualMachineExecute vm_execute;
 
-    auto cmd_line = vm_execute.execute("foo");
+    auto cmd_line = vm_execute.execute(42, "foo");
 
     EXPECT_THAT(cmd_line, HasCorrectSshArguments());
     EXPECT_THAT(cmd_line, EndsWith(" foo"));
@@ -90,7 +85,7 @@ TEST_F(QemuBackend, execute_ssh_only_no_command)
 {
     mp::QemuVirtualMachineExecute vm_execute;
 
-    auto cmd_line = vm_execute.execute();
+    auto cmd_line = vm_execute.execute(42);
 
     EXPECT_THAT(cmd_line, HasCorrectSshArguments());
 }

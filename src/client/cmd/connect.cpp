@@ -77,13 +77,17 @@ mp::ParseCode cmd::Connect::parse_args(mp::ArgParser* parser)
         return status;
     }
 
-    if (parser->positionalArguments().count() > 1)
+    if (parser->positionalArguments().count() == 0)
     {
-        cerr << "Too many arguments supplied" << std::endl;
+        cerr << "Name argument is required" << std::endl;
         status = ParseCode::CommandLineError;
     }
-    // TODO: Name argument will become mandatory when instance management is implemented
-    else if (!parser->positionalArguments().isEmpty())
+    else if (parser->positionalArguments().count() > 1)
+    {
+        cerr << "Too many arguments given" << std::endl;
+        status = ParseCode::CommandLineError;
+    }
+    else
     {
         request.set_instance_name(parser->positionalArguments().first().toStdString());
     }

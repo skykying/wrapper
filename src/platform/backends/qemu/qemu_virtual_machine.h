@@ -39,11 +39,13 @@ public:
     void stop() override;
     void shutdown() override;
     State current_state() override;
+    int forwarding_port() override;
 
 private:
     void on_start();
     void on_shutdown();
     VirtualMachine::State state;
+    int ssh_fowarding_port;
     VMStatusMonitor* monitor;
     std::unique_ptr<QFile> cloud_init_image;
     std::unique_ptr<QProcess> vm_process;

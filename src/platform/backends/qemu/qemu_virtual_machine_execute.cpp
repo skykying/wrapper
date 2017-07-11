@@ -30,7 +30,7 @@ namespace mp = multipass;
 
 namespace
 {
-auto construct_ssh_command()
+auto construct_ssh_command(int port)
 {
     const auto private_key_path = mp::OpenSSHKeyProvider::private_key_path();
 
@@ -40,18 +40,21 @@ auto construct_ssh_command()
     }
 
     // The following ssh command will undoubtedly change in The Future
-    QString ssh_cmd("ssh -p 2222 -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + private_key_path + " ubuntu@localhost");
+    QString ssh_cmd =
+        QString("ssh -p %1 -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i %2 ubuntu@localhost")
+            .arg(port)
+            .arg(private_key_path);
 
     return ssh_cmd.toStdString();
 }
 }
 
-std::string mp::QemuVirtualMachineExecute::execute()
+std::string mp::QemuVirtualMachineExecute::execute(int port)
 {
-    return construct_ssh_command();
+    return construct_ssh_command(port);
 }
 
-std::string mp::QemuVirtualMachineExecute::execute(std::string command)
+std::string mp::QemuVirtualMachineExecute::execute(int port, std::string command)
 {
-    return construct_ssh_command() + " -- " + command;
+    return construct_ssh_command(port) + " -- " + command;
 }

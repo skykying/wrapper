@@ -165,13 +165,22 @@ grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTr
 
 grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response)
 {
+    const auto name = request->instance_name();
+    auto it = vm_instances.find(name);
+    if (it == vm_instances.end())
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+    }
+
+    auto port = it->second->forwarding_port();
+
     if (request->command_line().empty())
     {
-        response->set_exec_line(config->vm_execute->execute());
+        response->set_exec_line(config->vm_execute->execute(port));
     }
     else
     {
-        response->set_exec_line(config->vm_execute->execute(request->command_line()));
+        response->set_exec_line(config->vm_execute->execute(port, request->command_line()));
     }
 
     return grpc::Status::OK;

@@ -62,8 +62,9 @@ std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config, const std
     metadata.write("instance-id: ");
     metadata.write(name.c_str());
     metadata.write("\n");
-    metadata.write("local-hostname: ubuntu-multipass\n");
-
+    metadata.write("local-hostname: ");
+    metadata.write(name.c_str());
+    metadata.write("\n");
     metadata.close();
 
     YAML::Emitter userdata_emitter;
@@ -155,6 +156,7 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
 mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_forwarding_port,
                                            VMStatusMonitor& monitor)
     : state{State::running},
+      ssh_fowarding_port{ssh_forwarding_port},
       monitor{&monitor},
       cloud_init_image{make_cloud_init_image(desc.cloud_init_config, desc.vm_name)},
       vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image->fileName())}
@@ -199,6 +201,11 @@ void mp::QemuVirtualMachine::shutdown()
 mp::VirtualMachine::State mp::QemuVirtualMachine::current_state()
 {
     return state;
+}
+
+int mp::QemuVirtualMachine::forwarding_port()
+{
+    return ssh_fowarding_port;
 }
 
 void mp::QemuVirtualMachine::on_start()

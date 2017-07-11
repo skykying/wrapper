@@ -41,6 +41,7 @@ public:
     virtual void start() = 0;
     virtual void shutdown() = 0;
     virtual State current_state() = 0;
+    virtual int forwarding_port() = 0;
 
 protected:
     VirtualMachine() = default;
