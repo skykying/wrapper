@@ -34,7 +34,6 @@ mp::ReturnCode cmd::Start::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::StartReply& reply) {
-        cout << "received start reply\n";
         return ReturnCode::Ok;
     };
 
