@@ -74,7 +74,6 @@ mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
             out << std::left << "IPv6";
             out << "\n";
 
-            //cout << "Name\t\tState\tIPv4\tIPv6\n";
             for (int i = 0; i < size; i++)
             {
                 const auto& instance = reply.instances(i);
