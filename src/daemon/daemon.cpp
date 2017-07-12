@@ -180,7 +180,8 @@ mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
 }
 
 grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
-                                grpc::ServerWriter<CreateReply>* server) try
+                                grpc::ServerWriter<CreateReply>* server) // clang-format off
+try // clang-format on
 {
     auto name = name_from(request, *config->name_generator, vm_instances);
 
@@ -227,7 +228,8 @@ catch (const std::exception& e)
 }
 
 grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request,
-                                     EmptyTrashReply* response)
+                                     EmptyTrashReply* response) // clang-format off
+try //clang-format on
 {
     std::vector<decltype(vm_instance_trash)::key_type> keys_to_delete;
     for (auto& trash : vm_instance_trash)
@@ -246,8 +248,13 @@ grpc::Status mp::Daemon::empty_trash(grpc::ServerContext* context, const EmptyTr
     persist_instances();
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response)
+grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instances.find(name);
@@ -269,8 +276,13 @@ grpc::Status mp::Daemon::exec(grpc::ServerContext* context, const ExecRequest* r
 
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response)
+grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instances.find(name);
@@ -308,11 +320,16 @@ grpc::Status mp::Daemon::info(grpc::ServerContext* context, const InfoRequest* r
     response->set_release(vm_image_info.release_title.toStdString());
     response->set_id(vm_image.id);
 
-    //TODO: fill in IP, memory usage, load, disk_usage
+    // TODO: fill in IP, memory usage, load, disk_usage
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response)
+grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) // clang-format off
+try //clang-format on
 {
     auto status_for = [](mp::VirtualMachine::State state) {
         switch (state)
@@ -343,8 +360,13 @@ grpc::Status mp::Daemon::list(grpc::ServerContext* context, const ListRequest* r
 
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response)
+grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instance_trash.find(name);
@@ -357,8 +379,13 @@ grpc::Status mp::Daemon::recover(grpc::ServerContext* context, const RecoverRequ
     vm_instance_trash.erase(name);
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
+grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instances.find(name);
@@ -370,8 +397,13 @@ grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest*
     it->second->start();
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response)
+grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instances.find(name);
@@ -383,8 +415,13 @@ grpc::Status mp::Daemon::stop(grpc::ServerContext* context, const StopRequest* r
     it->second->shutdown();
     return grpc::Status::OK;
 }
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
 
-grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response)
+grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response) // clang-format off
+try //clang-format on
 {
     const auto name = request->instance_name();
     auto it = vm_instances.find(name);
@@ -397,6 +434,10 @@ grpc::Status mp::Daemon::trash(grpc::ServerContext* context, const TrashRequest*
     vm_instance_trash[it->first] = std::move(it->second);
     vm_instances.erase(name);
     return grpc::Status::OK;
+}
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
 }
 
 grpc::Status mp::Daemon::version(grpc::ServerContext* context, const VersionRequest* request, VersionReply* response)
