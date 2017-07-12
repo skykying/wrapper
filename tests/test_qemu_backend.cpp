@@ -20,6 +20,7 @@
 #include <multipass/platform.h>
 #include <multipass/virtual_machine.h>
 #include <multipass/virtual_machine_description.h>
+#include <src/platform/backends/qemu/openssh_key_provider.h>
 #include <src/platform/backends/qemu/qemu_virtual_machine_execute.h>
 #include <src/platform/backends/qemu/qemu_virtual_machine_factory.h>
 
@@ -29,17 +30,33 @@
 #include <experimental/optional>
 #include <system_error>
 
-#include <QtCore/QTemporaryDir>
+#include <QDir>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
+
 #include <gmock/gmock.h>
-#include <src/platform/backends/qemu/openssh_key_provider.h>
 
 namespace mp = multipass;
 
 using namespace testing;
 
+namespace
+{
+struct TempFile
+{
+    TempFile()
+    {
+        if (file.open())
+            name = file.fileName();
+    }
+    QTemporaryFile file;
+    QString name;
+};
+}
 struct QemuBackend : public testing::Test
 {
-    mp::VirtualMachineDescription default_description{2, "3M"};
+    TempFile temp_file;
+    mp::VirtualMachineDescription default_description{2, "3M", 0, "pied-piper-valley", {temp_file.name, "", "", ""}};
     mp::QemuVirtualMachineFactory backend;
 };
 
@@ -61,7 +78,7 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
     machine->start();
 
     EXPECT_CALL(mock_monitor, on_shutdown());
-    machine->shutdown();
+    machine.reset();
 }
 
 namespace

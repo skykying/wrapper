@@ -40,103 +40,32 @@ namespace mp = multipass;
 
 namespace
 {
-std::unique_ptr<QFile> make_cloud_init_image(const YAML::Node& config, const std::string& name)
-{
-    using namespace std::string_literals;
-
-    QTemporaryDir scratch_dir;
-
-    if (!scratch_dir.isValid())
-    {
-        throw std::runtime_error{"Failed to create temporary directory: "s + scratch_dir.errorString().toStdString()};
-    }
-
-    QFile metadata{QDir(scratch_dir.path()).filePath("meta-data")};
-    QFile userdata{QDir(scratch_dir.path()).filePath("user-data")};
-
-    if (!metadata.open(QIODevice::WriteOnly) || !userdata.open(QIODevice::WriteOnly))
-    {
-        throw std::runtime_error{"Failed to open files for writing"};
-    }
-
-    metadata.write("instance-id: ");
-    metadata.write(name.c_str());
-    metadata.write("\n");
-    metadata.write("local-hostname: ");
-    metadata.write(name.c_str());
-    metadata.write("\n");
-    metadata.close();
-
-    YAML::Emitter userdata_emitter;
-
-    userdata_emitter.SetIndent(4);
-    userdata_emitter << config;
-
-    if (!userdata_emitter.good())
-    {
-        throw std::runtime_error{"Failed to emit cloud-init config: "s + userdata_emitter.GetLastError()};
-    }
-
-    userdata.write("#cloud-config\n");
-    userdata.write(userdata_emitter.c_str());
-    userdata.write("\n");
-
-    userdata.close();
-
-    QProcess iso_creator;
-    QStringList creator_args;
-
-    auto cloud_init_img = std::make_unique<QTemporaryFile>();
-    cloud_init_img->setFileTemplate(QDir::temp().filePath("cloud-init-config-XXXXXX.iso"));
-
-    if (!cloud_init_img->open())
-    {
-        throw std::runtime_error{"Failed to create cloud-init img temporary"};
-    }
-
-    creator_args << "-o" << cloud_init_img->fileName();
-    creator_args << "-volid"
-                 << "cidata"
-                 << "-joliet"
-                 << "-rock";
-    creator_args << metadata.fileName() << userdata.fileName();
-
-    iso_creator.start("genisoimage", creator_args);
-
-    iso_creator.waitForFinished();
-
-    if (iso_creator.exitCode() != QProcess::NormalExit)
-    {
-        throw std::runtime_error{"Call to genisoimage failed: "s + iso_creator.readAllStandardError().data()};
-    }
-
-    return std::move(cloud_init_img); // explicit move to satisfy clang
-}
 
 auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, const mp::Path& cloud_init_image)
 {
-    QStringList args{"--enable-kvm"};
-
-    if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
+    if (!QFile::exists(desc.image.image_path) || !QFile::exists(cloud_init_image))
     {
-        // The VM image itself
-        args << "-hda" << desc.image.image_path;
-        // For the cloud-init configuration
-        args << "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"};
-        // Number of cpu cores
-        args << "-smp" << QString::number(desc.num_cores);
-        // Memory to use for VM
-        args << "-m" << QString::fromStdString(desc.mem_size);
-        // Create a virtual NIC in the VM
-        args << "-device"
-             << "virtio-net-pci,netdev=hostnet0,id=net0";
-        // Forward requested host port to guest port 22 for ssh
-        args << "-netdev";
-        args << QString("user,id=hostnet0,hostfwd=tcp::%1-:22").arg(ssh_port);
-        // Control interface
-        args << "-monitor"
-             << "stdio";
+        throw std::runtime_error("cannot start VM without an image");
     }
+
+    QStringList args{"--enable-kvm"};
+    // The VM image itself
+    args << "-hda" << desc.image.image_path;
+    // For the cloud-init configuration
+    args << "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"};
+    // Number of cpu cores
+    args << "-smp" << QString::number(desc.num_cores);
+    // Memory to use for VM
+    args << "-m" << QString::fromStdString(desc.mem_size);
+    // Create a virtual NIC in the VM
+    args << "-device"
+         << "virtio-net-pci,netdev=hostnet0,id=net0";
+    // Forward requested host port to guest port 22 for ssh
+    args << "-netdev";
+    args << QString("user,id=hostnet0,hostfwd=tcp::%1-:22").arg(ssh_port);
+    // Control interface
+    args << "-monitor"
+         << "stdio";
 
     auto process = std::make_unique<QProcess>();
     auto snap = qgetenv("SNAP");
@@ -154,13 +83,12 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
 }
 }
 
-mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_forwarding_port,
-                                           VMStatusMonitor& monitor)
+mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, const QString& cloud_init_image,
+                                           int ssh_forwarding_port, VMStatusMonitor& monitor)
     : state{State::off},
       ssh_fowarding_port{ssh_forwarding_port},
       monitor{&monitor},
-      cloud_init_image{make_cloud_init_image(desc.cloud_init_config, desc.vm_name)},
-      vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image->fileName())}
+      vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image)}
 {
     QObject::connect(vm_process.get(), &QProcess::started, [this]() { on_start(); });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,

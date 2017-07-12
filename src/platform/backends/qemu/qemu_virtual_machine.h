@@ -24,6 +24,8 @@
 
 class QProcess;
 class QFile;
+class QString;
+
 namespace multipass
 {
 class VMStatusMonitor;
@@ -32,7 +34,8 @@ class VirtualMachineDescription;
 class QemuVirtualMachine final : public VirtualMachine
 {
 public:
-    QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_fowarding_port, VMStatusMonitor& monitor);
+    QemuVirtualMachine(const VirtualMachineDescription& desc, const QString& cloud_init_image, int ssh_fowarding_port,
+                       VMStatusMonitor& monitor);
     ~QemuVirtualMachine();
 
     void start() override;
@@ -47,7 +50,6 @@ private:
     VirtualMachine::State state;
     int ssh_fowarding_port;
     VMStatusMonitor* monitor;
-    std::unique_ptr<QFile> cloud_init_image;
     std::unique_ptr<QProcess> vm_process;
 };
 }
