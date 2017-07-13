@@ -79,12 +79,8 @@ option(YAML_CPP_BUILD_CONTRIB OFF)
 
 add_subdirectory(yaml-cpp EXCLUDE_FROM_ALL)
 
-list(APPEND yaml_cpp_STATIC_LIBS yaml-cpp)
-set(yaml_cpp_STATIC_LIBS "${yaml_cpp_STATIC_LIBS}" PARENT_SCOPE)
-
 list(APPEND yaml_cpp_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include")
 set(yaml_cpp_INCLUDE_DIRS "${yaml_cpp_INCLUDE_DIRS}" PARENT_SCOPE)
-
 
 # Hyperkit - MacOS virtualization (via xhyve)
 if (APPLE)
@@ -119,3 +115,6 @@ add_subdirectory(qtbase EXCLUDE_FROM_ALL)
 
 list(APPEND wrap_text_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qtbase")
 set(wrap_text_INCLUDE_DIRS "${wrap_text_INCLUDE_DIRS}" PARENT_SCOPE)
+
+# libssh config
+add_subdirectory(libssh EXCLUDE_FROM_ALL)
