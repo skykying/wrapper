@@ -14,18 +14,8 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
-configure_file(
-  version.h.in
-  ${MULTIPASS_GENERATED_SOURCE_DIR}/multipass/version.h
-  @ONLY
-)
+add_library(ssh STATIC
+  ssh_session.cpp)
 
-add_subdirectory(client)
-add_subdirectory(daemon)
-add_subdirectory(network)
-add_subdirectory(petname)
-add_subdirectory(platform)
-add_subdirectory(rpc)
-add_subdirectory(simplestreams)
-add_subdirectory(ssh)
-
+target_link_libraries(ssh
+  libssh)
