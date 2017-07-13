@@ -24,14 +24,30 @@
 
 struct StubVirtualMachine final : public multipass::VirtualMachine
 {
-    void start() override {}
-    void stop() override {}
-    void shutdown() override {}
+    void start() override
+    {
+    }
+
+    void stop() override
+    {
+    }
+
+    void shutdown() override
+    {
+    }
+
     multipass::VirtualMachine::State current_state() override
     {
         return multipass::VirtualMachine::State::off;
     }
 
-    int forwarding_port() override { return 42; };
+    int forwarding_port() override
+    {
+        return 42;
+    };
+
+    void wait_until_ssh_up(std::chrono::milliseconds timeout) override
+    {
+    }
 };
 #endif // MULTIPASS_STUB_VIRTUAL_MACHINE_H

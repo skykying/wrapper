@@ -207,8 +207,9 @@ try // clang-format on
     auto vm_desc = to_machine_desc(request, name, vm_image, std::move(cloud_init_config));
 
     auto vm = config->factory->create_virtual_machine(vm_desc, *this);
-    if (vm)
-        vm->start();
+    vm->start();
+    vm->wait_until_ssh_up(std::chrono::minutes(5));
+
     vm_instances[name] = std::move(vm);
     vm_instance_specs[name] = {vm_desc.num_cores, vm_desc.mem_size, vm_desc.disk_space};
     persist_instances();
@@ -407,6 +408,7 @@ try //clang-format on
     }
 
     it->second->start();
+    it->second->wait_until_ssh_up(std::chrono::minutes(2));
     return grpc::Status::OK;
 }
 catch (const std::exception& e)

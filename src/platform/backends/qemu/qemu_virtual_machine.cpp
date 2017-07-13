@@ -18,6 +18,7 @@
  */
 
 #include "qemu_virtual_machine.h"
+#include <multipass/ssh/ssh_session.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
@@ -27,20 +28,20 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QHostAddress>
 #include <QObject>
 #include <QProcess>
 #include <QProcessEnvironment>
-#include <QStandardPaths>
 #include <QString>
 #include <QStringList>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTemporaryFile>
+
+#include <chrono>
+#include <thread>
 
 namespace mp = multipass;
 
 namespace
 {
-
 auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, const mp::Path& cloud_init_image)
 {
     if (!QFile::exists(desc.image.image_path) || !QFile::exists(cloud_init_image))
@@ -90,7 +91,6 @@ mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc
       monitor{&monitor},
       vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image)}
 {
-    QObject::connect(vm_process.get(), &QProcess::started, [this]() { on_start(); });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
                      [this]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
 
@@ -111,8 +111,14 @@ mp::QemuVirtualMachine::~QemuVirtualMachine()
 
 void mp::QemuVirtualMachine::start()
 {
-    if (state != State::running)
-        vm_process->start();
+    if (state == State::running)
+        return;
+
+    vm_process->start();
+    vm_process->waitForStarted();
+
+    state = State::running;
+    monitor->on_resume();
 }
 
 void mp::QemuVirtualMachine::stop()
@@ -136,10 +142,28 @@ int mp::QemuVirtualMachine::forwarding_port()
     return ssh_fowarding_port;
 }
 
-void mp::QemuVirtualMachine::on_start()
+void mp::QemuVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout)
 {
-    state = State::running;
-    monitor->on_resume();
+    using namespace std::literals::chrono_literals;
+
+    auto deadline = std::chrono::steady_clock::now() + timeout;
+    bool ssh_up{false};
+    while (std::chrono::steady_clock::now() < deadline)
+    {
+        try
+        {
+            mp::SSHSession session{ssh_fowarding_port};
+            ssh_up = true;
+            break;
+        }
+        catch (const std::exception& e)
+        {
+            std::this_thread::sleep_for(1s);
+        }
+    }
+
+    if (!ssh_up)
+        throw std::runtime_error("timed out waiting for ssh service to start");
 }
 
 void mp::QemuVirtualMachine::on_shutdown()

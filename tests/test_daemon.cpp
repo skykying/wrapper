@@ -98,6 +98,18 @@ struct Daemon : public Test
         config_builder.ssh_key = std::make_unique<StubSshPubKey>();
     }
 
+    MockVirtualMachineFactory* use_a_mock_vm_factory()
+    {
+        auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
+        auto mock_factory_ptr = mock_factory.get();
+
+        ON_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
+            .WillByDefault(Return(ByMove(std::make_unique<StubVirtualMachine>())));
+
+        config_builder.factory = std::move(mock_factory);
+        return mock_factory_ptr;
+    }
+
     void send_command(std::vector<std::string> command, std::ostream& cout = std::cout)
     {
         send_commands({command}, cout);
@@ -158,7 +170,7 @@ TEST_F(Daemon, receives_commands)
                    {"create"},
                    {"empty-trash"},
                    {"exec", "foo", "--", "cmd"},
-                   {"info", "foo"},    // name argument is required
+                   {"info", "foo"}, // name argument is required
                    {"list"},
                    {"recover", "foo"}, // name argument is required
                    {"start", "foo"},   // name argument is required
@@ -169,28 +181,19 @@ TEST_F(Daemon, receives_commands)
 
 TEST_F(Daemon, creates_virtual_machines)
 {
-    auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
-    auto mock_factory_ptr = mock_factory.get();
-
-    config_builder.factory = std::move(mock_factory);
+    auto mock_factory = use_a_mock_vm_factory();
     mp::Daemon daemon{config_builder.build()};
 
-    EXPECT_CALL(*mock_factory_ptr, create_virtual_machine(_, _))
-        .WillOnce(Return(ByMove(std::make_unique<StubVirtualMachine>())));
-
+    EXPECT_CALL(*mock_factory, create_virtual_machine(_, _));
     send_command({"create"});
 }
 
 TEST_F(Daemon, on_creation_hooks_up_platform_prepare)
 {
-    auto mock_factory = std::make_unique<NiceMock<MockVirtualMachineFactory>>();
-    auto mock_factory_ptr = mock_factory.get();
-
-    config_builder.factory = std::move(mock_factory);
+    auto mock_factory = use_a_mock_vm_factory();
     mp::Daemon daemon{config_builder.build()};
 
-    EXPECT_CALL(*mock_factory_ptr, prepare(_));
-
+    EXPECT_CALL(*mock_factory, prepare(_));
     send_command({"create"});
 }
 

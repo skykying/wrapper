@@ -23,13 +23,21 @@
 
 namespace mp = multipass;
 
+namespace
+{
+template<typename Callable, typename Handle, typename... Args>
+void throw_on_error(Callable&& f, Handle&& h, Args&&... args)
+{
+    auto ret = f(h.get(), std::forward<Args>(args)...);
+    if (ret < 0)
+        throw std::runtime_error(ssh_get_error(h.get()));
+}
+}
 mp::SSHSession::SSHSession(const std::string& host, int port) : session{ssh_new(), ssh_free}
 {
-    ssh_options_set(session.get(), SSH_OPTIONS_HOST, host.c_str());
-    ssh_options_set(session.get(), SSH_OPTIONS_PORT, &port);
-    auto ret = ssh_connect(session.get());
-    if (ret != SSH_OK)
-        throw std::runtime_error(ssh_get_error(session.get()));
+    throw_on_error(ssh_options_set, session, SSH_OPTIONS_HOST, host.c_str());
+    throw_on_error(ssh_options_set, session, SSH_OPTIONS_PORT, &port);
+    throw_on_error(ssh_connect, session);
 }
 
 mp::SSHSession::SSHSession(int port) : SSHSession("localhost", port)

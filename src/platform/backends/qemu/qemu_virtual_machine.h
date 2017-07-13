@@ -43,9 +43,9 @@ public:
     void shutdown() override;
     State current_state() override;
     int forwarding_port() override;
+    void wait_until_ssh_up(std::chrono::milliseconds timeout) override;
 
 private:
-    void on_start();
     void on_shutdown();
     VirtualMachine::State state;
     int ssh_fowarding_port;
