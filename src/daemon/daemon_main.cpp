@@ -53,15 +53,21 @@ class UnixSignalHandler
 public:
     UnixSignalHandler(QCoreApplication& app)
         : signal_handling_thread{
-            [this, &app, sigs = make_and_block_signals({SIGTERM, SIGINT})] { monitor_signals(sigs, app); }}
+            [this, &app, sigs = make_and_block_signals({SIGTERM, SIGINT, SIGUSR1})] { monitor_signals(sigs, app); }}
     {
+    }
+
+    ~UnixSignalHandler()
+    {
+        kill(0, SIGUSR1);
     }
 
     void monitor_signals(sigset_t sigset, QCoreApplication& app)
     {
         int sig = -1;
         sigwait(&sigset, &sig);
-        std::cout << "Received signal: " << sig << "\n";
+        if (sig != SIGUSR1)
+            std::cout << "Received signal: " << sig << "\n";
         app.quit();
     }
 
