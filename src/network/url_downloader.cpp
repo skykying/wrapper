@@ -20,6 +20,7 @@
 
 #include <multipass/url_downloader.h>
 
+#include <QDir>
 #include <QEventLoop>
 #include <QFile>
 #include <QNetworkReply>
@@ -60,7 +61,7 @@ QByteArray download(QNetworkAccessManager& manager, QUrl const& url, Action&& ac
 
 mp::URLDownloader::URLDownloader(const mp::Path& cache_dir)
 {
-    network_cache.setCacheDirectory(cache_dir);
+    network_cache.setCacheDirectory(QDir(cache_dir).filePath("network-cache"));
     manager.setCache(&network_cache);
 }
 

@@ -168,15 +168,30 @@ mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
       vm_instance_specs{load_db(config->cache_directory)},
       runner(config->server_address, this)
 {
+    std::vector<std::string> invalid_specs;
     for (auto const& entry : vm_instance_specs)
     {
         const auto& name = entry.first;
         const auto& spec = entry.second;
 
+        if (!config->vault->has_record_for(name))
+        {
+            invalid_specs.push_back(name);
+            continue;
+        }
+
         auto vm_image = fetch_image_for(name, config->factory->fetch_type(), *config->vault);
         mp::VirtualMachineDescription vm_desc{spec.num_cores, spec.mem_size, spec.disk_space, name, vm_image};
         vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
     }
+
+    for (const auto& bad_spec : invalid_specs)
+    {
+        vm_instance_specs.erase(bad_spec);
+    }
+
+    if (!invalid_specs.empty())
+        persist_instances();
 }
 
 grpc::Status mp::Daemon::create(grpc::ServerContext* context, const CreateRequest* request,
@@ -486,7 +501,7 @@ void mp::Daemon::persist_instances()
     {
         auto key = QString::fromStdString(record.first);
         instance_records_json.insert(key, vm_spec_to_json(record.second));
-        QDir cache_dir{config->cache_directory};
-        mp::write_json(instance_records_json, cache_dir.filePath(instance_db_name));
     }
+    QDir cache_dir{config->cache_directory};
+    mp::write_json(instance_records_json, cache_dir.filePath(instance_db_name));
 }

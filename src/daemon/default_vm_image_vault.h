@@ -46,6 +46,7 @@ public:
     VMImage fetch_image(const FetchType& fetch_type, const Query& query, const PrepareAction& prepare,
                         const ProgressMonitor& monitor) override;
     void remove(const std::string& name) override;
+    bool has_record_for(const std::string& name) override;
 
 private:
     VMImage image_instance_from(const std::string& name, const VMImage& prepared_image);
@@ -56,6 +57,8 @@ private:
     VMImageHost* const image_host;
     URLDownloader* const url_downloader;
     const QDir cache_dir;
+    const QDir instances_dir;
+    const QDir images_dir;
 
     std::unordered_map<std::string, VaultRecord> prepared_image_records;
     std::unordered_map<std::string, VaultRecord> instance_image_records;

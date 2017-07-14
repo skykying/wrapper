@@ -30,7 +30,11 @@ struct StubVMImageVault final : public multipass::VMImageVault
         return prepare({});
     };
 
-    void remove(const std::string& name) override{};
+    void remove(const std::string&) override{};
+    bool has_record_for(const std::string&) override
+    {
+        return false;
+    }
 };
 
 #endif // MULTIPASS_STUB_VM_IMAGE_VAULT_H

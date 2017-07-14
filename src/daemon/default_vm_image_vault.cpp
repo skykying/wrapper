@@ -152,7 +152,7 @@ void remove_source_images(const mp::VMImage& source_image, const mp::VMImage& pr
 
 QDir make_dir(const QString& name, const QDir& cache_dir)
 {
-    if (!cache_dir.mkdir(name))
+    if (!cache_dir.mkpath(name))
     {
         qDebug() << "make_dir: name: " << name;
         QString dir{cache_dir.filePath(name)};
@@ -187,7 +187,9 @@ mp::DefaultVMImageVault::DefaultVMImageVault(VMImageHost* image_host, URLDownloa
                                              multipass::Path cache_dir_path)
     : image_host{image_host},
       url_downloader{downloader},
-      cache_dir{cache_dir_path},
+      cache_dir{QDir(cache_dir_path).filePath("vault")},
+      instances_dir(cache_dir.filePath("instances")),
+      images_dir(cache_dir.filePath("images")),
       prepared_image_records{load_db(cache_dir.filePath(image_db_name))},
       instance_image_records{load_db(cache_dir.filePath(instance_db_name))}
 {
@@ -217,8 +219,8 @@ mp::VMImage mp::DefaultVMImageVault::fetch_image(const FetchType& fetch_type, co
         return vm_image;
     }
 
-    QString image_dir_name = QString("%1-%2").arg(info.release).arg(info.version);
-    auto image_dir = make_dir(image_dir_name, cache_dir);
+    auto image_dir_name = QString("%1-%2").arg(info.release).arg(info.version);
+    auto image_dir = make_dir(image_dir_name, images_dir);
 
     VMImage source_image;
     source_image.id = id;
@@ -257,7 +259,7 @@ void mp::DefaultVMImageVault::remove(const std::string& name)
     if (name_entry == instance_image_records.end())
         return;
 
-    QDir instance_dir{cache_dir};
+    QDir instance_dir{instances_dir};
     instance_dir.cd(QString::fromStdString(name));
     instance_dir.removeRecursively();
 
@@ -265,11 +267,16 @@ void mp::DefaultVMImageVault::remove(const std::string& name)
     persist_instance_records();
 }
 
+bool mp::DefaultVMImageVault::has_record_for(const std::string& name)
+{
+    return instance_image_records.find(name) != instance_image_records.end();
+}
+
 mp::VMImage mp::DefaultVMImageVault::image_instance_from(const std::string& instance_name,
                                                          const VMImage& prepared_image)
 {
     auto name = QString::fromStdString(instance_name);
-    auto output_dir = make_dir(name, cache_dir);
+    auto output_dir = make_dir(name, instances_dir);
 
     return {copy(prepared_image.image_path, output_dir),
             copy(prepared_image.kernel_path, output_dir),
