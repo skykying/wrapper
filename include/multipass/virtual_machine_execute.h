@@ -33,7 +33,7 @@ public:
     virtual ~VirtualMachineExecute() = default;
 
     virtual std::vector<std::string> execute(int port) = 0;
-    virtual std::vector<std::string> execute(int port, std::vector<std::string> command) = 0;
+    virtual std::vector<std::string> execute(int port, const std::vector<std::string>& command) = 0;
 
 protected:
     VirtualMachineExecute() = default;

@@ -18,7 +18,9 @@
  */
 
 #include "exec.h"
+#ifndef MULTIPASS_PLATFORM_WINDOWS
 #include "execute_helper.h"
+#endif
 
 #include <multipass/cli/argparser.h>
 
@@ -35,6 +37,18 @@ mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
     }
 
     auto on_success = [this](mp::ExecReply& reply) {
+#ifdef MULTIPASS_PLATFORM_WINDOWS
+        if (reply.exec_line_size() < 2)
+        {
+            cerr << "exec failed: missing streams\n";
+            return ReturnCode::CommandFail;
+        }
+
+        cout << reply.exec_line(0);
+        cerr << reply.exec_line(1);
+
+        return ReturnCode::Ok;
+#else
         if (reply.exec_line().empty())
         {
             cout << "received exec reply\n";
@@ -48,6 +62,7 @@ mp::ReturnCode cmd::Exec::run(mp::ArgParser* parser)
 
             return execute_process(cmd_line);
         }
+#endif
     };
 
     auto on_failure = [this](grpc::Status& status) {

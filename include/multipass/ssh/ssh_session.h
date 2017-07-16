@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace multipass
 {
@@ -32,7 +33,9 @@ class SSHSession
 public:
     SSHSession(int port);
     SSHSession(const std::string& host, int port);
+    SSHSession(const std::string& host, int port, const std::string& priv_key_path);
 
+    std::vector<std::string> execute(const std::vector<std::string>& args);
 private:
     std::unique_ptr<ssh_session_struct, void(*)(ssh_session)> session;
 };

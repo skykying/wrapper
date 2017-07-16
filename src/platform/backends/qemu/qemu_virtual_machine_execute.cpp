@@ -43,7 +43,7 @@ auto construct_ssh_command(int port)
 }
 
 // This is needed in order to make ssh's command parsing happy:/
-auto escape_cmd_args_with_quotes(std::vector<std::string> command)
+auto escape_cmd_args_with_quotes(const std::vector<std::string>& command)
 {
     std::vector<std::string> escaped_cmd_line;
 
@@ -61,14 +61,14 @@ std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port)
     return construct_ssh_command(port);
 }
 
-std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port, std::vector<std::string> command)
+std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port, const std::vector<std::string>& command)
 {
     std::vector<std::string> constructed_cmd = construct_ssh_command(port);
 
     constructed_cmd.push_back("--");
 
-    command = escape_cmd_args_with_quotes(command);
-    constructed_cmd.insert(constructed_cmd.end(), command.begin(), command.end());
+    auto escaped_cmd = escape_cmd_args_with_quotes(command);
+    constructed_cmd.insert(constructed_cmd.end(), escaped_cmd.begin(), escaped_cmd.end());
 
     return constructed_cmd;
 }
