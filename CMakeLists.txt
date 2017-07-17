@@ -24,6 +24,8 @@ option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 # Qt config
 set(CMAKE_AUTOMOC ON)
@@ -43,6 +45,7 @@ if(MSVC)
   add_definitions(/MP)
   add_definitions(-D_WIN32_WINNT=0x600) # A gprc header requires this (specifies WinXP or greater)
   add_definitions(-DMULTIPASS_PLATFORM_WINDOWS)
+  add_definitions(-DLIBSSH_STATIC) # otherwise adds declspec specifiers to libssh apis
 elseif(APPLE)
   add_compile_options(-Werror -Wall -pedantic -fPIC)
   add_definitions(-DMULTIPASS_PLATFORM_APPLE)

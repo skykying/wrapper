@@ -27,6 +27,7 @@ target_link_libraries(daemon
   petname
   platform
   simplestreams
+  ssh
   Qt5::Core
   Qt5::Network
   yaml-cpp)

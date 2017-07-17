@@ -21,6 +21,7 @@
 
 #include <multipass/ssh/ssh_key_provider.h>
 
+#include <array>
 #include <sstream>
 #include <stdexcept>
 
@@ -63,14 +64,14 @@ public:
     std::vector<std::string> exec(const std::string& cmd)
     {
         throw_on_error(ssh_channel_request_exec, channel, cmd.c_str());
-        return {read_stream(StreamType::stdout), read_stream(StreamType::stderr)};
+        return {read_stream(StreamType::out), read_stream(StreamType::err)};
     }
 
 private:
     enum class StreamType
     {
-        stdout,
-        stderr
+        out,
+        err
     };
 
     std::string read_stream(StreamType type)
@@ -78,7 +79,7 @@ private:
         std::stringstream output;
         std::array<char, 256> buffer;
         int num_bytes{0};
-        const bool is_std_err = type == StreamType::stderr ? true : false;
+        const bool is_std_err = type == StreamType::err ? true : false;
         do
         {
             num_bytes = ssh_channel_read_timeout(channel.get(), buffer.data(), buffer.size(), is_std_err, -1);

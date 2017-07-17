@@ -17,24 +17,32 @@
  *
  */
 
-#include "hyperv_virtual_machine_factory.h"
-
 #include "hyperv_virtual_machine.h"
 
 namespace mp = multipass;
 
-mp::VirtualMachine::UPtr mp::HyperVVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& desc,
-                                                                                 VMStatusMonitor& monitor)
+void mp::HyperVVirtualMachine::start()
 {
-    return std::make_unique<mp::HyperVVirtualMachine>();
 }
 
-mp::FetchType mp::HyperVVirtualMachineFactory::fetch_type()
+void mp::HyperVVirtualMachine::stop()
 {
-    return mp::FetchType::ImageOnly;
 }
 
-mp::VMImage mp::HyperVVirtualMachineFactory::prepare(const mp::VMImage& source_image)
+void mp::HyperVVirtualMachine::shutdown()
 {
-    return source_image;
+}
+
+mp::VirtualMachine::State mp::HyperVVirtualMachine::current_state()
+{
+    return mp::VirtualMachine::State::off;
+}
+
+int mp::HyperVVirtualMachine::forwarding_port()
+{
+    return 42;
+}
+
+void mp::HyperVVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout)
+{
 }

@@ -62,6 +62,7 @@ target_link_libraries(multipass_tests
   daemon
   client
   petname
+  ssh
   simplestreams
 
   # 3rd-party

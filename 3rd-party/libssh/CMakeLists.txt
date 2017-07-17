@@ -25,7 +25,9 @@ set(OPENSSL_FOUND TRUE)
 # Lie about the version so that we can do our own crypto-compat layer
 set(OPENSSL_VERSION "1.1.1")
 
-if(NOT MSVC)
+if(MSVC)
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
+else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion")
 endif()
 

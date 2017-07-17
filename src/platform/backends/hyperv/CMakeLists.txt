@@ -15,6 +15,7 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(hyperv_backend STATIC
+  hyperv_virtual_machine.cpp
   hyperv_virtual_machine_factory.cpp)
 
 target_link_libraries(hyperv_backend

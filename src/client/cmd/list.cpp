@@ -22,6 +22,7 @@
 #include <multipass/cli/argparser.h>
 
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 namespace mp = multipass;
