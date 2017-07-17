@@ -193,6 +193,27 @@ TEST_F(Client, exec_cmd_help_ok)
     EXPECT_THAT(send_command({"exec", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// help cli tests
+TEST_F(Client, help_cmd_ok_with_valid_single_arg)
+{
+    EXPECT_THAT(send_command({"help", "create"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
+TEST_F(Client, help_cmd_fails_no_args)
+{
+    EXPECT_THAT(send_command({"help"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, help_cmd_fails_with_invalid_arg)
+{
+    EXPECT_THAT(send_command({"help", "foo"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::CommandLineError));
+}
+
+TEST_F(Client, help_cmd_help_ok)
+{
+    EXPECT_THAT(send_command({"help", "-h"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
+}
+
 // info cli tests
 TEST_F(Client, info_cmd_fails_no_args)
 {
@@ -319,6 +340,7 @@ TEST_F(Client, help_returns_ok_return_code)
     EXPECT_THAT(send_command({"--help"}, stdout_stream, stderr_stream), Eq(mp::ReturnCode::Ok));
 }
 
+// general help tests
 TEST_F(Client, command_help_is_different_than_general_help)
 {
     std::stringstream general_help_output;
@@ -328,4 +350,15 @@ TEST_F(Client, command_help_is_different_than_general_help)
     send_command({"list", "--help"}, command_output);
 
     EXPECT_THAT(general_help_output.str(), Ne(command_output.str()));
+}
+
+TEST_F(Client, help_cmd_create_same_create_cmd_help)
+{
+    std::stringstream help_cmd_create;
+    send_command({"help", "create"}, help_cmd_create);
+
+    std::stringstream create_cmd_help;
+    send_command({"create", "-h"}, create_cmd_help);
+
+    EXPECT_THAT(help_cmd_create.str(), Eq(create_cmd_help.str()));
 }

@@ -20,6 +20,7 @@ add_library(commands STATIC
   empty_trash.cpp
   exec.cpp
   execute_helper.cpp
+  help.cpp
   info.cpp
   list.cpp
   recover.cpp

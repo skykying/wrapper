@@ -21,6 +21,7 @@
 #include "cmd/create.h"
 #include "cmd/empty_trash.h"
 #include "cmd/exec.h"
+#include "cmd/help.h"
 #include "cmd/info.h"
 #include "cmd/list.h"
 #include "cmd/recover.h"
@@ -45,6 +46,7 @@ mp::Client::Client(const ClientConfig& config)
     add_command<cmd::Create>();
     add_command<cmd::EmptyTrash>();
     add_command<cmd::Exec>();
+    add_command<cmd::Help>();
     add_command<cmd::Info>();
     add_command<cmd::List>();
     add_command<cmd::Recover>();

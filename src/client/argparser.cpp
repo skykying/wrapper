@@ -18,6 +18,8 @@
 #include <multipass/cli/argparser.h>
 #include <wrap_text.h>
 
+#include <QRegExp>
+
 /*
  * ArgParser - a wrapping of a QCommandLineParser where the concept of a "command"
  * is central. It chooses which Command is requested (if any) and allows that Command
@@ -77,13 +79,11 @@ mp::ParseCode mp::ArgParser::parse()
 
     const QString requested_command = parser.positionalArguments().first();
 
-    for (const auto& c : commands)
+    chosen_command = findCommand(requested_command);
+
+    if (chosen_command)
     {
-        if (requested_command.toStdString() == c->name())
-        {
-            chosen_command = c.get();
-            return ParseCode::Ok;
-        }
+        return ParseCode::Ok;
     }
 
     if (help_requested)
@@ -122,6 +122,16 @@ mp::ReturnCode mp::ArgParser::returnCodeFrom(ParseCode parse_code) const
         return ReturnCode::CommandLineError;
 
     return ReturnCode::Ok;
+}
+
+// This forces help to be printed using "help <command>"
+void mp::ArgParser::forceCommandHelp()
+{
+    parser.clearPositionalArguments();
+
+    // Need to add this back so helpText() can add the correct command for usage
+    parser.addPositionalArgument("command", "The command to execute", "<command>");
+    help_requested = true;
 }
 
 // Prints generic help
@@ -169,7 +179,7 @@ QString mp::ArgParser::helpText(cmd::Command* command)
     text = text.replace(QCommandLineParser::tr("[options]") + " <command>",
                         QString::fromStdString(command->name()) + " " + QCommandLineParser::tr("[options]"));
 
-    int start = text.indexOf("  command");
+    int start = text.indexOf(QRegExp("  command\\s*The command to execute"));
     int end = text.indexOf(nl, start);
     text = text.replace(start, end - start + 1, "");
 
@@ -205,6 +215,19 @@ void mp::ArgParser::addPositionalArgument(const QString& name, const QString& de
 cmd::Command* mp::ArgParser::chosenCommand() const
 {
     return chosen_command;
+}
+
+cmd::Command* mp::ArgParser::findCommand(const QString& command) const
+{
+    for (const auto& c : commands)
+    {
+        if (command.toStdString() == c->name())
+        {
+            return c.get();
+        }
+    }
+
+    return nullptr;
 }
 
 bool mp::ArgParser::isSet(const QCommandLineOption& option) const

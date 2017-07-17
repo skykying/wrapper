@@ -41,6 +41,7 @@ public:
 
     ParseCode parse();
     cmd::Command* chosenCommand() const;
+    cmd::Command* findCommand(const QString& command) const;
 
     bool isSet(const QCommandLineOption& option) const;
 
@@ -51,6 +52,8 @@ public:
     ParseCode commandParse(cmd::Command* command);
 
     ReturnCode returnCodeFrom(ParseCode parse_code) const;
+
+    void forceCommandHelp();
 
 private:
     QString generalHelpText();
