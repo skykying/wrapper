@@ -224,12 +224,16 @@ TEST_F(QemuBackend, creates_new_pubkey_when_none_exists)
     QDir fake_config_path{fake_config_dir.path()};
     fake_config_path.mkdir("multipassd");
 
+    const auto priv_rsa_path = fake_config_path.filePath("multipassd/id_rsa");
     const auto id_rsa_path = fake_config_path.filePath("multipassd/id_rsa.pub");
+    ASSERT_FALSE(QFile::exists(priv_rsa_path));
     ASSERT_FALSE(QFile::exists(id_rsa_path));
 
     const auto parsed_key = mp::Platform::public_key();
 
     EXPECT_TRUE(QFile::exists(id_rsa_path));
+    EXPECT_TRUE(QFile::exists(priv_rsa_path));
+    ASSERT_THAT(QFile::permissions(priv_rsa_path), Eq(QFile::ReadOwner | QFile::ReadUser | QFile::ReadGroup | QFile::ReadOther));
     EXPECT_THAT(parsed_key->type(), Eq(mp::SshPubKey::Type::RSA));
     EXPECT_THAT(parsed_key->as_base64(), Not(StrEq("")));
 }

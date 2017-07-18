@@ -78,6 +78,10 @@ void create_keypair(const QString& basename)
 
     ssh_keygen.start("ssh-keygen", keygen_args);
     ssh_keygen.waitForFinished();
+
+    // We need to give read permissions to the private key
+    // so user-executed clients can access it
+    QFile::setPermissions(basename, QFile::ReadOwner | QFile::ReadGroup | QFile::ReadOther);
 }
 }
 
