@@ -33,8 +33,9 @@ find_package(Qt5Network)
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
 
-file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION MULTIPASS_VERSION
-  LIMIT_COUNT 1)
+execute_process(COMMAND git describe --tags
+                OUTPUT_VARIABLE MULTIPASS_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 set(CMAKE_CXX_STANDARD 14)
 if(MSVC)
