@@ -13,27 +13,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
-#ifndef MULTIPASS_SSH_KEY_H
-#define MULTIPASS_SSH_KEY_H
 
-#include <string>
+#ifndef MULTIPASS_STUB_SSH_KEY_PROVIDER_H
+#define MULTIPASS_STUB_SSH_KEY_PROVIDER_H
+
+#include <multipass/ssh/ssh_key_provider.h>
 
 namespace multipass
 {
-class SshPubKey
+class StubSSHKeyProvider : public SSHKeyProvider
 {
 public:
-    enum class Type
+    std::string private_key_as_base64() const override
     {
-        RSA
+        return {};
     };
 
-    virtual Type type() const = 0;
-    virtual std::string as_base64() const = 0;
+    std::string public_key_as_base64() const override
+    {
+        return {};
+    };
+
+    std::string private_key_path() const override
+    {
+        return {};
+    };
+
+    ssh_key private_key() const override
+    {
+        return nullptr;
+    };
 };
 }
-
-#endif // MULTIPASS_SSH_KEY_H
+#endif // MULTIPASS_STUB_SSH_KEY_PROVIDER_H

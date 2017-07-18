@@ -18,7 +18,8 @@
  */
 
 #include "qemu_virtual_machine_execute.h"
-#include "openssh_key_provider.h"
+
+#include "multipass/ssh/openssh_key_provider.h"
 
 #include <QFile>
 
@@ -26,18 +27,20 @@ namespace mp = multipass;
 
 namespace
 {
-auto construct_ssh_command(int port)
+auto construct_ssh_command(int port, const mp::SSHKeyProvider& key_provider)
 {
-    const auto private_key_path = mp::OpenSSHKeyProvider::private_key_path();
-
-    if (!QFile::exists(private_key_path))
-    {
-        throw std::runtime_error{"Failed to find multipass SSH keys"};
-    }
-
     // The following ssh command will undoubtedly change in The Future
-    std::vector<std::string> ssh_cmd{"ssh", "-p", std::to_string(port), "-t", "-o", "StrictHostKeyChecking=no", "-o",
-                                     "UserKnownHostsFile=/dev/null", "-i", private_key_path.toStdString(), "ubuntu@localhost"};
+    std::vector<std::string> ssh_cmd{"ssh",
+                                     "-p",
+                                     std::to_string(port),
+                                     "-t",
+                                     "-o",
+                                     "StrictHostKeyChecking=no",
+                                     "-o",
+                                     "UserKnownHostsFile=/dev/null",
+                                     "-i",
+                                     key_provider.private_key_path(),
+                                     "ubuntu@localhost"};
 
     return ssh_cmd;
 }
@@ -55,15 +58,19 @@ auto escape_cmd_args_with_quotes(const std::vector<std::string>& command)
     return escaped_cmd_line;
 }
 }
+mp::QemuVirtualMachineExecute::QemuVirtualMachineExecute(const mp::SSHKeyProvider& key_provider)
+    : key_provider{key_provider}
+{
+}
 
 std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port)
 {
-    return construct_ssh_command(port);
+    return construct_ssh_command(port, key_provider);
 }
 
 std::vector<std::string> mp::QemuVirtualMachineExecute::execute(int port, const std::vector<std::string>& command)
 {
-    std::vector<std::string> constructed_cmd = construct_ssh_command(port);
+    std::vector<std::string> constructed_cmd = construct_ssh_command(port, key_provider);
 
     constructed_cmd.push_back("--");
 

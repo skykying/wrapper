@@ -23,7 +23,6 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/query.h>
-#include <multipass/ssh_key.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
 #include <multipass/virtual_machine_execute.h>
@@ -54,12 +53,12 @@ mp::Query query_from(const mp::CreateRequest* request, const std::string& name)
     return {name, request->image(), false};
 }
 
-auto make_cloud_init_config(const mp::SshPubKey& key)
+auto make_cloud_init_config(const mp::SSHKeyProvider& key_provider)
 {
     auto config = YAML::Load(mp::base_cloud_init_config);
     std::stringstream ssh_key_line;
     ssh_key_line << "ssh-rsa"
-                 << " " << key.as_base64() << " "
+                 << " " << key_provider.public_key_as_base64() << " "
                  << "multipass@localhost";
     config["ssh_authorized_keys"].push_back(ssh_key_line.str());
     return config;
@@ -218,7 +217,7 @@ try // clang-format on
 
     auto fetch_type = config->factory->fetch_type();
     auto vm_image = config->vault->fetch_image(fetch_type, query, prepare_action, download_monitor);
-    auto cloud_init_config = make_cloud_init_config(*config->ssh_key);
+    auto cloud_init_config = make_cloud_init_config(*config->ssh_key_provider);
     auto vm_desc = to_machine_desc(request, name, vm_image, std::move(cloud_init_config));
 
     auto vm = config->factory->create_virtual_machine(vm_desc, *this);

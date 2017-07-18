@@ -15,7 +15,9 @@
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
 add_library(ssh STATIC
+  openssh_key_provider.cpp
   ssh_session.cpp)
 
 target_link_libraries(ssh
-  libssh)
+  libssh
+  Qt5::Core)

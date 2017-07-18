@@ -22,7 +22,6 @@
 #include <src/daemon/daemon_config.h>
 
 #include <multipass/name_generator.h>
-#include <multipass/ssh_key.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
@@ -31,9 +30,9 @@
 
 #include "mock_virtual_machine_factory.h"
 #include "stub_image_host.h"
-#include "stub_ssh_key.h"
 #include "stub_virtual_machine_factory.h"
 #include "stub_vm_image_vault.h"
+#include "stub_ssh_key_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -95,7 +94,7 @@ struct Daemon : public Test
         config_builder.vault = std::make_unique<StubVMImageVault>();
         config_builder.factory = std::make_unique<StubVirtualMachineFactory>();
         config_builder.image_host = std::make_unique<StubVMImageHost>();
-        config_builder.ssh_key = std::make_unique<StubSshPubKey>();
+        config_builder.ssh_key_provider = std::make_unique<mp::StubSSHKeyProvider>();
     }
 
     MockVirtualMachineFactory* use_a_mock_vm_factory()

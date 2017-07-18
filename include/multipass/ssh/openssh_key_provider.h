@@ -17,23 +17,35 @@
  *
  */
 
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
+#ifndef MULTIPASS_OPENSSH_KEY_PROVIDER_H
+#define MULTIPASS_OPENSSH_KEY_PROVIDER_H
 
-#include <string>
+#include <multipass/path.h>
+#include <multipass/ssh/ssh_key_provider.h>
 
-#include <multipass/virtual_machine_execute.h>
-#include <multipass/virtual_machine_factory.h>
+#include <QDir>
+#include <memory>
 
 namespace multipass
 {
-class SSHKeyProvider;
-class Platform
+class OpenSSHKeyProvider : public SSHKeyProvider
 {
 public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
-    static VirtualMachineExecute::UPtr vm_execute(const SSHKeyProvider& provider);
+    struct KeyDeleter
+    {
+        void operator()(ssh_key key);
+    };
+    using KeyUPtr = std::unique_ptr<ssh_key_struct, KeyDeleter>;
+
+    OpenSSHKeyProvider(const Path& cache_dir);
+    std::string private_key_as_base64() const override;
+    std::string public_key_as_base64() const override;
+    std::string private_key_path() const override;
+    ssh_key private_key() const override;
+
+private:
+    QDir ssh_key_dir;
+    KeyUPtr priv_key;
 };
 }
-#endif // MULTIPASS_PLATFORM_H
+#endif // MULTIPASS_OPENSSH_KEY_PROVIDER_H

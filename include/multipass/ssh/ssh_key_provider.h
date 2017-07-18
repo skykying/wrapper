@@ -13,26 +13,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Authored by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+ * Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
  *
  */
 
-#ifndef MULTIPASS_OPENSSHKEYPROVIDER_H
-#define MULTIPASS_OPENSSHKEYPROVIDER_H
+#ifndef MULTIPASS_SSH_KEY_PROVIDER_H
+#define MULTIPASS_SSH_KEY_PROVIDER_H
 
-#include <multipass/path.h>
-#include <multipass/ssh_key.h>
-
-#include <memory>
+#include <libssh/libssh.h>
 
 namespace multipass
 {
-class OpenSSHKeyProvider
+class SSHKeyProvider
 {
 public:
-    static std::unique_ptr<SshPubKey> public_key();
-    static Path private_key_path();
+    virtual ~SSHKeyProvider() = default;
+    virtual std::string private_key_as_base64() const = 0;
+    virtual std::string public_key_as_base64() const = 0;
+    virtual std::string private_key_path() const = 0;
+    virtual ssh_key private_key() const = 0;
+
+protected:
+    SSHKeyProvider() = default;
+    SSHKeyProvider(const SSHKeyProvider&) = delete;
+    SSHKeyProvider& operator=(const SSHKeyProvider&) = delete;
 };
 }
-
-#endif // MULTIPASS_OPENSSHKEYPROVIDER_H
+#endif // MULTIPASS_SSH_KEY_PROVIDER_H

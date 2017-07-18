@@ -24,11 +24,16 @@
 
 namespace multipass
 {
+class SSHKeyProvider;
 class QemuVirtualMachineExecute final : public VirtualMachineExecute
 {
 public:
+    QemuVirtualMachineExecute(const SSHKeyProvider& key_provider);
     std::vector<std::string> execute(int port) override;
     std::vector<std::string> execute(int port, const std::vector<std::string>& command) override;
+
+private:
+    const SSHKeyProvider& key_provider;
 };
 }
 

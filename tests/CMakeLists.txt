@@ -52,6 +52,7 @@ add_executable(multipass_tests
   test_petname.cpp
   test_simple_streams_index.cpp
   test_simple_streams_manifest.cpp
+  test_ssh_key_provider.cpp
   test_ubuntu_image_host.cpp
 
   ${BACKEND_TESTS}

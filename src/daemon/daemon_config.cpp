@@ -23,7 +23,7 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/platform.h>
-#include <multipass/ssh_key.h>
+#include <multipass/ssh/openssh_key_provider.h>
 #include <multipass/virtual_machine_execute.h>
 
 #include <QStandardPaths>
@@ -44,14 +44,15 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
         vault = std::make_unique<DefaultVMImageVault>(image_host.get(), url_downloader.get(), cache_directory);
     if (name_generator == nullptr)
         name_generator = mp::make_default_name_generator();
-    if (vm_execute == nullptr)
-        vm_execute = Platform::vm_execute();
     if (server_address.empty())
         server_address = Platform::default_server_address();
-    if (ssh_key == nullptr)
-        ssh_key = Platform::public_key();
+    if (ssh_key_provider == nullptr)
+        ssh_key_provider = std::make_unique<OpenSSHKeyProvider>(cache_directory);
+    if (vm_execute == nullptr)
+        vm_execute = Platform::vm_execute(*ssh_key_provider);
 
-    return std::unique_ptr<const DaemonConfig>(new DaemonConfig{
-        std::move(url_downloader), std::move(factory), std::move(image_host), std::move(vault),
-        std::move(name_generator), std::move(vm_execute), std::move(ssh_key), cache_directory, server_address});
+    return std::unique_ptr<const DaemonConfig>(
+        new DaemonConfig{std::move(url_downloader), std::move(factory), std::move(image_host), std::move(vault),
+                         std::move(name_generator), std::move(vm_execute), std::move(ssh_key_provider), cache_directory,
+                         server_address});
 }
