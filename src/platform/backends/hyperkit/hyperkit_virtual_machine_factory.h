@@ -29,7 +29,8 @@ public:
     VirtualMachine::UPtr create_virtual_machine(const VirtualMachineDescription& desc,
                                                 VMStatusMonitor& monitor) override;
 
-    std::unique_ptr<VMImageFetcher> create_image_fetcher(const std::unique_ptr<VMImageHost>& host) override;
+    FetchType fetch_type() override;
+    VMImage prepare(const VMImage& source_image) override;
 };
 }
 

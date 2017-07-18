@@ -22,6 +22,7 @@
 #include <multipass/cli/argparser.h>
 
 #include <iomanip>
+#include <sstream>
 
 namespace mp = multipass;
 namespace cmd = multipass::cmd;
@@ -31,7 +32,7 @@ namespace
 {
 std::ostream& operator<<(std::ostream& out, const multipass::ListVMInstance_Status& status)
 {
-    switch(status)
+    switch (status)
     {
     case mp::ListVMInstance::RUNNING:
         out << "RUNNING";
@@ -43,7 +44,7 @@ std::ostream& operator<<(std::ostream& out, const multipass::ListVMInstance_Stat
         out << "IN TRASH";
         break;
     default:
-        out << "UNKOWN";
+        out << "UNKNOWN";
         break;
     }
     return out;
@@ -62,7 +63,8 @@ mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
         const auto size = reply.instances_size();
         if (size < 1)
         {
-            cout << "No instances found." << "\n";
+            cout << "No instances found."
+                 << "\n";
         }
         else
         {
@@ -97,7 +99,10 @@ mp::ReturnCode cmd::List::run(mp::ArgParser* parser)
     return dispatch(&RpcMethod::list, request, on_success, on_failure);
 }
 
-std::string cmd::List::name() const { return "list"; }
+std::string cmd::List::name() const
+{
+    return "list";
+}
 
 QString cmd::List::short_help() const
 {

@@ -17,8 +17,8 @@
  *
  */
 
-#include "src/daemon/default_vm_image_vault.h"
 #include "file_reader.h"
+#include "src/daemon/default_vm_image_vault.h"
 #include "test_data_path.h"
 
 #include <multipass/query.h>
@@ -55,6 +55,9 @@ struct TempFile
     QString url;
 };
 
+static constexpr auto default_id = "42";
+static constexpr auto default_version = "20160217.1";
+
 struct ImageHost : public mp::VMImageHost
 {
     mp::VMImageInfo info_for(const mp::Query& query) override
@@ -69,8 +72,6 @@ struct ImageHost : public mp::VMImageHost
     TempFile image;
     TempFile kernel;
     TempFile initrd;
-    static constexpr auto default_id = "42";
-    static constexpr auto default_version = "20160217.1";
 };
 
 struct TrackingURLDownloader : public mp::URLDownloader
@@ -206,7 +207,6 @@ TEST_F(ImageVault, remembers_instance_images)
     EXPECT_THAT(vm_image1.image_path, Eq(vm_image2.image_path));
 }
 
-
 TEST_F(ImageVault, remembers_prepared_images)
 {
     int prepare_called_count{0};
@@ -253,5 +253,5 @@ TEST_F(ImageVault, uses_image_from_prepare)
 
     auto image_data = mpt::load(vm_image.image_path);
     EXPECT_THAT(image_data, Eq(expected_data));
-    EXPECT_THAT(vm_image.id, Eq(host.default_id));
+    EXPECT_THAT(vm_image.id, Eq(default_id));
 }

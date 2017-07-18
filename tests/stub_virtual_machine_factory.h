@@ -32,12 +32,12 @@ struct StubVirtualMachineFactory final : public multipass::VirtualMachineFactory
         return std::make_unique<StubVirtualMachine>();
     }
 
-    multipass::FetchType fetch_type()
+    multipass::FetchType fetch_type() override
     {
         return multipass::FetchType::ImageOnly;
     }
 
-    multipass::VMImage prepare(const multipass::VMImage& source_image)
+    multipass::VMImage prepare(const multipass::VMImage& source_image) override
     {
         return source_image;
     }

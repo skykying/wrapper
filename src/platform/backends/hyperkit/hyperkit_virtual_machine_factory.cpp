@@ -18,19 +18,21 @@
 
 #include "hyperkit_virtual_machine_factory.h"
 
-#include <multipass/vm_image_fetcher.h>
-
 namespace mp = multipass;
 
 mp::VirtualMachine::UPtr
 mp::HyperkitVirtualMachineFactory::create_virtual_machine(const VirtualMachineDescription& /*desc*/,
-                                                      VMStatusMonitor& /*monitor*/)
+                                                          VMStatusMonitor& /*monitor*/)
 {
     return nullptr;
 }
 
-std::unique_ptr<mp::VMImageFetcher>
-mp::HyperkitVirtualMachineFactory::create_image_fetcher(const std::unique_ptr<VMImageHost>& /*host*/)
+mp::FetchType mp::HyperkitVirtualMachineFactory::fetch_type()
 {
-    return nullptr;
+    return mp::FetchType::ImageKernelAndInitrd;
+}
+
+mp::VMImage mp::HyperkitVirtualMachineFactory::prepare(const mp::VMImage& source_image)
+{
+    return source_image;
 }
