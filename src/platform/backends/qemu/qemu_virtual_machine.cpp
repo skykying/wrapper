@@ -110,6 +110,19 @@ mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardError,
                      [this]() { qDebug("qemu.err: %s", vm_process->readAllStandardError().data()); });
 
+    QObject::connect(vm_process.get(), &QProcess::stateChanged,
+                     [this](QProcess::ProcessState newState) {
+                         qDebug() << "QProcess::stateChanged"
+                                  << "newState" << newState;
+                     });
+
+    QObject::connect(vm_process.get(), &QProcess::errorOccurred,
+                     [this](QProcess::ProcessError error) {
+                         qDebug() << "QProcess::errorOccurred"
+                                  << "error" << error;
+                         on_error();
+                     });
+
     QObject::connect(vm_process.get(), static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
                      [this](int exitCode, QProcess::ExitStatus exitStatus) {
                          qDebug() << "QProcess::finished"
@@ -179,6 +192,11 @@ void mp::QemuVirtualMachine::on_started()
 {
     state = State::running;
     monitor->on_resume();
+}
+
+void mp::QemuVirtualMachine::on_error()
+{
+    state = State::off;
 }
 
 void mp::QemuVirtualMachine::on_shutdown()

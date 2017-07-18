@@ -47,6 +47,7 @@ public:
 
 private:
     void on_started();
+    void on_error();
     void on_shutdown();
     VirtualMachine::State state;
     int ssh_fowarding_port;
