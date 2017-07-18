@@ -99,6 +99,11 @@ mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc
       monitor{&monitor},
       vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image)}
 {
+    QObject::connect(vm_process.get(), &QProcess::started,
+                     [this]() {
+                         qDebug() << "QProcess::started";
+                         on_started();
+                     });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
                      [this]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
 
@@ -123,10 +128,6 @@ void mp::QemuVirtualMachine::start()
         return;
 
     vm_process->start();
-    vm_process->waitForStarted();
-
-    state = State::running;
-    monitor->on_resume();
 }
 
 void mp::QemuVirtualMachine::stop()
@@ -172,6 +173,12 @@ void mp::QemuVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout
 
     if (!ssh_up)
         throw std::runtime_error("timed out waiting for ssh service to start");
+}
+
+void mp::QemuVirtualMachine::on_started()
+{
+    state = State::running;
+    monitor->on_resume();
 }
 
 void mp::QemuVirtualMachine::on_shutdown()
