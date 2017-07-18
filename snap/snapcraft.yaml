@@ -14,6 +14,10 @@ confinement: devmode
 apps:
   multipassd:
     command: bin/multipassd
+    environment:
+      XDG_DATA_HOME: $SNAP_COMMON/data
+      XDG_CACHE_HOME: $SNAP_COMMON/cache
+    daemon: simple
     plugs: [network, network-bind, x11]
   ubuntu:
     command: bin/ubuntu
