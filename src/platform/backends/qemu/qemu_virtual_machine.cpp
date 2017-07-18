@@ -172,6 +172,11 @@ void mp::QemuVirtualMachine::wait_until_ssh_up(std::chrono::milliseconds timeout
     bool ssh_up{false};
     while (std::chrono::steady_clock::now() < deadline)
     {
+        // TODO avoid this by making this wait event driven (LP:#1704785)
+        QCoreApplication::processEvents();
+        if (vm_process->state() == QProcess::NotRunning)
+            throw std::runtime_error("qemu not running when waiting for ssh service to start");
+
         try
         {
             mp::SSHSession session{ssh_fowarding_port};
