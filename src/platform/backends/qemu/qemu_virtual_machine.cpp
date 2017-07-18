@@ -67,6 +67,14 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
     // Control interface
     args << "-monitor"
          << "stdio";
+    // No console
+    args << "-chardev"
+         // TODO Read and log machine output when verbose
+         << "null,id=char0"
+         << "-serial"
+         << "chardev:char0"
+         // TODO Add a debugging mode with access to console
+         << "-nographic";
 
     auto process = std::make_unique<QProcess>();
     auto snap = qgetenv("SNAP");
