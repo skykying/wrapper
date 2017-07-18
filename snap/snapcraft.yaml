@@ -20,10 +20,11 @@ apps:
     plugs: [network]
   multipass:
     command: >
-      env TMPDIR=$XDG_RUNTIME_DIR
-          XDG_CURRENT_DESKTOP=$( echo $XDG_CURRENT_DESKTOP | sed s/Unity:Unity7/Unity/ )
+      env XDG_CURRENT_DESKTOP=$( echo $XDG_CURRENT_DESKTOP | sed s/Unity:Unity7/Unity/ )
           desktop-launch
             $SNAP/electron-app/multipass --no-sandbox
+    environment:
+      TMPDIR: $XDG_RUNTIME_DIR
     plugs:
     - browser-support
     - gsettings
