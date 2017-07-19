@@ -24,6 +24,7 @@ service Rpc {
     rpc info (InfoRequest) returns (InfoReply);
     rpc list (ListRequest) returns (ListReply);
     rpc recover (RecoverRequest) returns (RecoverReply);
+    rpc ssh_info (SSHInfoRequest) returns (SSHInfoReply);
     rpc start (StartRequest) returns (StartReply);
     rpc stop (StopRequest) returns (StopReply);
     rpc trash (TrashRequest) returns (TrashReply);
@@ -108,6 +109,15 @@ message RecoverRequest {
 }
 
 message RecoverReply {
+}
+
+message SSHInfoRequest {
+    string instance_name = 1;
+}
+
+message SSHInfoReply {
+    int32 port = 1;
+    string priv_key_base64 = 2;
 }
 
 message StartRequest {

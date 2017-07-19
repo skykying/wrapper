@@ -17,10 +17,8 @@
  *
  */
 #include "client.h"
-#include "cmd/connect.h"
 #include "cmd/create.h"
 #include "cmd/empty_trash.h"
-#include "cmd/exec.h"
 #include "cmd/help.h"
 #include "cmd/info.h"
 #include "cmd/list.h"
@@ -29,6 +27,14 @@
 #include "cmd/stop.h"
 #include "cmd/trash.h"
 #include "cmd/version.h"
+
+#ifdef MULTIPASS_PLATFORM_WINDOWS
+#include "cmd/connect.h"
+#include "cmd/exec.h"
+#else
+#include "cmd/connect_unix.h"
+#include "cmd/exec_unix.h"
+#endif
 
 #include <grpc++/grpc++.h>
 
@@ -40,7 +46,9 @@ namespace mp = multipass;
 
 mp::Client::Client(const ClientConfig& config)
     : rpc_channel{grpc::CreateChannel(config.server_address, grpc::InsecureChannelCredentials())},
-      stub{mp::Rpc::NewStub(rpc_channel)}, cout{config.cout}, cerr{config.cerr}
+      stub{mp::Rpc::NewStub(rpc_channel)},
+      cout{config.cout},
+      cerr{config.cerr}
 {
     add_command<cmd::Connect>();
     add_command<cmd::Create>();
@@ -63,7 +71,7 @@ void mp::Client::add_command()
     commands.push_back(std::move(cmd));
 }
 
-int mp::Client::run(const QStringList &arguments)
+int mp::Client::run(const QStringList& arguments)
 {
     QString description("Create, control and connect to Ubuntu instances.\n\n"
                         "This is a command line utility for multipass, a\n"

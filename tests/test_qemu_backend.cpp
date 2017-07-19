@@ -17,11 +17,9 @@
  *
  */
 
-#include <src/platform/backends/qemu/qemu_virtual_machine_execute.h>
 #include <src/platform/backends/qemu/qemu_virtual_machine_factory.h>
 
 #include "mock_status_monitor.h"
-#include "stub_ssh_key_provider.h"
 #include "stub_status_monitor.h"
 
 #include <multipass/platform.h>
@@ -50,27 +48,12 @@ struct TempFile
     QTemporaryFile file;
     QString name;
 };
-
-struct TestSSHKeyProvider : public mp::StubSSHKeyProvider
-{
-    TestSSHKeyProvider(std::string priv_key_path) : priv_key_path{priv_key_path}
-    {
-    }
-
-    std::string private_key_path() const
-    {
-        return priv_key_path;
-    }
-
-    std::string priv_key_path;
-};
 }
 struct QemuBackend : public testing::Test
 {
     TempFile temp_file;
     mp::VirtualMachineDescription default_description{2, "3M", 0, "pied-piper-valley", {temp_file.name, "", "", ""}};
     mp::QemuVirtualMachineFactory backend;
-    TestSSHKeyProvider key_provider{"qemu-test"};
 };
 
 TEST_F(QemuBackend, creates_in_off_state)
@@ -92,47 +75,4 @@ TEST_F(QemuBackend, machine_sends_monitoring_events)
 
     EXPECT_CALL(mock_monitor, on_shutdown());
     machine.reset();
-}
-
-MATCHER_P(HasCorrectSshArguments, priv_key_path, "")
-{
-    if (arg.front() != "ssh")
-    {
-        return false;
-    }
-
-    bool port_args_found = false, ssh_key_args_found = false;
-
-    for (auto i = 0u; i < arg.size(); ++i)
-    {
-        if (arg.at(i) == "-p" && arg.at(i + 1) == "42")
-        {
-            port_args_found = true;
-        }
-        else if (arg.at(i) == "-i" && arg.at(i + 1) == priv_key_path)
-        {
-            ssh_key_args_found = true;
-        }
-    }
-
-    return port_args_found && ssh_key_args_found;
-}
-
-TEST_F(QemuBackend, execute_mangles_command)
-{
-    mp::QemuVirtualMachineExecute vm_execute{key_provider};
-
-    auto cmd_line = vm_execute.execute(42, {"foo"});
-
-    EXPECT_THAT(cmd_line, HasCorrectSshArguments(key_provider.private_key_path()));
-    EXPECT_THAT(cmd_line.back(), Eq("'foo'"));
-}
-
-TEST_F(QemuBackend, execute_ssh_only_no_command)
-{
-    mp::QemuVirtualMachineExecute vm_execute{key_provider};
-
-    auto cmd_line = vm_execute.execute(42);
-
-    EXPECT_THAT(cmd_line, HasCorrectSshArguments(key_provider.private_key_path()));
 }

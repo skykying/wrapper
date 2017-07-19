@@ -26,7 +26,6 @@
 #include <multipass/name_generator.h>
 #include <multipass/ssh/ssh_key_provider.h>
 #include <multipass/url_downloader.h>
-#include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>
@@ -43,7 +42,6 @@ struct DaemonConfig
     const std::unique_ptr<VMImageHost> image_host;
     const std::unique_ptr<VMImageVault> vault;
     const std::unique_ptr<NameGenerator> name_generator;
-    const std::unique_ptr<VirtualMachineExecute> vm_execute;
     const std::unique_ptr<SSHKeyProvider> ssh_key_provider;
     const multipass::Path cache_directory;
     const std::string server_address;
@@ -56,7 +54,6 @@ struct DaemonConfigBuilder
     std::unique_ptr<VMImageHost> image_host;
     std::unique_ptr<VMImageVault> vault;
     std::unique_ptr<NameGenerator> name_generator;
-    std::unique_ptr<VirtualMachineExecute> vm_execute;
     std::unique_ptr<SSHKeyProvider> ssh_key_provider;
     multipass::Path cache_directory;
     std::string server_address;

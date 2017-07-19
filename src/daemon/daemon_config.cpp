@@ -24,7 +24,6 @@
 #include <multipass/name_generator.h>
 #include <multipass/platform.h>
 #include <multipass/ssh/openssh_key_provider.h>
-#include <multipass/virtual_machine_execute.h>
 
 #include <QStandardPaths>
 
@@ -48,11 +47,8 @@ std::unique_ptr<const mp::DaemonConfig> mp::DaemonConfigBuilder::build()
         server_address = Platform::default_server_address();
     if (ssh_key_provider == nullptr)
         ssh_key_provider = std::make_unique<OpenSSHKeyProvider>(cache_directory);
-    if (vm_execute == nullptr)
-        vm_execute = Platform::vm_execute(*ssh_key_provider);
 
     return std::unique_ptr<const DaemonConfig>(
         new DaemonConfig{std::move(url_downloader), std::move(factory), std::move(image_host), std::move(vault),
-                         std::move(name_generator), std::move(vm_execute), std::move(ssh_key_provider), cache_directory,
-                         server_address});
+                         std::move(name_generator), std::move(ssh_key_provider), cache_directory, server_address});
 }

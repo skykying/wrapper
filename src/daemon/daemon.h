@@ -66,7 +66,8 @@ public slots:
     grpc::Status create(grpc::ServerContext* context, const CreateRequest* request,
                         grpc::ServerWriter<CreateReply>* reply) override;
 
-    grpc::Status empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request, EmptyTrashReply* response) override;
+    grpc::Status empty_trash(grpc::ServerContext* context, const EmptyTrashRequest* request,
+                             EmptyTrashReply* response) override;
 
     grpc::Status exec(grpc::ServerContext* context, const ExecRequest* request, ExecReply* response) override;
 
@@ -75,6 +76,8 @@ public slots:
     grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
 
     grpc::Status recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response) override;
+
+    grpc::Status ssh_info(grpc::ServerContext* context, const SSHInfoRequest* request, SSHInfoReply* response) override;
 
     grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 

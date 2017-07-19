@@ -28,15 +28,16 @@
 
 namespace multipass
 {
+class SSHKeyProvider;
 class SSHSession
 {
 public:
     SSHSession(int port);
-    SSHSession(const std::string& host, int port);
-    SSHSession(const std::string& host, int port, const std::string& priv_key_path);
+    SSHSession(int port, const SSHKeyProvider& key_provider);
 
     std::vector<std::string> execute(const std::vector<std::string>& args);
 private:
+    SSHSession(int port, const SSHKeyProvider* key_provider);
     std::unique_ptr<ssh_session_struct, void(*)(ssh_session)> session;
 };
 }

@@ -49,6 +49,7 @@ signals:
     grpc::Status on_info(grpc::ServerContext* context, const InfoRequest* request, InfoReply* response);
     grpc::Status on_list(grpc::ServerContext* context, const ListRequest* request, ListReply* response);
     grpc::Status on_recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response);
+    grpc::Status on_ssh_info(grpc::ServerContext* context, const SSHInfoRequest* request, SSHInfoReply* response);
     grpc::Status on_start(grpc::ServerContext* context, const StartRequest* request, StartReply* response);
     grpc::Status on_stop(grpc::ServerContext* context, const StopRequest* request, StopReply* response);
     grpc::Status on_trash(grpc::ServerContext* context, const TrashRequest* request, TrashReply* response);
@@ -72,6 +73,8 @@ protected:
     grpc::Status list(grpc::ServerContext* context, const ListRequest* request, ListReply* response) override;
 
     grpc::Status recover(grpc::ServerContext* context, const RecoverRequest* request, RecoverReply* response) override;
+
+    grpc::Status ssh_info(grpc::ServerContext* context, const SSHInfoRequest* request, SSHInfoReply* response) override;
 
     grpc::Status start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) override;
 

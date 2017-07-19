@@ -23,7 +23,6 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/version.h>
-#include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image_host.h>
 #include <multipass/vm_image_vault.h>
@@ -66,6 +65,7 @@ struct MockDaemon : public mp::Daemon
     MOCK_METHOD3(info, grpc::Status(grpc::ServerContext*, const mp::InfoRequest*, mp::InfoReply*));
     MOCK_METHOD3(list, grpc::Status(grpc::ServerContext*, const mp::ListRequest*, mp::ListReply*));
     MOCK_METHOD3(recover, grpc::Status(grpc::ServerContext*, const mp::RecoverRequest*, mp::RecoverReply*));
+    MOCK_METHOD3(ssh_info, grpc::Status(grpc::ServerContext*, const mp::SSHInfoRequest*, mp::SSHInfoReply*));
     MOCK_METHOD3(start, grpc::Status(grpc::ServerContext*, const mp::StartRequest*, mp::StartReply*));
     MOCK_METHOD3(stop, grpc::Status(grpc::ServerContext*, const mp::StopRequest*, mp::StopReply*));
     MOCK_METHOD3(trash, grpc::Status(grpc::ServerContext*, const mp::TrashRequest*, mp::TrashReply*));
@@ -156,7 +156,11 @@ TEST_F(Daemon, receives_commands)
     EXPECT_CALL(daemon, create(_, _, _));
     EXPECT_CALL(daemon, empty_trash(_, _, _));
     // Expect this is called twice due to the connect and exec commands using the same call
+#ifdef MULTIPASS_PLATFORM_WINDOWS
     EXPECT_CALL(daemon, exec(_, _, _)).Times(2);
+#else
+    EXPECT_CALL(daemon, ssh_info(_, _, _)).Times(2);
+#endif
     EXPECT_CALL(daemon, info(_, _, _));
     EXPECT_CALL(daemon, list(_, _, _));
     EXPECT_CALL(daemon, recover(_, _, _));

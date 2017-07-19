@@ -92,6 +92,11 @@ grpc::Status mp::DaemonRpc::recover(grpc::ServerContext* context, const RecoverR
     return emit on_recover(context, request, response); // must block until slot returns
 }
 
+grpc::Status mp::DaemonRpc::ssh_info(grpc::ServerContext* context, const SSHInfoRequest* request, SSHInfoReply* response)
+{
+    return emit on_ssh_info(context, request, response); // must block until slot returns
+}
+
 grpc::Status mp::DaemonRpc::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response)
 {
     return emit on_start(context, request, response); // must block until slot returns

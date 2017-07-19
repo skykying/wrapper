@@ -17,7 +17,7 @@
  *
  */
 
-#include "connect.h"
+#include "connect_unix.h"
 #include "execute_helper.h"
 
 #include <multipass/cli/argparser.h>
@@ -34,11 +34,15 @@ mp::ReturnCode cmd::Connect::run(mp::ArgParser* parser)
         return parser->returnCodeFrom(ret);
     }
 
-    auto on_success = [this](mp::ExecReply& reply) {
-        //TODO: this should setup a reader that continously prints out
-        //streaming replies from the server corresponding to stdout/stderr streams
-        cout << "received connect reply\n";
-        return ReturnCode::Ok;
+    auto on_success = [this](mp::SSHInfoReply& reply) {
+        auto port = reply.port();
+
+        //TODO: mainly for testing - need a better way to test parsing
+        if (port == 0)
+            return ReturnCode::Ok;
+
+        auto priv_key_blob = reply.priv_key_base64();
+        return ssh_connect(port, priv_key_blob);
     };
 
     auto on_failure = [this](grpc::Status& status) {
@@ -46,10 +50,13 @@ mp::ReturnCode cmd::Connect::run(mp::ArgParser* parser)
         return ReturnCode::CommandFail;
     };
 
-    return dispatch(&RpcMethod::exec, request, on_success, on_failure);
+    return dispatch(&RpcMethod::ssh_info, request, on_success, on_failure);
 }
 
-std::string cmd::Connect::name() const { return "connect"; }
+std::string cmd::Connect::name() const
+{
+    return "connect";
+}
 
 QString cmd::Connect::short_help() const
 {

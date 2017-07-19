@@ -14,12 +14,15 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
+if(MSVC)
+  set(PLATFORM_COMMANDS connect.cpp exec.cpp)
+else()
+  set(PLATFORM_COMMANDS connect_unix.cpp exec_unix.cpp execute_helper.cpp)
+endif()
+
 add_library(commands STATIC
-  connect.cpp
   create.cpp
   empty_trash.cpp
-  exec.cpp
-  execute_helper.cpp
   help.cpp
   info.cpp
   list.cpp
@@ -27,7 +30,9 @@ add_library(commands STATIC
   start.cpp
   stop.cpp
   trash.cpp
-  version.cpp)
+  version.cpp
+
+  ${PLATFORM_COMMANDS})
 
 target_link_libraries(commands
   rpc

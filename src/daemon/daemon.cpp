@@ -23,9 +23,9 @@
 
 #include <multipass/name_generator.h>
 #include <multipass/query.h>
+#include <multipass/ssh/ssh_session.h>
 #include <multipass/version.h>
 #include <multipass/virtual_machine_description.h>
-#include <multipass/virtual_machine_execute.h>
 #include <multipass/virtual_machine_factory.h>
 #include <multipass/vm_image.h>
 #include <multipass/vm_image_host.h>
@@ -148,6 +148,8 @@ mp::DaemonRunner::DaemonRunner(const std::string& server_address, Daemon* daemon
           QObject::connect(&daemon_rpc, &DaemonRpc::on_info, daemon, &Daemon::info, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_list, daemon, &Daemon::list, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_recover, daemon, &Daemon::recover, Qt::BlockingQueuedConnection);
+          QObject::connect(&daemon_rpc, &DaemonRpc::on_ssh_info, daemon, &Daemon::ssh_info,
+                           Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_start, daemon, &Daemon::start, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_stop, daemon, &Daemon::stop, Qt::BlockingQueuedConnection);
           QObject::connect(&daemon_rpc, &DaemonRpc::on_trash, daemon, &Daemon::trash, Qt::BlockingQueuedConnection);
@@ -280,22 +282,17 @@ try //clang-format on
 
     auto port = it->second->forwarding_port();
 
-    std::vector<std::string> cmd_line;
-
     if (request->command_line_args_size() == 0)
-    {
-        cmd_line = config->vm_execute->execute(port);
-    }
-    else
-    {
-        for (const auto& arg : request->command_line_args())
-        {
-            cmd_line.push_back(arg);
-        }
+        return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "", "");
 
-        cmd_line = config->vm_execute->execute(port, cmd_line);
+    std::vector<std::string> cmd_line;
+    for (const auto& arg : request->command_line_args())
+    {
+        cmd_line.push_back(arg);
     }
 
+    mp::SSHSession session{port, *config->ssh_key_provider};
+    auto result = session.execute(cmd_line);
     for (auto& arg : cmd_line)
     {
         response->add_exec_line(std::move(arg));
@@ -410,6 +407,26 @@ catch (const std::exception& e)
 {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
 }
+
+grpc::Status mp::Daemon::ssh_info(grpc::ServerContext* context, const SSHInfoRequest* request, SSHInfoReply* response) // clang-format off
+try //clang-format on
+{
+    const auto name = request->instance_name();
+    auto it = vm_instances.find(name);
+    if (it == vm_instances.end())
+    {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "instance \"" + name + "\" does not exist", "");
+    }
+
+    response->set_port(it->second->forwarding_port());
+    response->set_priv_key_base64(config->ssh_key_provider->private_key_as_base64());
+    return grpc::Status::OK;
+}
+catch (const std::exception& e)
+{
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what(), "");
+}
+
 
 grpc::Status mp::Daemon::start(grpc::ServerContext* context, const StartRequest* request, StartReply* response) // clang-format off
 try //clang-format on

@@ -17,21 +17,29 @@
  *
  */
 
-#ifndef MULTIPASS_PLATFORM_H
-#define MULTIPASS_PLATFORM_H
+#ifndef MULTIPASS_CONNECT_H
+#define MULTIPASS_CONNECT_H
 
-#include <multipass/virtual_machine_factory.h>
-
-#include <string>
+#include <multipass/cli/command.h>
 
 namespace multipass
 {
-class SSHKeyProvider;
-class Platform
+namespace cmd
+{
+class Connect final : public Command
 {
 public:
-    static std::string default_server_address();
-    static VirtualMachineFactory::UPtr vm_backend();
+    using Command::Command;
+    ReturnCode run(ArgParser *parser) override;
+
+    std::string name() const override;
+    QString short_help() const override;
+    QString description() const override;
+
+private:
+    SSHInfoRequest request;
+    ParseCode parse_args(ArgParser *parser) override;
 };
 }
-#endif // MULTIPASS_PLATFORM_H
+}
+#endif // MULTIPASS_CONNECT_H

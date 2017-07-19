@@ -17,24 +17,29 @@
  *
  */
 
-#ifndef MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H
-#define MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H
+#ifndef MULTIPASS_EXEC_H
+#define MULTIPASS_EXEC_H
 
-#include <multipass/virtual_machine_execute.h>
+#include <multipass/cli/command.h>
 
 namespace multipass
 {
-class SSHKeyProvider;
-class QemuVirtualMachineExecute final : public VirtualMachineExecute
+namespace cmd
+{
+class Exec final : public Command
 {
 public:
-    QemuVirtualMachineExecute(const SSHKeyProvider& key_provider);
-    std::vector<std::string> execute(int port) override;
-    std::vector<std::string> execute(int port, const std::vector<std::string>& command) override;
+    using Command::Command;
+    ReturnCode run(ArgParser *parser) override;
+
+    std::string name() const override;
+    QString short_help() const override;
+    QString description() const override;
 
 private:
-    const SSHKeyProvider& key_provider;
+    SSHInfoRequest request;
+    ParseCode parse_args(ArgParser *parser) override;
 };
 }
-
-#endif // MULTIPASS_QEMU_VIRTUAL_MACHINE_EXECUTE_H
+}
+#endif // MULTIPASS_EXEC_H

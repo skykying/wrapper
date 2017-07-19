@@ -25,7 +25,6 @@
 #elif MULTIPASS_PLATFORM_APPLE
 #include "backends/hyperkit/hyperkit_virtual_machine_factory.h"
 #else
-#include "backends/qemu/qemu_virtual_machine_execute.h"
 #include "backends/qemu/qemu_virtual_machine_factory.h"
 #endif
 
@@ -46,14 +45,5 @@ mp::VirtualMachineFactory::UPtr mp::Platform::vm_backend()
     return std::make_unique<HyperkitVirtualMachineFactory>();
 #else
     return std::make_unique<QemuVirtualMachineFactory>();
-#endif
-}
-
-mp::VirtualMachineExecute::UPtr mp::Platform::vm_execute(const mp::SSHKeyProvider& key_provider)
-{
-#ifdef MULTIPASS_PLATFORM_LINUX
-    return std::make_unique<QemuVirtualMachineExecute>(key_provider);
-#else
-    return nullptr;
 #endif
 }

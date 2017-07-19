@@ -19,6 +19,8 @@
 
 #include <multipass/ssh/ssh_session.h>
 
+#include <multipass/ssh/ssh_key_provider.h>
+
 #include <sstream>
 #include <stdexcept>
 
@@ -90,32 +92,27 @@ private:
 };
 }
 
-mp::SSHSession::SSHSession(const std::string& host, int port, const std::string& priv_key_path)
+mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider)
     : session{ssh_new(), ssh_free}
 {
     if (session == nullptr)
         throw std::runtime_error("Could not allocate ssh session");
-    throw_on_error(ssh_options_set, session, SSH_OPTIONS_HOST, host.c_str());
+
+    throw_on_error(ssh_options_set, session, SSH_OPTIONS_HOST, "localhost");
     throw_on_error(ssh_options_set, session, SSH_OPTIONS_PORT, &port);
     throw_on_error(ssh_options_set, session, SSH_OPTIONS_USER, "ubuntu");
     throw_on_error(ssh_connect, session);
-
-    if (!priv_key_path.empty())
-    {
-        ssh_key priv_key;
-        auto imported = ssh_pki_import_privkey_file(priv_key_path.c_str(), nullptr, nullptr, nullptr, &priv_key);
-        if (imported != SSH_OK)
-            throw std::runtime_error("failed to import private key");
-        std::unique_ptr<ssh_key_struct, void (*)(ssh_key)> key{priv_key, ssh_key_free};
-        throw_on_error(ssh_userauth_publickey, session, nullptr, priv_key);
-    }
+    if (key_provider)
+        throw_on_error(ssh_userauth_publickey, session, nullptr, key_provider->private_key());
 }
 
-mp::SSHSession::SSHSession(const std::string& host, int port) : SSHSession(host, port, "")
+mp::SSHSession::SSHSession(int port, const SSHKeyProvider& key_provider)
+    : SSHSession(port, &key_provider)
 {
 }
 
-mp::SSHSession::SSHSession(int port) : SSHSession("localhost", port)
+mp::SSHSession::SSHSession(int port)
+    : SSHSession(port, nullptr)
 {
 }
 
