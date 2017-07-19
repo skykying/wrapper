@@ -13,7 +13,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 add_library(hyperkit_backend STATIC
-  hyperkit_virtual_machine_factory.cpp)
+  hyperkit_virtual_machine_factory.cpp
+  hyperkit_virtual_machine.cpp)
 
 target_link_libraries(hyperkit_backend
   Qt5::Core

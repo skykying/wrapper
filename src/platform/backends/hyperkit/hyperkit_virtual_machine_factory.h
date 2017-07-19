@@ -26,6 +26,8 @@ namespace multipass
 class HyperkitVirtualMachineFactory final : public VirtualMachineFactory
 {
 public:
+    HyperkitVirtualMachineFactory();
+
     VirtualMachine::UPtr create_virtual_machine(const VirtualMachineDescription& desc,
                                                 VMStatusMonitor& monitor) override;
 

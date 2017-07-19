@@ -35,10 +35,10 @@ struct HyperkitBackend : public testing::Test
     mp::HyperkitVirtualMachineFactory backend;
 };
 
-TEST_F(HyperkitBackend, creates_in_running_state)
+TEST_F(HyperkitBackend, creates_in_off_state)
 {
     StubVMStatusMonitor stub_monitor;
     auto machine = backend.create_virtual_machine(default_description, stub_monitor);
     ASSERT_THAT(machine.get(), NotNull());
-    EXPECT_THAT(machine->current_state(), Eq(mp::VirtualMachine::State::running));
+    EXPECT_THAT(machine->current_state(), Eq(mp::VirtualMachine::State::off));
 }

@@ -93,8 +93,7 @@ private:
 };
 }
 
-mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider)
-    : session{ssh_new(), ssh_free}
+mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider) : session{ssh_new(), ssh_free}
 {
     if (session == nullptr)
         throw std::runtime_error("Could not allocate ssh session");
@@ -107,13 +106,11 @@ mp::SSHSession::SSHSession(int port, const SSHKeyProvider* key_provider)
         throw_on_error(ssh_userauth_publickey, session, nullptr, key_provider->private_key());
 }
 
-mp::SSHSession::SSHSession(int port, const SSHKeyProvider& key_provider)
-    : SSHSession(port, &key_provider)
+mp::SSHSession::SSHSession(int port, const SSHKeyProvider& key_provider) : SSHSession(port, &key_provider)
 {
 }
 
-mp::SSHSession::SSHSession(int port)
-    : SSHSession(port, nullptr)
+mp::SSHSession::SSHSession(int port) : SSHSession(port, nullptr)
 {
 }
 
