@@ -59,12 +59,11 @@ add_executable(multipass_tests
 )
 
 target_link_libraries(multipass_tests
-  daemon
   client
+  daemon
   petname
-  ssh
   simplestreams
-
+  ssh
   # 3rd-party
   gmock
   yaml-cpp

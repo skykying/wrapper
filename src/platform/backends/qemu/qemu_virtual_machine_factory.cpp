@@ -20,6 +20,7 @@
 #include "qemu_virtual_machine_factory.h"
 #include "qemu_virtual_machine.h"
 
+#include <multipass/cloud_init_iso.h>
 #include <multipass/virtual_machine_description.h>
 
 #include <QDir>
@@ -56,23 +57,12 @@ QString make_cloud_init_image(const mp::VirtualMachineDescription& desc)
     if (QFile::exists(cloud_init_iso))
         return cloud_init_iso;
 
-    QFile metadata{instance_dir.filePath("meta-data")};
-    QFile userdata{instance_dir.filePath("user-data")};
-
-    if (!metadata.open(QIODevice::WriteOnly) || !userdata.open(QIODevice::WriteOnly))
-    {
-        throw std::runtime_error{"failed to open files for writing during cloud-init generation"};
-    }
-
     const auto& name = desc.vm_name;
 
-    metadata.write("instance-id: ");
-    metadata.write(name.c_str());
-    metadata.write("\n");
-    metadata.write("local-hostname: ");
-    metadata.write(name.c_str());
-    metadata.write("\n");
-    metadata.close();
+    std::stringstream meta_data;
+
+    meta_data << "instance-id: " << name << "\n"
+              << "local-hostname: " << name << "\n";
 
     YAML::Emitter userdata_emitter;
 
@@ -84,32 +74,10 @@ QString make_cloud_init_image(const mp::VirtualMachineDescription& desc)
         throw std::runtime_error{"Failed to emit cloud-init config: "s + userdata_emitter.GetLastError()};
     }
 
-    userdata.write("#cloud-config\n");
-    userdata.write(userdata_emitter.c_str());
-    userdata.write("\n");
-    userdata.close();
+    std::stringstream user_data;
+    user_data << "#cloud-config\n" << userdata_emitter.c_str() << "\n";
 
-
-    QStringList creator_args;
-    creator_args << "-o" << cloud_init_iso;
-    creator_args << "-volid"
-                 << "cidata"
-                 << "-joliet"
-                 << "-rock";
-    creator_args << metadata.fileName() << userdata.fileName();
-
-    QProcess iso_creator;
-    iso_creator.start("genisoimage", creator_args);
-
-    iso_creator.waitForFinished();
-
-    if (iso_creator.exitCode() != QProcess::NormalExit)
-    {
-        throw std::runtime_error{"Call to genisoimage failed: "s + iso_creator.readAllStandardError().data()};
-    }
-
-    metadata.remove();
-    userdata.remove();
+    mp::CloudInitIso::write_to(cloud_init_iso, meta_data.str(), user_data.str());
 
     return cloud_init_iso;
 }
