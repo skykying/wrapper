@@ -49,59 +49,57 @@ QByteArray generateUuid(const QByteArray& string)
     return uuid.toHex().insert(8, '-').insert(13, '-').insert(18, '-').insert(23, '-');
 }
 
-auto make_hyperkit_process(const mp::VirtualMachineDescription& desc, const mp::Path& cloud_init_image)
+auto make_hyperkit_process(const mp::VirtualMachineDescription& desc)
 {
-    QStringList args{};
-
-    if (QFile::exists(desc.image.image_path) && QFile::exists(cloud_init_image))
+    if (!QFile::exists(desc.image.image_path) || !QFile::exists(desc.cloud_init_iso))
     {
-        using namespace std::string_literals;
-        args << "-q"
-             << "/dev/null" // do not write the log to file
-             << QCoreApplication::applicationDirPath() + "/hyperkit" <<
-            // Number of cpu cores
-            "-c" << QString::number(desc.num_cores) <<
-            // Memory to use for VM
-            "-m" << QString::fromStdString(desc.mem_size) <<
-            // RTC keeps UTC
-            "-u" <<
-            // ACPI tables
-            "-A" <<
-            // Send shutdown signal to VM on SIGTERM to hyperkit
-            "-H" <<
-            // VM having consistent UUID ensures it gets same IP address across reboots
-            "-U" << generateUuid(QByteArray::fromStdString(desc.vm_name)) <<
-
-            // PCI devices:
-            // PCI host bridge
-            "-s"
-             << "0:0,hostbridge" <<
-            // Network (root-only)
-            "-s"
-             << "2:0,virtio-net" <<
-            // Entropy device emulation.
-            "-s"
-             << "5,virtio-rnd" <<
-            // LPC = low-pin-count device, used for serial console
-            "-s"
-             << "31,lpc" <<
-            // Forward all console output to stdio, and a ring-log file
-            // Note: can enable add a fixed-size circular log file with "log=/tmp/hyperkit.log" (mmap-ed)
-            "-l"
-             << "com1,stdio" <<
-            // The VM image itself
-            "-s"
-             << QString{"1:0,ahci-hd,file://"} + desc.image.image_path +
-                    QString{"?sync=os&buffered=1,format=qcow,qcow-config=discard=true;compact_after_unmaps=0;keep_"
-                            "erased=0;runtime_asserts=false"}
-             <<
-            // Disk image for the cloud-init configuration
-            "-s" << QString{"1:1,ahci-cd,"} + cloud_init_image
-             << "-f"
-             // Firmware argument
-             << QString{"kexec,"} + desc.image.kernel_path + QString{","} + desc.image.initrd_path +
-                    QString{",earlyprintk=serial console=ttyS0 root=/dev/sda1 rw"};
+        throw std::runtime_error("cannot start VM without an image");
     }
+
+    QStringList args{"-q"};
+    args << "/dev/null" // do not write the log to file
+         << QCoreApplication::applicationDirPath() + "/hyperkit" <<
+        // Number of cpu cores
+        "-c" << QString::number(desc.num_cores) <<
+        // Memory to use for VM
+        "-m" << QString::fromStdString(desc.mem_size) <<
+        // RTC keeps UTC
+        "-u" <<
+        // ACPI tables
+        "-A" <<
+        // Send shutdown signal to VM on SIGTERM to hyperkit
+        "-H" <<
+        // VM having consistent UUID ensures it gets same IP address across reboots
+        "-U" << generateUuid(QByteArray::fromStdString(desc.vm_name)) <<
+
+        // PCI devices:
+        // PCI host bridge
+        "-s"
+         << "0:0,hostbridge" <<
+        // Network (root-only)
+        "-s"
+         << "2:0,virtio-net" <<
+        // Entropy device emulation.
+        "-s"
+         << "5,virtio-rnd" <<
+        // LPC = low-pin-count device, used for serial console
+        "-s"
+         << "31,lpc" <<
+        // Forward all console output to stdio, and a ring-log file
+        // Note: can enable add a fixed-size circular log file with "log=/tmp/hyperkit.log" (mmap-ed)
+        "-l"
+         << "com1,stdio" <<
+        // The VM image itself
+        "-s"
+         << QString{"1:0,ahci-hd,file://"} + desc.image.image_path +
+                QString{"?sync=os&buffered=1,format=qcow,qcow-config=discard=true;compact_after_unmaps=0;keep_"
+                        "erased=0;runtime_asserts=false"}
+         <<
+        // Disk image for the cloud-init configuration
+        "-s" << QString{"1:1,ahci-cd,"} + desc.cloud_init_iso << "-f"
+         // Firmware argument
+         << QString{"kexec,"} + desc.image.kernel_path + QString{","} + desc.image.initrd_path +
+                QString{",earlyprintk=serial console=ttyS0 root=/dev/sda1 rw"};
 
     auto process = std::make_unique<QProcess>();
     auto snap = qgetenv("SNAP");
@@ -119,9 +117,8 @@ auto make_hyperkit_process(const mp::VirtualMachineDescription& desc, const mp::
 }
 } // namespace
 
-mp::HyperkitVirtualMachine::HyperkitVirtualMachine(const VirtualMachineDescription& desc,
-                                                   const QString& cloud_init_image, VMStatusMonitor& monitor)
-    : state{State::off}, monitor{&monitor}, vm_process{make_hyperkit_process(desc, cloud_init_image)}
+mp::HyperkitVirtualMachine::HyperkitVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor)
+    : state{State::off}, monitor{&monitor}, vm_process{make_hyperkit_process(desc)}
 {
     QObject::connect(vm_process.get(), &QProcess::started, [=]() { on_start(); });
     QObject::connect(vm_process.get(), &QProcess::readyRead, [=]() {

@@ -21,6 +21,7 @@
 #include "base_cloud_init_config.h"
 #include "json_writer.h"
 
+#include <multipass/cloud_init_iso.h>
 #include <multipass/name_generator.h>
 #include <multipass/query.h>
 #include <multipass/ssh/ssh_session.h>
@@ -64,14 +65,56 @@ auto make_cloud_init_config(const mp::SSHKeyProvider& key_provider)
     return config;
 }
 
+auto base_dir(const QString& path)
+{
+    QFileInfo info{path};
+    return info.absoluteDir();
+}
+
+auto make_cloud_init_image(const std::string& name, const QDir& instance_dir, YAML::Node cloud_init_config)
+{
+    using namespace std::string_literals;
+
+    const auto cloud_init_iso = instance_dir.filePath("cloud-init-config.iso");
+
+    if (QFile::exists(cloud_init_iso))
+        return cloud_init_iso;
+
+    std::stringstream meta_data;
+
+    meta_data << "instance-id: " << name << "\n"
+              << "local-hostname: " << name << "\n";
+
+    YAML::Emitter userdata_emitter;
+
+    userdata_emitter.SetIndent(4);
+    userdata_emitter << cloud_init_config;
+
+    if (!userdata_emitter.good())
+    {
+        throw std::runtime_error{"Failed to emit cloud-init config: "s + userdata_emitter.GetLastError()};
+    }
+
+    std::stringstream user_data;
+    user_data << "#cloud-config\n" << userdata_emitter.c_str() << "\n";
+
+    mp::CloudInitIso::write_to(cloud_init_iso, meta_data.str(), user_data.str());
+
+    return cloud_init_iso;
+}
+
 mp::VirtualMachineDescription to_machine_desc(const mp::CreateRequest* request, const std::string& name,
                                               const mp::VMImage& image, YAML::Node cloud_init_config)
 {
     using mpvm = mp::VirtualMachineDescription;
-    auto num_cores = request->num_cores() < 1 ? 1 : request->num_cores();
-    auto mem_size = request->mem_size().empty() ? "1G" : request->mem_size();
-    auto disk_size = request->disk_space() <= 0 ? 0u : static_cast<mpvm::MBytes>(request->disk_space());
-    return {num_cores, mem_size, disk_size, name, image, std::move(cloud_init_config)};
+    const auto num_cores = request->num_cores() < 1 ? 1 : request->num_cores();
+    const auto mem_size = request->mem_size().empty() ? "1G" : request->mem_size();
+    const auto disk_size = request->disk_space() <= 0 ? 0u : static_cast<mpvm::MBytes>(request->disk_space());
+    const auto instance_dir = base_dir(image.image_path);
+    const auto cloud_init_iso = make_cloud_init_image(name, instance_dir, cloud_init_config);
+    qDebug()  << "cloud_init_iso: " << cloud_init_iso;
+
+    return {num_cores, mem_size, disk_size, name, image, cloud_init_iso};
 }
 
 template <typename T>
@@ -182,7 +225,9 @@ mp::Daemon::Daemon(std::unique_ptr<const DaemonConfig> the_config)
         }
 
         auto vm_image = fetch_image_for(name, config->factory->fetch_type(), *config->vault);
-        mp::VirtualMachineDescription vm_desc{spec.num_cores, spec.mem_size, spec.disk_space, name, vm_image};
+        const auto instance_dir = base_dir(vm_image.image_path);
+        const auto cloud_init_iso = instance_dir.filePath("cloud-init-config.iso");
+        mp::VirtualMachineDescription vm_desc{spec.num_cores, spec.mem_size, spec.disk_space, name, vm_image, cloud_init_iso};
         vm_instances[name] = config->factory->create_virtual_machine(vm_desc, *this);
     }
 

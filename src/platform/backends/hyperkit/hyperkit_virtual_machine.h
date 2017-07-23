@@ -33,8 +33,7 @@ class VirtualMachineDescription;
 class HyperkitVirtualMachine final : public VirtualMachine
 {
 public:
-    HyperkitVirtualMachine(const VirtualMachineDescription& desc, const QString& cloud_init_image,
-                           VMStatusMonitor& monitor);
+    HyperkitVirtualMachine(const VirtualMachineDescription& desc, VMStatusMonitor& monitor);
     ~HyperkitVirtualMachine();
 
     void start() override;

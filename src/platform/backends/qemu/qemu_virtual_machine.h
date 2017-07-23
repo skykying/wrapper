@@ -34,8 +34,7 @@ class VirtualMachineDescription;
 class QemuVirtualMachine final : public VirtualMachine
 {
 public:
-    QemuVirtualMachine(const VirtualMachineDescription& desc, const QString& cloud_init_image, int ssh_fowarding_port,
-                       VMStatusMonitor& monitor);
+    QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_fowarding_port, VMStatusMonitor& monitor);
     ~QemuVirtualMachine();
 
     void start() override;

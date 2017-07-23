@@ -42,9 +42,9 @@ namespace mp = multipass;
 
 namespace
 {
-auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, const mp::Path& cloud_init_image)
+auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port)
 {
-    if (!QFile::exists(desc.image.image_path) || !QFile::exists(cloud_init_image))
+    if (!QFile::exists(desc.image.image_path) || !QFile::exists(desc.cloud_init_iso))
     {
         throw std::runtime_error("cannot start VM without an image");
     }
@@ -53,7 +53,7 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
     // The VM image itself
     args << "-hda" << desc.image.image_path;
     // For the cloud-init configuration
-    args << "-drive" << QString{"file="} + cloud_init_image + QString{",if=virtio,format=raw"};
+    args << "-drive" << QString{"file="} + desc.cloud_init_iso + QString{",if=virtio,format=raw"};
     // Number of cpu cores
     args << "-smp" << QString::number(desc.num_cores);
     // Memory to use for VM
@@ -92,36 +92,33 @@ auto make_qemu_process(const mp::VirtualMachineDescription& desc, int ssh_port, 
 }
 }
 
-mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, const QString& cloud_init_image,
-                                           int ssh_forwarding_port, VMStatusMonitor& monitor)
+mp::QemuVirtualMachine::QemuVirtualMachine(const VirtualMachineDescription& desc, int ssh_forwarding_port,
+                                           VMStatusMonitor& monitor)
     : state{State::off},
       ssh_fowarding_port{ssh_forwarding_port},
       monitor{&monitor},
-      vm_process{make_qemu_process(desc, ssh_forwarding_port, cloud_init_image)}
+      vm_process{make_qemu_process(desc, ssh_forwarding_port)}
 {
-    QObject::connect(vm_process.get(), &QProcess::started,
-                     [this]() {
-                         qDebug() << "QProcess::started";
-                         on_started();
-                     });
+    QObject::connect(vm_process.get(), &QProcess::started, [this]() {
+        qDebug() << "QProcess::started";
+        on_started();
+    });
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardOutput,
                      [this]() { qDebug("qemu.out: %s", vm_process->readAllStandardOutput().data()); });
 
     QObject::connect(vm_process.get(), &QProcess::readyReadStandardError,
                      [this]() { qDebug("qemu.err: %s", vm_process->readAllStandardError().data()); });
 
-    QObject::connect(vm_process.get(), &QProcess::stateChanged,
-                     [this](QProcess::ProcessState newState) {
-                         qDebug() << "QProcess::stateChanged"
-                                  << "newState" << newState;
-                     });
+    QObject::connect(vm_process.get(), &QProcess::stateChanged, [this](QProcess::ProcessState newState) {
+        qDebug() << "QProcess::stateChanged"
+                 << "newState" << newState;
+    });
 
-    QObject::connect(vm_process.get(), &QProcess::errorOccurred,
-                     [this](QProcess::ProcessError error) {
-                         qDebug() << "QProcess::errorOccurred"
-                                  << "error" << error;
-                         on_error();
-                     });
+    QObject::connect(vm_process.get(), &QProcess::errorOccurred, [this](QProcess::ProcessError error) {
+        qDebug() << "QProcess::errorOccurred"
+                 << "error" << error;
+        on_error();
+    });
 
     QObject::connect(vm_process.get(), static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
                      [this](int exitCode, QProcess::ExitStatus exitStatus) {

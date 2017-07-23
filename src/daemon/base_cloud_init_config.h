@@ -21,13 +21,13 @@
 
 namespace multipass
 {
-static char const* const base_cloud_init_config = "growpart:\n"
-                                                  "    mode: auto\n"
-                                                  "    devices: [\"/\"]\n"
-                                                  "    ignore_growroot_disabled: false\n"
-                                                  "users:\n"
-                                                  "    - default\n"
-                                                  "manage_etc_hosts: true\n";
+constexpr auto base_cloud_init_config = "growpart:\n"
+                                        "    mode: auto\n"
+                                        "    devices: [\"/\"]\n"
+                                        "    ignore_growroot_disabled: false\n"
+                                        "users:\n"
+                                        "    - default\n"
+                                        "manage_etc_hosts: true\n";
 }
 
 #endif // MULTIPASS_BASE_CLOUD_INIT_CONFIG_H

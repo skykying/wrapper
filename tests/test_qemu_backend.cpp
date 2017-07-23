@@ -51,8 +51,10 @@ struct TempFile
 }
 struct QemuBackend : public testing::Test
 {
-    TempFile temp_file;
-    mp::VirtualMachineDescription default_description{2, "3M", 0, "pied-piper-valley", {temp_file.name, "", "", ""}};
+    TempFile dummy_image;
+    TempFile dummy_cloud_init_iso;
+    mp::VirtualMachineDescription default_description{
+        2, "3M", 0, "pied-piper-valley", {dummy_image.name, "", "", ""}, dummy_cloud_init_iso.name};
     mp::QemuVirtualMachineFactory backend;
 };
 

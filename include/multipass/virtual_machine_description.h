@@ -36,7 +36,7 @@ public:
     MBytes disk_space;
     std::string vm_name;
     VMImage image;
-    YAML::Node cloud_init_config;
+    Path cloud_init_iso;
 };
 }
 #endif // MULTIPASS_VIRTUAL_MACHINE_DESCRIPTION_H
