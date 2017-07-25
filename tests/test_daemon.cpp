@@ -29,9 +29,9 @@
 
 #include "mock_virtual_machine_factory.h"
 #include "stub_image_host.h"
+#include "stub_ssh_key_provider.h"
 #include "stub_virtual_machine_factory.h"
 #include "stub_vm_image_vault.h"
-#include "stub_ssh_key_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -155,7 +155,7 @@ TEST_F(Daemon, receives_commands)
 
     EXPECT_CALL(daemon, create(_, _, _));
     EXPECT_CALL(daemon, empty_trash(_, _, _));
-    // Expect this is called twice due to the connect and exec commands using the same call
+// Expect this is called twice due to the connect and exec commands using the same call
 #ifdef MULTIPASS_PLATFORM_WINDOWS
     EXPECT_CALL(daemon, exec(_, _, _)).Times(2);
 #else
@@ -221,4 +221,141 @@ TEST_F(Daemon, generates_name_when_client_does_not_provide_one)
     send_command({"create"}, stream);
 
     EXPECT_THAT(stream.str(), HasSubstr(expected_name));
+}
+
+MATCHER_P2(YAMLNodeContainsString, key, val, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    if (!arg[key].IsScalar())
+    {
+        return false;
+    }
+    return arg[key].Scalar() == val;
+}
+
+MATCHER_P(YAMLNodeContainsSubString, val, "")
+{
+    if (!arg.IsSequence())
+    {
+        return false;
+    }
+
+    return arg[0].Scalar().find(val) != std::string::npos;
+}
+
+MATCHER_P2(YAMLNodeContainsStringArray, key, values, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    if (!arg[key].IsSequence())
+    {
+        return false;
+    }
+    if (arg[key].size() != values.size())
+    {
+        return false;
+    }
+    for (auto i = 0u; i < values.size(); ++i)
+    {
+        if (arg[key][i].template as<std::string>() != values[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+MATCHER_P(YAMLNodeContainsMap, key, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    return arg[key].IsMap();
+}
+
+
+MATCHER_P(YAMLNodeContainsSequence, key, "")
+{
+    if (!arg.IsMap())
+    {
+        return false;
+    }
+    if (!arg[key])
+    {
+        return false;
+    }
+    return arg[key].IsSequence();
+}
+
+TEST_F(Daemon, default_cloud_init_grows_root_fs)
+{
+    auto mock_factory = use_a_mock_vm_factory();
+    mp::Daemon daemon{config_builder.build()};
+
+    EXPECT_CALL(*mock_factory, configure(_)).WillOnce(Invoke([](YAML::Node& cloud_init_config) {
+        EXPECT_THAT(cloud_init_config, YAMLNodeContainsMap("growpart"));
+
+        if (cloud_init_config["growpart"])
+        {
+            auto const& growpart_stanza = cloud_init_config["growpart"];
+
+            EXPECT_THAT(growpart_stanza, YAMLNodeContainsString("mode", "auto"));
+            EXPECT_THAT(growpart_stanza, YAMLNodeContainsStringArray("devices", std::vector<std::string>({"/"})));
+            EXPECT_THAT(growpart_stanza, YAMLNodeContainsString("ignore_growroot_disabled", "false"));
+        }
+    }));
+
+    send_command({"create"});
+}
+
+namespace
+{
+class DummyKeyProvider : public mp::StubSSHKeyProvider
+{
+public:
+    DummyKeyProvider(const std::string& key) : key{key}
+    {
+    }
+    std::string public_key_as_base64() const override
+    {
+        return key;
+    };
+
+private:
+    std::string key;
+};
+}
+
+TEST_F(Daemon, adds_ssh_keys_to_cloud_init_config)
+{
+    auto mock_factory = use_a_mock_vm_factory();
+    std::string expected_key{"thisitnotansshkeyactually"};
+    config_builder.ssh_key_provider = std::make_unique<DummyKeyProvider>(expected_key);
+    mp::Daemon daemon{config_builder.build()};
+
+    EXPECT_CALL(*mock_factory, configure(_)).WillOnce(Invoke([&expected_key](YAML::Node& cloud_init_config) {
+        ASSERT_THAT(cloud_init_config, YAMLNodeContainsSequence("ssh_authorized_keys"));
+        auto const& ssh_keys_stanza = cloud_init_config["ssh_authorized_keys"];
+        EXPECT_THAT(ssh_keys_stanza, YAMLNodeContainsSubString(expected_key));
+    }));
+
+    send_command({"create"});
 }

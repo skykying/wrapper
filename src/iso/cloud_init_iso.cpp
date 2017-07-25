@@ -117,7 +117,7 @@ struct PaddedString
     {
     }
 
-    PaddedString(const std::string& value) : PaddedString()
+    explicit PaddedString(const std::string& value) : PaddedString()
     {
         data.replace(0, value.size(), value);
     }
@@ -145,7 +145,7 @@ struct U16PaddedString
         }
     }
 
-    U16PaddedString(const std::string& value) : U16PaddedString()
+    explicit U16PaddedString(const std::string& value) : U16PaddedString()
     {
         auto it = value.begin();
         for (size_t i = 1; i < size; i += 2)
@@ -248,7 +248,7 @@ struct VolumeDescriptor
 
 struct VolumeDescriptorSetTerminator : VolumeDescriptor
 {
-    VolumeDescriptorSetTerminator() : VolumeDescriptor()
+    VolumeDescriptorSetTerminator()
     {
         data[0] = 0xFF; // Terminator Type
     }
@@ -256,7 +256,7 @@ struct VolumeDescriptorSetTerminator : VolumeDescriptor
 
 struct PrimaryVolumeDescriptor : VolumeDescriptor
 {
-    PrimaryVolumeDescriptor() : VolumeDescriptor()
+    PrimaryVolumeDescriptor()
     {
         data[0] = 0x01; // primary volume descriptor type
 
@@ -270,7 +270,7 @@ struct PrimaryVolumeDescriptor : VolumeDescriptor
 
 struct JolietVolumeDescriptor : VolumeDescriptor
 {
-    JolietVolumeDescriptor() : VolumeDescriptor()
+    JolietVolumeDescriptor()
     {
         data[0] = 0x02; // supplementary volume descriptor type
 
@@ -297,7 +297,6 @@ struct FileRecord
 
     void set_fields(const std::string& name, uint32_t content_location, uint32_t size)
     {
-
         set_at(data, 2, to_lsb_msb(content_location)); // content block location
         set_at(data, 10, to_lsb_msb(size));            // size of extent
         data[25] = 0x00;                               // record is a file entry
@@ -330,7 +329,7 @@ auto make_iso_name(const std::string& name)
 
 struct ISOFileRecord : FileRecord
 {
-    ISOFileRecord(const std::string& name, uint32_t content_location, uint32_t size) : FileRecord()
+    ISOFileRecord(const std::string& name, uint32_t content_location, uint32_t size)
     {
         set_fields(make_iso_name(name), content_location, size);
     }
@@ -351,7 +350,7 @@ auto make_u16_name(const std::string& name)
 
 struct JolietFileRecord : FileRecord
 {
-    JolietFileRecord(const std::string& name, uint32_t content_location, uint32_t size) : FileRecord()
+    JolietFileRecord(const std::string& name, uint32_t content_location, uint32_t size)
     {
         set_fields(make_u16_name(name), content_location, size);
     }
@@ -359,7 +358,7 @@ struct JolietFileRecord : FileRecord
 
 struct RootPathTable
 {
-    RootPathTable(uint32_t dir_record_location)
+    explicit RootPathTable(uint32_t dir_record_location) : data{}
     {
         data[0] = 0x1; // dir id len (root id len is 1)
         set_at(data, 2, to_lsb(dir_record_location));

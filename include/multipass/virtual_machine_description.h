@@ -22,7 +22,6 @@
 
 #include <multipass/vm_image.h>
 #include <string>
-#include <yaml-cpp/yaml.h>
 
 namespace multipass
 {

@@ -79,3 +79,7 @@ mp::VMImage mp::HyperkitVirtualMachineFactory::prepare(const VMImage& source_ima
 
     return source_image;
 }
+
+void mp::HyperkitVirtualMachineFactory::configure(YAML::Node& cloud_init_config)
+{
+}

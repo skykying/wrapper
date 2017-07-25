@@ -32,6 +32,7 @@ public:
 
     FetchType fetch_type() override;
     VMImage prepare(const VMImage& source_image) override;
+    void configure(YAML::Node& cloud_init_config) override;
 };
 }
 

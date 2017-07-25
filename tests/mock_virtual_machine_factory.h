@@ -33,5 +33,6 @@ struct MockVirtualMachineFactory : public multipass::VirtualMachineFactory
 
     MOCK_METHOD0(fetch_type, multipass::FetchType());
     MOCK_METHOD1(prepare, multipass::VMImage(const multipass::VMImage&));
+    MOCK_METHOD1(configure, void(YAML::Node&));
 };
 #endif // MULTIPASS_MOCK_VIRTUAL_MACHINE_FACTORY_H

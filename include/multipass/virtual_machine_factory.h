@@ -24,6 +24,8 @@
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_image.h>
 
+#include <yaml-cpp/yaml.h>
+
 namespace multipass
 {
 class VirtualMachineDescription;
@@ -39,6 +41,7 @@ public:
 
     virtual FetchType fetch_type() = 0;
     virtual VMImage prepare(const VMImage& source_image) = 0;
+    virtual void configure(YAML::Node& cloud_init_config) = 0;
 
 protected:
     VirtualMachineFactory() = default;

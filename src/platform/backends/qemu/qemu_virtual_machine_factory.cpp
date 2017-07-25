@@ -52,3 +52,7 @@ mp::VMImage mp::QemuVirtualMachineFactory::prepare(const mp::VMImage& source_ima
 {
     return source_image;
 }
+
+void mp::QemuVirtualMachineFactory::configure(YAML::Node& cloud_init_config)
+{
+}

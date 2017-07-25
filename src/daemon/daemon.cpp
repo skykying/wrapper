@@ -112,8 +112,6 @@ mp::VirtualMachineDescription to_machine_desc(const mp::CreateRequest* request, 
     const auto disk_size = request->disk_space() <= 0 ? 0u : static_cast<mpvm::MBytes>(request->disk_space());
     const auto instance_dir = base_dir(image.image_path);
     const auto cloud_init_iso = make_cloud_init_image(name, instance_dir, cloud_init_config);
-    qDebug()  << "cloud_init_iso: " << cloud_init_iso;
-
     return {num_cores, mem_size, disk_size, name, image, cloud_init_iso};
 }
 
@@ -265,6 +263,7 @@ try // clang-format on
     auto fetch_type = config->factory->fetch_type();
     auto vm_image = config->vault->fetch_image(fetch_type, query, prepare_action, download_monitor);
     auto cloud_init_config = make_cloud_init_config(*config->ssh_key_provider);
+    config->factory->configure(cloud_init_config);
     auto vm_desc = to_machine_desc(request, name, vm_image, std::move(cloud_init_config));
 
     auto vm = config->factory->create_virtual_machine(vm_desc, *this);

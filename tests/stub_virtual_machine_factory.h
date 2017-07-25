@@ -41,6 +41,10 @@ struct StubVirtualMachineFactory final : public multipass::VirtualMachineFactory
     {
         return source_image;
     }
+
+    void configure(YAML::Node& cloud_init_config) override
+    {
+    }
 };
 
 #endif // MULTIPASS_STUB_VIRTUAL_MACHINE_FACTORY_H

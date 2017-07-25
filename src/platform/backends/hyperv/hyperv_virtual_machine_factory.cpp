@@ -38,3 +38,7 @@ mp::VMImage mp::HyperVVirtualMachineFactory::prepare(const mp::VMImage& source_i
 {
     return source_image;
 }
+
+void mp::HyperVVirtualMachineFactory::configure(YAML::Node& cloud_init_config)
+{
+}
