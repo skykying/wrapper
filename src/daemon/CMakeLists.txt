@@ -33,7 +33,7 @@ target_link_libraries(daemon
   ssh
   Qt5::Core
   Qt5::Network
-  yaml-cpp)
+  yaml)
 
 add_executable(multipassd daemon_main.cpp)
 

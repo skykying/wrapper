@@ -65,12 +65,16 @@ function(generate_grpc_cpp SRCS DEST)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
 endfunction()
 
-list(APPEND gRPC_STATIC_LIBS grpc++ libprotobuf zlibstatic)
-set(gRPC_STATIC_LIBRARIES "${gRPC_STATIC_LIBS}" PARENT_SCOPE)
+add_library(gRPC INTERFACE)
 
-list(APPEND gRPC_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/grpc/include")
-list(APPEND gRPC_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/grpc/third_party/protobuf/src")
-set(gRPC_INCLUDE_DIRS ${gRPC_INCLUDE_DIRS} PARENT_SCOPE)
+target_include_directories(gRPC INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/grpc/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/grpc/third_party/protobuf/src)
+
+target_link_libraries(gRPC INTERFACE
+  grpc++
+  libprotobuf
+  zlibstatic)
 
 # YAML C++
 # Disable tests here to avoid double-including gtest
@@ -79,8 +83,13 @@ option(YAML_CPP_BUILD_CONTRIB OFF)
 
 add_subdirectory(yaml-cpp EXCLUDE_FROM_ALL)
 
-list(APPEND yaml_cpp_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include")
-set(yaml_cpp_INCLUDE_DIRS "${yaml_cpp_INCLUDE_DIRS}" PARENT_SCOPE)
+add_library(yaml INTERFACE)
+
+target_include_directories(yaml INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include)
+
+target_link_libraries(yaml INTERFACE
+  yaml-cpp)
 
 # Hyperkit - MacOS virtualization (via xhyve)
 if (APPLE)
@@ -112,9 +121,6 @@ endif (APPLE)
 
 # Qt Base - Text Wrapper lib taken from QCommandLineParser
 add_subdirectory(qtbase EXCLUDE_FROM_ALL)
-
-list(APPEND wrap_text_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qtbase")
-set(wrap_text_INCLUDE_DIRS "${wrap_text_INCLUDE_DIRS}" PARENT_SCOPE)
 
 # libssh config
 add_subdirectory(libssh EXCLUDE_FROM_ALL)

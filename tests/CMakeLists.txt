@@ -66,7 +66,7 @@ target_link_libraries(multipass_tests
   ssh
   # 3rd-party
   gmock
-  yaml-cpp
+  yaml
 )
 
 add_test(multipass_tests ${EXECUTABLE_OUTPUT_PATH}/multipass_tests)

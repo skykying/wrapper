@@ -20,8 +20,6 @@
 #include <multipass/virtual_machine_description.h>
 #include <multipass/vm_status_monitor.h>
 
-#include <yaml-cpp/yaml.h>
-
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDebug>

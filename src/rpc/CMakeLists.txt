@@ -24,4 +24,4 @@ add_library(rpc STATIC
   ${GRPC_GENERATED_SOURCES})
 
 target_link_libraries(rpc
-  ${gRPC_STATIC_LIBRARIES})
+  gRPC)

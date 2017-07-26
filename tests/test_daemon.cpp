@@ -33,6 +33,8 @@
 #include "stub_virtual_machine_factory.h"
 #include "stub_vm_image_vault.h"
 
+#include <yaml-cpp/yaml.h>
+
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>

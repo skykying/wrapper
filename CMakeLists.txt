@@ -58,14 +58,10 @@ file(MAKE_DIRECTORY ${MULTIPASS_GENERATED_SOURCE_DIR})
 
 include_directories(
   include
-  ${MULTIPASS_GENERATED_SOURCE_DIR}
-  ${gRPC_INCLUDE_DIRS}
-  ${wrap_text_INCLUDE_DIRS}
-  ${yaml_cpp_INCLUDE_DIRS}
-)
+  ${MULTIPASS_GENERATED_SOURCE_DIR})
 
 add_subdirectory(src)
 
 if(MULTIPASS_ENABLE_TESTS)
-    add_subdirectory(tests)
+  add_subdirectory(tests)
 endif()

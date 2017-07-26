@@ -19,5 +19,8 @@ find_package(Qt5Core)
 add_library(wraptext STATIC
             wrap_text.cpp)
 
+target_include_directories(wraptext INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_link_libraries(wraptext
   Qt5::Core)

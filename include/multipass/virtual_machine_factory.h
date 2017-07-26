@@ -24,7 +24,10 @@
 #include <multipass/virtual_machine.h>
 #include <multipass/vm_image.h>
 
-#include <yaml-cpp/yaml.h>
+namespace YAML
+{
+class Node;
+}
 
 namespace multipass
 {

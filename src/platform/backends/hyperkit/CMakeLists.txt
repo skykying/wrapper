@@ -17,5 +17,4 @@ add_library(hyperkit_backend STATIC
   hyperkit_virtual_machine.cpp)
 
 target_link_libraries(hyperkit_backend
-  Qt5::Core
-  yaml-cpp)
+  Qt5::Core)
