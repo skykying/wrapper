@@ -24,16 +24,15 @@ option(MULTIPASS_ENABLE_TESTS "Build tests" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-# Qt config
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5Core)
-find_package(Qt5Network)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 # Needs to be here before we set our own compilation options
 add_subdirectory(3rd-party)
+
+# Qt config
+find_package(Qt5Core)
+find_package(Qt5Network)
 
 execute_process(COMMAND git describe --tags
                 OUTPUT_VARIABLE MULTIPASS_VERSION

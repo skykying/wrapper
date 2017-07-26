@@ -14,6 +14,8 @@
 #
 # Authored by: Chris Townsend <christopher.townsend@canonical.com>
 
+find_package(Qt5Core)
+
 add_library(wraptext STATIC
             wrap_text.cpp)
 

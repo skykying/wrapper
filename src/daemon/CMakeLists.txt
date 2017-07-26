@@ -14,6 +14,8 @@
 #
 # Authored by: Alberto Aguirre <alberto.aguirre@canonical.com>
 
+set(CMAKE_AUTOMOC ON)
+
 add_library(daemon STATIC
   daemon.cpp
   daemon_config.cpp
