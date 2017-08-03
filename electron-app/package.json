@@ -16,7 +16,10 @@
   },
   "build": {
     "extraResources": [
-        { "from": "../src/rpc/multipass.proto", "to": "multipass.proto" }
+      {
+        "from": "../src/rpc/multipass.proto",
+        "to": "multipass.proto"
+      }
     ],
     "linux": {
       "target": "snap"
@@ -24,5 +27,9 @@
     "snap": {
       "grade": "devel"
     }
+  },
+  "dependencies": {
+    "devtron": "^1.4.0",
+    "electron-debug": "^1.2.0"
   }
 }
