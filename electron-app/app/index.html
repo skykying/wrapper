@@ -1,28 +1,127 @@
-<!--
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Multipass</title>
 
- Copyright (C) 2017 Canonical, Ltd.
+  <!-- Bootstrap -->
+  <link href="maverix/maverix-theme/bower_components/bootstrap/less/bootstrap.css" rel="stylesheet">
+  <link href="maverix/maverix-theme/css/maverix.css" rel="stylesheet">
+  <link href="index.css" rel="stylesheet">
+</head>
+<body>
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; version 3.
+<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+<script src="maverix/maverix-theme/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="maverix/maverix-theme/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script>if (window.module) module = window.module;</script>
 
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+<div class="heading-bar">
+  <span class="heading-one">Multipass</span>
+</div>
 
--->
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello Multipass!</title>
-  </head>
-  <body>
-    <h1>Hello Multipass!</h1>
-    <script>require('./index.js')</script>
-  </body>
+<div class="content">
+  <div id="main" class="container-fluid container-maverix">
+
+      <div id="configured" class="row content-block">
+          <div class="col-sm-12">
+              <h2>Configured</h2>
+
+              <div class="table-cell">
+                  <table class="table-maverix table-maverix-large">
+                      <tr>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td colspan=2><p class="info-main">test</p></td>
+                      </tr>
+                      <tr class="selected">
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td colspan=2><p class="info-main">mammoth-afterthought</p></td>
+                      </tr>
+                      <tr>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td colspan=2><p class="info-main">snapcraft-…odyne-jazzwriter-2</p></td>
+                      </tr>
+                      <tr>
+                          <td class="td-icon"><span class="entypo-down-dir"></span></td>
+                          <td class="td-icon"><span class="entypo-trash"></span></td>
+                          <td colspan=2><p class="info-main">Trash</p></td>
+                      </tr>
+                      <tr>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td><p class="info-main">spotty-downtown</p></td>
+                      </tr>
+                      <tr>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td><p class="info-main">mirthfully-stunning-humminbird</p></td>
+                      </tr>
+                  </table>
+              </div>
+          </div>
+          <div class="col-sm-12">
+            <div class="col-sm-12 grey-bg">
+              <div class="btn-group" style="float: left; padding: 5px">
+                <a class="btn btn-primary">Create…</a>
+              </div>
+              <div class="btn-group" style="float: right; padding: 5px">
+                <a class="btn btn-default">Start</a>
+                <a class="btn btn-default">Trash</a>
+              </div>
+            </div>
+          </div>
+
+      </div>
+
+      <div id="running" class="row">
+          <div class="col-sm-12">
+              <h2>Running</h2>
+              <div class="table-cell">
+                  <table class="table table-maverix table-maverix-large">
+                      <tr>
+                          <td class="td-icon"></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td>
+                            <p class="info-main">thoughtful-beginner</p>
+                            <p class="info-sub">195.107.43.154</p>
+                            <p class="info-sub">96c5:e32:cf7e:9d00:3a49:1204:1a96:f39f</p>
+                          </td>
+                      </tr>
+                      <tr>
+                          <td class="td-icon"><span class="entypo-arrows-ccw"></span></td>
+                          <td class="td-icon"><span class="entypo-monitor"></span></td>
+                          <td>
+                            <p class="info-main">barbarous-snail</p>
+                            <p class="info-sub">178.54.133.92</p>
+                            <p class="info-sub">531a:b9b8:fd38:4ebf:b2a0:730a:7c89:4367</p>
+                          </td>
+                      </tr>
+                  </table>
+              </div>
+          </div>
+
+          <div class="col-sm-12">
+            <div class="col-sm-12 grey-bg">
+              <div class="btn-group" style="float: left">
+                <a class="btn disabled">Stop</a>
+              </div>
+              <div class="btn-group" style="float: right">
+                <a class="btn disabled">Details</a>
+                <a class="btn disabled">Connect</a>
+              </div>
+            </div>
+          </div>
+
+      </div>
+
+  </div>
+</div>
+
+</body>
 </html>

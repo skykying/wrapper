@@ -1,0 +1,23 @@
+div.heading-bar, div.content {
+  position: initial;
+}
+
+div#main {
+  width: 90%;
+  display: flex;
+}
+
+div#running, div#configured {
+  flex: 1;
+  margin: 5px;
+}
+
+div.table-cell {
+  height: 400px;
+  margin-bottom: 0;
+}
+
+div.btn-group {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
