@@ -79,6 +79,7 @@ parts:
     plugin: cmake
     build-snaps:
     - cmake
+    #- protobuf
     build-environment:
     - PATH: /snap/bin:$PATH
     build-packages:
@@ -129,6 +130,8 @@ parts:
 
       cd ${SNAPCRAFT_PART_SRC}/3rd-party
       find . -name 'LICENSE*' -print0 | xargs -0 -I FILE install --mode=644 -D --no-target-directory FILE ${SNAPCRAFT_PART_INSTALL}/licenses/FILE
+
+      cp -a /snap/protobuf/current/lib/libprotobuf.so* ${SNAPCRAFT_PART_INSTALL}/lib
 
   qemu:
     plugin: nil
