@@ -111,3 +111,52 @@ def deps_setup():
 	    path = "/usr/include/qt",  # arch
 	    # path = "/usr/include/x86_64-linux-gnu/qt5",  # debian
 	)
+
+	auto_http_archive(
+		name = "fmt",
+		url = "https://github.com/fmtlib/fmt/archive/7.0.2.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/jsoncpp:jsoncpp.BUILD",
+	)
+
+	auto_http_archive(
+		name = "QHotKey",
+		url = "https://github.com/Skycoder42/QHotkey/archive/1.4.1.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/fmt:fmt.BUILD",
+	)
+
+	auto_http_archive(
+		name = "scope_guard",
+		url = "https://github.com/ricab/scope_guard/archive/v0.2.3.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/scope_guard:scope_guard.BUILD",
+	)
+
+	auto_http_archive(
+		name = "semver",
+		url = "https://github.com/zmarko/semver/archive/1.1.0.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/semver:semver.BUILD",
+	)
+
+	auto_http_archive(
+		name = "xz-embedded",
+		url = "https://tukaani.org/xz/xz-embedded-20130513.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/xz-embedded:xz-embedded.BUILD",
+	)
+
+	auto_http_archive(
+		name = "yaml-cpp",
+		url = "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.3.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/yaml-cpp:yaml-cpp.BUILD",
+	)
+
+	auto_http_archive(
+		name = "jsoncpp",
+		url = "https://github.com/open-source-parsers/jsoncpp/archive/1.9.4.tar.gz",
+		sha256 = "781fa39693ec2984c71213cd633e9f6589eaaed75e3a9ac413237edec96fd3b9",
+		build_file = "//thirdparty/jsoncpp:jsoncpp.BUILD",
+	)
